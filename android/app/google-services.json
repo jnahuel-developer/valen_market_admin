@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "952141122398",
+    "project_id": "valen-market-admin-prod",
+    "storage_bucket": "valen-market-admin-prod.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:952141122398:android:02df23fe1d62d5113c5dcf",
+        "android_client_info": {
+          "package_name": "com.valenmarket.admin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCT6luapNT7_RBcKZDWK0EgieXFktiyKo8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,4 +1,4 @@
-package com.example.valen_market_admin
+package com.valenmarket.admin
 
 import io.flutter.embedding.android.FlutterActivity
 

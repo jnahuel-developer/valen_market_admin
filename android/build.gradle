@@ -1,6 +1,12 @@
 buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    
     dependencies {
-        classpath 'com.google.gms:google-services:4.4.0' // Necesario para Firebase
+        classpath 'com.android.tools.build:gradle:8.4.0' // o la que estés usando
+        classpath 'com.google.gms:google-services:4.4.0' // 👈 esta es la que falla si no hay repos
     }
 }
 

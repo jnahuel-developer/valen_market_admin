@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.valenmarket.admin">
+
     <application
         android:label="valen_market_admin"
         android:name="${applicationName}"
