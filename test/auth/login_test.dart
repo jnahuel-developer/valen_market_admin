@@ -5,8 +5,8 @@ void main() {
   final authService = AuthService();
 
   test('Registro y login exitoso', () async {
-    final email = 'test@example.com';
-    final password = 'password123';
+    const email = 'test@example.com';
+    const password = 'password123';
 
     try {
       await authService.register(email, password);

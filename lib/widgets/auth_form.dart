@@ -7,12 +7,12 @@ class AuthForm extends StatelessWidget {
   final String buttonText;
 
   const AuthForm({
-    Key? key,
+    super.key,
     required this.emailController,
     required this.passwordController,
     required this.onSubmit,
     required this.buttonText,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,14 +20,14 @@ class AuthForm extends StatelessWidget {
       children: [
         TextField(
           controller: emailController,
-          decoration: InputDecoration(labelText: 'Email'),
+          decoration: const InputDecoration(labelText: 'Email'),
         ),
         TextField(
           controller: passwordController,
           obscureText: true,
-          decoration: InputDecoration(labelText: 'Contraseña'),
+          decoration: const InputDecoration(labelText: 'Contraseña'),
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
         ElevatedButton(
           onPressed: onSubmit,
           child: Text(buttonText),

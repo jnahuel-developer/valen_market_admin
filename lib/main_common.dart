@@ -15,16 +15,14 @@ Future<void> mainCommon(Environment env) async {
           ? prod.DefaultFirebaseOptions.currentPlatform
           : dev.DefaultFirebaseOptions.currentPlatform,
     );
-    print('✅ Firebase inicializado');
-  } catch (e, s) {
-    print('❌ Error al inicializar Firebase: $e');
-    print('📌 StackTrace:\n$s');
+    //print('✅ Firebase inicializado');
+  } catch (e) {
+    //print('❌ Error al inicializar Firebase: $e');
   }
 
   try {
-    runApp(MyApp());
-  } catch (e, s) {
-    print('❌ Error al iniciar la app: $e');
-    print('📌 StackTrace:\n$s');
+    runApp(const MyApp());
+  } catch (e) {
+    //print('❌ Error al iniciar la app: $e');
   }
 }

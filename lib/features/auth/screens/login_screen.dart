@@ -5,33 +5,35 @@ class LoginScreen extends StatelessWidget {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
+  LoginScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Login")),
+      appBar: AppBar(title: const Text("Login")),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
             TextField(
                 controller: emailController,
-                decoration: InputDecoration(labelText: 'Email')),
+                decoration: const InputDecoration(labelText: 'Email')),
             TextField(
                 controller: passwordController,
-                decoration: InputDecoration(labelText: 'Password'),
+                decoration: const InputDecoration(labelText: 'Password'),
                 obscureText: true),
             ElevatedButton(
               onPressed: () {
                 AuthService()
                     .signIn(emailController.text, passwordController.text);
               },
-              child: Text("Iniciar sesión"),
+              child: const Text("Iniciar sesión"),
             ),
             TextButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/register');
               },
-              child: Text("Crear cuenta"),
+              child: const Text("Crear cuenta"),
             ),
           ],
         ),

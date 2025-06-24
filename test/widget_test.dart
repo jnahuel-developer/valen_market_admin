@@ -3,7 +3,7 @@ import 'package:valen_market_admin/app/app.dart';
 
 void main() {
   testWidgets('La app muestra pantalla de login', (WidgetTester tester) async {
-    await tester.pumpWidget(MyApp());
+    await tester.pumpWidget(const MyApp());
 
     expect(find.text('Iniciar sesión'), findsOneWidget);
     expect(find.text('Registrarse'),

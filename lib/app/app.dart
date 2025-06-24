@@ -1,17 +1,24 @@
 import 'package:flutter/material.dart';
-import '../config/environment.dart';
-import '../features/auth/screens/login_screen.dart';
-import '../features/auth/screens/register_screen.dart';
+import '../features/auth/screens/home_screen.dart';
+import '../features/catalogo/screens/catalogo_screen.dart';
+import '../features/clientes/screens/clientes_screen.dart';
+import '../features/fichas/screens/fichas_screen.dart';
+import '../features/recorrido/screens/recorrido_screen.dart';
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Valen Market Admin',
-      home: LoginScreen(),
+      home: const HomeScreen(), // ← Home directamente
       routes: {
-        '/register': (context) => RegisterScreen(),
-        // Agregá más rutas aquí si hace falta
+        '/home': (_) => const HomeScreen(),
+        '/clientes': (_) => const ClientesScreen(),
+        '/fichas': (_) => const FichasScreen(),
+        '/catalogo': (_) => const CatalogoScreen(),
+        '/recorrido': (_) => const RecorridoScreen(),
       },
     );
   }
