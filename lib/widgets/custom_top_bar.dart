@@ -17,8 +17,8 @@ class CustomTopBar extends StatelessWidget {
           boxShadow: [
             BoxShadow(
               color: AppColors.sombra,
-              offset: Offset(0, 4),
-              blurRadius: 8,
+              offset: Offset(0, 10),
+              blurRadius: 6,
             ),
           ],
         ),
@@ -26,7 +26,7 @@ class CustomTopBar extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             Opacity(
-              opacity: 0.5,
+              opacity: 0.25,
               child: Image.asset(
                 AppAssets.bgMenuSuperior,
                 fit: BoxFit.cover,
@@ -35,27 +35,27 @@ class CustomTopBar extends StatelessWidget {
             Align(
               alignment: Alignment.topCenter,
               child: Padding(
-                padding: const EdgeInsets.only(top: 60),
+                padding: const EdgeInsets.only(top: 40),
                 child: Stack(
                   children: [
                     Text(
                       title.toUpperCase(),
                       style: TextStyle(
-                        fontSize: 40,
+                        fontSize: 35,
                         fontWeight: FontWeight.bold,
-                        letterSpacing: 4.0,
+                        letterSpacing: 8.0,
                         foreground: Paint()
                           ..style = PaintingStyle.stroke
-                          ..strokeWidth = 3
+                          ..strokeWidth = 5
                           ..color = AppColors.azul,
                       ),
                     ),
                     Text(
                       title.toUpperCase(),
                       style: const TextStyle(
-                        fontSize: 40,
+                        fontSize: 35,
                         fontWeight: FontWeight.bold,
-                        letterSpacing: 4.0,
+                        letterSpacing: 8.0,
                         color: AppColors.amarillo,
                       ),
                     ),

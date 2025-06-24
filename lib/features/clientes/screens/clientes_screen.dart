@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:valen_market_admin/constants/assets.dart';
 import 'package:valen_market_admin/widgets/custom_bottom_navbar.dart';
+import 'package:valen_market_admin/widgets/custom_home_button.dart';
 import 'package:valen_market_admin/widgets/custom_top_bar.dart';
 
 class ClientesScreen extends StatelessWidget {
@@ -21,6 +22,24 @@ class ClientesScreen extends StatelessWidget {
             ),
           ),
           const CustomTopBar(title: 'CLIENTES'),
+          Positioned.fill(
+            top: 130,
+            child: Column(
+              children: [
+                CustomHomeButton(
+                  iconPath: AppAssets.iconAdd,
+                  text: 'Agregar',
+                  onTap: () {}, // definir comportamiento
+                ),
+                const SizedBox(height: 40),
+                CustomHomeButton(
+                  iconPath: AppAssets.iconSearch,
+                  text: 'Buscar',
+                  onTap: () {}, // definir comportamiento
+                ),
+              ],
+            ),
+          ),
           const Align(
             alignment: Alignment.bottomCenter,
             child: CustomBottomNavBar(),

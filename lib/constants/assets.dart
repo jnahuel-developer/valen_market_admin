@@ -13,4 +13,13 @@ class AppAssets {
   static const iconTicket = 'assets/icons/ticket.svg';
   static const iconHome = 'assets/icons/home.svg';
   static const iconCart = 'assets/icons/cart.svg';
+
+  static const iconAdd = 'assets/icons/add.svg';
+  static const iconCar = 'assets/icons/car.svg';
+  static const iconEdit = 'assets/icons/edit.svg';
+  static const iconEye = 'assets/icons/eye.svg';
+  static const iconPromotion = 'assets/icons/promotion.svg';
+  static const iconStatistic = 'assets/icons/statistic.svg';
+  static const iconMoney = 'assets/icons/money.svg';
+  static const iconSearch = 'assets/icons/search.svg';
 }
