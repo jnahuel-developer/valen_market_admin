@@ -1,0 +1,26 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class ClientesServiciosFirebase {
+  static final CollectionReference _clientesRef =
+      FirebaseFirestore.instance.collection('BDD_Clientes');
+
+  /// Agrega un nuevo cliente a la base de datos.
+  static Future<void> agregarClienteABDD({
+    required String nombre,
+    required String apellido,
+    required String direccion,
+    required String telefono,
+  }) async {
+    try {
+      await _clientesRef.add({
+        'Nombre': nombre.trim(),
+        'Apellido': apellido.trim(),
+        'Dirección': direccion.trim(),
+        'Teléfono': telefono.trim(),
+        'CantidadDeProductosComprados': 0,
+      });
+    } catch (e) {
+      throw Exception('Error al agregar cliente: $e');
+    }
+  }
+}
