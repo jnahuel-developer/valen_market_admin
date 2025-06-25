@@ -1,43 +1,67 @@
 import 'package:flutter/material.dart';
 import 'package:valen_market_admin/constants/assets.dart';
+import 'package:valen_market_admin/constants/app_colors.dart';
+import 'package:valen_market_admin/features/clientes/services/clientes_servicios_firebase.dart';
 import 'package:valen_market_admin/widgets/custom_bottom_navbar.dart';
 import 'package:valen_market_admin/widgets/custom_info_card.dart';
 import 'package:valen_market_admin/widgets/custom_simple_information.dart';
 import 'package:valen_market_admin/widgets/custom_top_bar.dart';
+import 'package:valen_market_admin/widgets/custom_opciones_desplegables.dart';
 
-class BuscarClienteScreen extends StatelessWidget {
+class BuscarClienteScreen extends StatefulWidget {
   const BuscarClienteScreen({super.key});
 
   @override
+  State<BuscarClienteScreen> createState() => _BuscarClienteScreenState();
+}
+
+class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
+  final TextEditingController nombreBusquedaController =
+      TextEditingController();
+
+  // Controladores para los datos visuales del cliente
+  final TextEditingController nombreClienteController = TextEditingController();
+  final TextEditingController apellidoClienteController =
+      TextEditingController();
+  final TextEditingController direccionClienteController =
+      TextEditingController();
+  final TextEditingController telefonoClienteController =
+      TextEditingController();
+  final TextEditingController zonaClienteController = TextEditingController();
+
+  String? nombreSeleccionado;
+  List<String> nombresClientes = [];
+
+  @override
+  void initState() {
+    super.initState();
+    cargarNombresDeClientes();
+  }
+
+  Future<void> cargarNombresDeClientes() async {
+    final nombres = await ClientesServiciosFirebase.obtenerNombresDeClientes();
+    setState(() {
+      nombresClientes = nombres;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Controladores para búsqueda
-    final TextEditingController nombreBusquedaController =
-        TextEditingController();
-    final TextEditingController numeroBusquedaController =
-        TextEditingController();
-
-    // Controladores para los datos visuales del cliente
-    final TextEditingController nombreClienteController =
-        TextEditingController();
-    final TextEditingController apellidoClienteController =
-        TextEditingController();
-    final TextEditingController direccionClienteController =
-        TextEditingController();
-    final TextEditingController telefonoClienteController =
-        TextEditingController();
-    final TextEditingController zonaClienteController = TextEditingController();
-
     return Scaffold(
       body: Stack(
         children: [
           // Imagen de fondo de la pantalla
-          Opacity(
-            opacity: 0.5,
-            child: Image.asset(
-              AppAssets.bgClientes,
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: double.infinity,
+          Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage(AppAssets.bgClientes),
+                fit: BoxFit.cover,
+              ),
+            ),
+            foregroundDecoration: const BoxDecoration(
+              color: AppColors.blancoTraslucido,
             ),
           ),
 
@@ -60,9 +84,14 @@ class BuscarClienteScreen extends StatelessWidget {
                         label: 'Nombre',
                         controller: nombreBusquedaController,
                       ),
-                      CustomSimpleInformation(
-                        label: 'Número',
-                        controller: numeroBusquedaController,
+                      CustomOpcionesDesplegables(
+                        valorSeleccionado: nombreSeleccionado,
+                        opciones: nombresClientes,
+                        onChanged: (nuevoValor) {
+                          setState(() {
+                            nombreSeleccionado = nuevoValor;
+                          });
+                        },
                       ),
                     ],
                   ),
@@ -70,7 +99,7 @@ class BuscarClienteScreen extends StatelessWidget {
 
                 const SizedBox(height: 50),
 
-                /// Bloque 2: Datos del cliente
+                /// Bloque 2: Datos del cliente (por ahora visual)
                 Center(
                   child: CustomInfoCard(
                     title: 'Datos del cliente',

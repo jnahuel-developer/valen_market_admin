@@ -23,4 +23,30 @@ class ClientesServiciosFirebase {
       throw Exception('Error al agregar cliente: $e');
     }
   }
+
+  /// Obtiene todos los clientes de la base de datos como una lista de mapas.
+  static Future<List<Map<String, dynamic>>> obtenerTodosLosClientes() async {
+    try {
+      final snapshot = await _clientesRef.get();
+      return snapshot.docs
+          .map((doc) => doc.data() as Map<String, dynamic>)
+          .toList();
+    } catch (e) {
+      throw Exception('Error al obtener los clientes: $e');
+    }
+  }
+
+  /// Obtiene todos los nombres de los clientes desde la base de datos.
+  static Future<List<String>> obtenerNombresDeClientes() async {
+    try {
+      final snapshot = await _clientesRef.get();
+      return snapshot.docs
+          .map((doc) => doc.data() as Map<String, dynamic>?)
+          .where((data) => data != null && data.containsKey('Nombre'))
+          .map((data) => (data!['Nombre'] as String).trim())
+          .toList();
+    } catch (e) {
+      throw Exception('Error al obtener nombres de clientes: $e');
+    }
+  }
 }
