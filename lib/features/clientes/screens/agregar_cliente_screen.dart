@@ -68,6 +68,7 @@ class _AgregarClienteScreenState extends State<AgregarClienteScreen> {
     return Scaffold(
       body: Stack(
         children: [
+          // Imagen de fondo de la pantalla
           Opacity(
             opacity: 0.5,
             child: Image.asset(
@@ -77,23 +78,38 @@ class _AgregarClienteScreenState extends State<AgregarClienteScreen> {
               height: double.infinity,
             ),
           ),
+
+          // Menú superior
           const CustomTopBar(title: 'Agregar Cliente'),
-          Align(
-            alignment: Alignment.topCenter,
-            child: CustomInfoCard(
-              title: 'DATOS DEL CLIENTE',
+
+          // Cuerpo principal
+          Padding(
+            padding: const EdgeInsets.only(top: 130, bottom: 80),
+            child: Column(
               children: [
-                CustomSimpleInformation(
-                    label: 'Nombre', controller: nombreController),
-                CustomSimpleInformation(
-                    label: 'Apellido', controller: apellidoController),
-                CustomSimpleInformation(
-                    label: 'Dirección', controller: direccionController),
-                CustomSimpleInformation(
-                    label: 'Teléfono', controller: telefonoController),
+                /// Bloque 1: Datos para buscar
+                Center(
+                  child: CustomInfoCard(
+                    title: 'DATOS DEL CLIENTE',
+                    height: 550,
+                    width: 400,
+                    children: [
+                      CustomSimpleInformation(
+                          label: 'Nombre', controller: nombreController),
+                      CustomSimpleInformation(
+                          label: 'Apellido', controller: apellidoController),
+                      CustomSimpleInformation(
+                          label: 'Dirección', controller: direccionController),
+                      CustomSimpleInformation(
+                          label: 'Teléfono', controller: telefonoController),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
+
+          // Boton para agregar clientes a la BBDD
           Positioned(
             top: 750,
             left: 0,
@@ -105,6 +121,8 @@ class _AgregarClienteScreenState extends State<AgregarClienteScreen> {
               ),
             ),
           ),
+
+          // Menú inferior
           const Align(
             alignment: Alignment.bottomCenter,
             child: CustomBottomNavBar(),

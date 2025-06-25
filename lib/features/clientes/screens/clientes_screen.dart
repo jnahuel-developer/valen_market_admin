@@ -36,7 +36,9 @@ class ClientesScreen extends StatelessWidget {
                 CustomHomeButton(
                   iconPath: AppAssets.iconSearch,
                   text: 'Buscar',
-                  onTap: () {}, // definir comportamiento
+                  onTap: () {
+                    Navigator.pushNamed(context, 'BuscarCliente');
+                  },
                 ),
               ],
             ),

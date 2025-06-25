@@ -21,9 +21,10 @@ class CustomSimpleInformation extends StatelessWidget {
           SizedBox(
             width: 100,
             child: Text(
-              label,
+              label.toUpperCase(),
               style: const TextStyle(
-                fontSize: 20,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
                 color: Colors.black,
               ),
             ),
@@ -34,7 +35,7 @@ class CustomSimpleInformation extends StatelessWidget {
             height: 50,
             decoration: BoxDecoration(
               color: Colors.white,
-              border: Border.all(color: Colors.black),
+              border: Border.all(color: Colors.black, width: 2),
               borderRadius: BorderRadius.circular(20),
             ),
             alignment: Alignment.center,
