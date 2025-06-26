@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+
 import 'app/app.dart';
 import 'config/environment.dart';
 import 'config/firebase_options_dev.dart' as dev;
@@ -7,22 +8,17 @@ import 'config/firebase_options_prod.dart' as prod;
 
 Future<void> mainCommon(Environment env) async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Setea el entorno actual (dev o prod)
   AppConfig.environment = env;
 
-  try {
-    await Firebase.initializeApp(
-      options: env == Environment.prod
-          ? prod.DefaultFirebaseOptions.currentPlatform
-          : dev.DefaultFirebaseOptions.currentPlatform,
-    );
-    //print('✅ Firebase inicializado');
-  } catch (e) {
-    //print('❌ Error al inicializar Firebase: $e');
-  }
+  // Inicializa Firebase según entorno
+  await Firebase.initializeApp(
+    options: env == Environment.prod
+        ? prod.DefaultFirebaseOptions.currentPlatform
+        : dev.DefaultFirebaseOptions.currentPlatform,
+  );
 
-  try {
-    runApp(const MyApp());
-  } catch (e) {
-    //print('❌ Error al iniciar la app: $e');
-  }
+  // Lanza la aplicación
+  runApp(const MyApp());
 }

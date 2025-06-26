@@ -27,15 +27,18 @@ class ClientesScreen extends StatelessWidget {
             child: Column(
               children: [
                 CustomHomeButton(
-                  iconPath: AppAssets.iconAdd,
-                  text: 'Agregar',
-                  onTap: () {}, // definir comportamiento
-                ),
+                    iconPath: AppAssets.iconAdd,
+                    text: 'Agregar',
+                    onTap: () {
+                      Navigator.pushNamed(context, '/agregar_cliente');
+                    }),
                 const SizedBox(height: 40),
                 CustomHomeButton(
                   iconPath: AppAssets.iconSearch,
                   text: 'Buscar',
-                  onTap: () {}, // definir comportamiento
+                  onTap: () {
+                    Navigator.pushNamed(context, 'BuscarCliente');
+                  },
                 ),
               ],
             ),

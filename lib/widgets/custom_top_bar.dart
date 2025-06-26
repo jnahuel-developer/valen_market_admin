@@ -40,25 +40,21 @@ class CustomTopBar extends StatelessWidget {
                   children: [
                     Text(
                       title.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 35,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 8.0,
-                        foreground: Paint()
-                          ..style = PaintingStyle.stroke
-                          ..strokeWidth = 5
-                          ..color = AppColors.azul,
-                      ),
-                    ),
-                    Text(
-                      title.toUpperCase(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 35,
                         fontWeight: FontWeight.bold,
-                        letterSpacing: 8.0,
                         color: AppColors.amarillo,
+                        shadows: [
+                          Shadow(color: AppColors.azul, offset: Offset(-2, -2)),
+                          Shadow(color: AppColors.azul, offset: Offset(2, -2)),
+                          Shadow(color: AppColors.azul, offset: Offset(2, 2)),
+                          Shadow(color: AppColors.azul, offset: Offset(-2, 2)),
+                        ],
                       ),
-                    ),
+                    )
                   ],
                 ),
               ),
