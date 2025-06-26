@@ -13,10 +13,10 @@ class ClientesServiciosFirebase {
   }) async {
     try {
       await _clientesRef.add({
-        'Nombre': nombre.trim(),
-        'Apellido': apellido.trim(),
-        'Dirección': direccion.trim(),
-        'Teléfono': telefono.trim(),
+        'Nombre': nombre.trim().toLowerCase(),
+        'Apellido': apellido.trim().toLowerCase(),
+        'Dirección': direccion.trim().toLowerCase(),
+        'Teléfono': telefono.trim().toLowerCase(),
         'CantidadDeProductosComprados': 0,
       });
     } catch (e) {
@@ -47,6 +47,31 @@ class ClientesServiciosFirebase {
           .toList();
     } catch (e) {
       throw Exception('Error al obtener nombres de clientes: $e');
+    }
+  }
+
+  /// Obtiene un cliente según su nombre (primera coincidencia exacta, insensible a mayúsculas).
+  static Future<Map<String, dynamic>?> obtenerClientePorNombre(
+      String nombre) async {
+    try {
+      final snapshot =
+          await _clientesRef.where('Nombre', isEqualTo: nombre).get();
+
+      for (final doc in snapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>?;
+
+        if (data != null &&
+            data.containsKey('Nombre') &&
+            data.containsKey('Apellido') &&
+            data.containsKey('Dirección') &&
+            data.containsKey('Teléfono')) {
+          return data;
+        }
+      }
+
+      return null; // No se encontró un cliente válido
+    } catch (e) {
+      throw Exception('Error al obtener el cliente: $e');
     }
   }
 }

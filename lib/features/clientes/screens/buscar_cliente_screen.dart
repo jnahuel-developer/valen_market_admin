@@ -18,8 +18,9 @@ class BuscarClienteScreen extends StatefulWidget {
 class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
   final TextEditingController nombreBusquedaController =
       TextEditingController();
+  final TextEditingController numeroBusquedaController =
+      TextEditingController();
 
-  // Controladores para los datos visuales del cliente
   final TextEditingController nombreClienteController = TextEditingController();
   final TextEditingController apellidoClienteController =
       TextEditingController();
@@ -29,8 +30,8 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
       TextEditingController();
   final TextEditingController zonaClienteController = TextEditingController();
 
-  String? nombreSeleccionado;
   List<String> nombresClientes = [];
+  String? nombreSeleccionado;
 
   @override
   void initState() {
@@ -39,10 +40,33 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
   }
 
   Future<void> cargarNombresDeClientes() async {
-    final nombres = await ClientesServiciosFirebase.obtenerNombresDeClientes();
-    setState(() {
-      nombresClientes = nombres;
-    });
+    try {
+      final nombres =
+          await ClientesServiciosFirebase.obtenerNombresDeClientes();
+      setState(() {
+        nombresClientes = nombres;
+      });
+    } catch (e) {
+      debugPrint('Error al cargar nombres: $e');
+    }
+  }
+
+  Future<void> cargarDatosDelCliente(String nombre) async {
+    try {
+      final datos =
+          await ClientesServiciosFirebase.obtenerClientePorNombre(nombre);
+      if (datos != null) {
+        setState(() {
+          nombreClienteController.text = datos['Nombre'];
+          apellidoClienteController.text = datos['Apellido'];
+          direccionClienteController.text = datos['Dirección'];
+          telefonoClienteController.text = datos['Teléfono'];
+          zonaClienteController.text = datos['Zona'];
+        });
+      }
+    } catch (e) {
+      debugPrint('Error al cargar datos del cliente: $e');
+    }
   }
 
   @override
@@ -50,19 +74,14 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Imagen de fondo de la pantalla
-          Container(
+          // Imagen de fondo
+          Image.asset(
+            AppAssets.bgClientes,
+            fit: BoxFit.cover,
             width: double.infinity,
             height: double.infinity,
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage(AppAssets.bgClientes),
-                fit: BoxFit.cover,
-              ),
-            ),
-            foregroundDecoration: const BoxDecoration(
-              color: AppColors.blancoTraslucido,
-            ),
+            color: AppColors.blancoTraslucido,
+            colorBlendMode: BlendMode.srcOver,
           ),
 
           // Menú superior
@@ -71,65 +90,101 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
           // Cuerpo principal
           Padding(
             padding: const EdgeInsets.only(top: 130, bottom: 80),
-            child: Column(
-              children: [
-                /// Bloque 1: Datos para buscar
-                Center(
-                  child: CustomInfoCard(
-                    title: 'Datos para buscar',
-                    height: 200,
-                    width: 400,
-                    children: [
-                      CustomSimpleInformation(
-                        label: 'Nombre',
-                        controller: nombreBusquedaController,
-                      ),
-                      CustomOpcionesDesplegables(
-                        valorSeleccionado: nombreSeleccionado,
-                        opciones: nombresClientes,
-                        onChanged: (nuevoValor) {
-                          setState(() {
-                            nombreSeleccionado = nuevoValor;
-                          });
-                        },
-                      ),
-                    ],
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  /// Bloque 1: Datos para buscar
+                  Center(
+                    child: CustomInfoCard(
+                      title: 'Datos para buscar',
+                      height: 200,
+                      width: 400,
+                      children: [
+                        CustomSimpleInformation(
+                          label: 'Nombre',
+                          controller: nombreBusquedaController,
+                        ),
+                        // MENÚ DESPLEGABLE para seleccionar nombre
+                        Container(
+                          width: 350,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: AppColors.negroSuave,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Center(
+                            child: DropdownButton<String>(
+                              value: nombreSeleccionado,
+                              hint: const Text(
+                                'Seleccionar nombre...',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              dropdownColor: AppColors.negroSuave,
+                              iconEnabledColor: Colors.white,
+                              isExpanded: true,
+                              underline: const SizedBox(),
+                              onChanged: (String? newValue) {
+                                if (newValue != null) {
+                                  setState(() {
+                                    nombreSeleccionado = newValue;
+                                  });
+                                  print('🟡 Seleccionado: $newValue');
+                                  cargarDatosDelCliente(newValue);
+                                }
+                              },
+                              items: nombresClientes.map((String nombre) {
+                                return DropdownMenuItem<String>(
+                                  value: nombre,
+                                  child: Center(
+                                    child: Text(
+                                      nombre,
+                                      style: const TextStyle(
+                                          color: Colors.white, fontSize: 16),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
 
-                const SizedBox(height: 50),
+                  const SizedBox(height: 50),
 
-                /// Bloque 2: Datos del cliente (por ahora visual)
-                Center(
-                  child: CustomInfoCard(
-                    title: 'Datos del cliente',
-                    height: 400,
-                    width: 400,
-                    children: [
-                      CustomSimpleInformation(
-                        label: 'Nombre',
-                        controller: nombreClienteController,
-                      ),
-                      CustomSimpleInformation(
-                        label: 'Apellido',
-                        controller: apellidoClienteController,
-                      ),
-                      CustomSimpleInformation(
-                        label: 'Dirección',
-                        controller: direccionClienteController,
-                      ),
-                      CustomSimpleInformation(
-                        label: 'Teléfono',
-                        controller: telefonoClienteController,
-                      ),
-                      CustomSimpleInformation(
-                        label: 'Zona',
-                        controller: zonaClienteController,
-                      ),
-                    ],
+                  /// Bloque 2: Datos del cliente
+                  Center(
+                    child: CustomInfoCard(
+                      title: 'Datos del cliente',
+                      height: 400,
+                      width: 400,
+                      children: [
+                        CustomSimpleInformation(
+                          label: 'Nombre',
+                          controller: nombreClienteController,
+                        ),
+                        CustomSimpleInformation(
+                          label: 'Apellido',
+                          controller: apellidoClienteController,
+                        ),
+                        CustomSimpleInformation(
+                          label: 'Dirección',
+                          controller: direccionClienteController,
+                        ),
+                        CustomSimpleInformation(
+                          label: 'Teléfono',
+                          controller: telefonoClienteController,
+                        ),
+                        CustomSimpleInformation(
+                          label: 'Zona',
+                          controller: zonaClienteController,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
 
