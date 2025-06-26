@@ -36,21 +36,51 @@ class ClientesServiciosFirebase {
     }
   }
 
-  /// Obtiene todos los nombres de los clientes desde la base de datos.
-  static Future<List<String>> obtenerNombresDeClientes() async {
+  /// Obtiene todos los nombres de los clientes como combinaciones Nombre + Apellido con su ID.
+  static Future<List<Map<String, dynamic>>>
+      obtenerNombresCompletosConId() async {
     try {
       final snapshot = await _clientesRef.get();
-      return snapshot.docs
-          .map((doc) => doc.data() as Map<String, dynamic>?)
-          .where((data) => data != null && data.containsKey('Nombre'))
-          .map((data) => (data!['Nombre'] as String).trim())
-          .toList();
+
+      return snapshot.docs.where((doc) {
+        final data = doc.data() as Map<String, dynamic>?;
+        return data != null &&
+            data.containsKey('Nombre') &&
+            data.containsKey('Apellido');
+      }).map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        final nombre = (data['Nombre'] as String).trim();
+        final apellido = (data['Apellido'] as String).trim();
+        return {
+          'id': doc.id,
+          'nombreCompleto': '$nombre $apellido',
+        };
+      }).toList();
     } catch (e) {
-      throw Exception('Error al obtener nombres de clientes: $e');
+      throw Exception('Error al obtener nombres completos: $e');
     }
   }
 
-  /// Obtiene un cliente según su nombre (primera coincidencia exacta, insensible a mayúsculas).
+  /// Obtiene un cliente por ID del documento.
+  static Future<Map<String, dynamic>?> obtenerClientePorId(String id) async {
+    try {
+      final doc = await _clientesRef.doc(id).get();
+      final data = doc.data() as Map<String, dynamic>?;
+
+      if (data != null &&
+          data.containsKey('Nombre') &&
+          data.containsKey('Apellido') &&
+          data.containsKey('Dirección') &&
+          data.containsKey('Teléfono')) {
+        return data;
+      }
+      return null;
+    } catch (e) {
+      throw Exception('Error al obtener cliente por ID: $e');
+    }
+  }
+
+  /// Mantiene método anterior por si se requiere búsqueda por nombre exacto
   static Future<Map<String, dynamic>?> obtenerClientePorNombre(
       String nombre) async {
     try {
@@ -69,9 +99,36 @@ class ClientesServiciosFirebase {
         }
       }
 
-      return null; // No se encontró un cliente válido
+      return null;
     } catch (e) {
       throw Exception('Error al obtener el cliente: $e');
+    }
+  }
+
+  static Future<void> actualizarClientePorId(
+    String id, {
+    required String nombre,
+    required String apellido,
+    required String direccion,
+    required String telefono,
+  }) async {
+    try {
+      await _clientesRef.doc(id).update({
+        'Nombre': nombre,
+        'Apellido': apellido,
+        'Dirección': direccion,
+        'Teléfono': telefono,
+      });
+    } catch (e) {
+      throw Exception('Error al actualizar cliente: $e');
+    }
+  }
+
+  static Future<void> eliminarClientePorId(String id) async {
+    try {
+      await _clientesRef.doc(id).delete();
+    } catch (e) {
+      throw Exception('Error al eliminar cliente: $e');
     }
   }
 }

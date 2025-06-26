@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:valen_market_admin/constants/assets.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
 import 'package:valen_market_admin/features/clientes/services/clientes_servicios_firebase.dart';
+import 'package:valen_market_admin/widgets/custom_big_button.dart';
 import 'package:valen_market_admin/widgets/custom_bottom_navbar.dart';
 import 'package:valen_market_admin/widgets/custom_info_card.dart';
 import 'package:valen_market_admin/widgets/custom_simple_information.dart';
 import 'package:valen_market_admin/widgets/custom_top_bar.dart';
-import 'package:valen_market_admin/widgets/custom_opciones_desplegables.dart';
 
 class BuscarClienteScreen extends StatefulWidget {
   const BuscarClienteScreen({super.key});
@@ -30,42 +30,146 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
       TextEditingController();
   final TextEditingController zonaClienteController = TextEditingController();
 
-  List<String> nombresClientes = [];
-  String? nombreSeleccionado;
+  List<Map<String, String>> clientes = [];
+  String? idSeleccionado;
 
   @override
   void initState() {
     super.initState();
-    cargarNombresDeClientes();
+    cargarNombresClientes();
   }
 
-  Future<void> cargarNombresDeClientes() async {
+  Future<void> cargarNombresClientes() async {
     try {
-      final nombres =
-          await ClientesServiciosFirebase.obtenerNombresDeClientes();
+      final data =
+          await ClientesServiciosFirebase.obtenerNombresCompletosConId();
       setState(() {
-        nombresClientes = nombres;
+        clientes = data
+            .map((e) => {
+                  'id': e['id'].toString(),
+                  'nombreCompleto': e['nombreCompleto'].toString(),
+                })
+            .toList();
       });
     } catch (e) {
-      debugPrint('Error al cargar nombres: $e');
+      debugPrint('❌ Error al cargar nombres: $e');
     }
   }
 
-  Future<void> cargarDatosDelCliente(String nombre) async {
+  Future<void> cargarDatosClientePorId(String id) async {
     try {
-      final datos =
-          await ClientesServiciosFirebase.obtenerClientePorNombre(nombre);
+      final datos = await ClientesServiciosFirebase.obtenerClientePorId(id);
       if (datos != null) {
         setState(() {
           nombreClienteController.text = datos['Nombre'];
           apellidoClienteController.text = datos['Apellido'];
           direccionClienteController.text = datos['Dirección'];
           telefonoClienteController.text = datos['Teléfono'];
-          zonaClienteController.text = datos['Zona'];
+          zonaClienteController.text =
+              datos.containsKey('Zona') ? datos['Zona'] : '';
         });
       }
     } catch (e) {
-      debugPrint('Error al cargar datos del cliente: $e');
+      debugPrint('❌ Error al cargar cliente por ID: $e');
+    }
+  }
+
+  void _handleEditar() async {
+    if (idSeleccionado == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Debe seleccionar un cliente para editar.')),
+      );
+      return;
+    }
+
+    final nombre = nombreClienteController.text.trim().toLowerCase();
+    final apellido = apellidoClienteController.text.trim().toLowerCase();
+    final direccion = direccionClienteController.text.trim().toLowerCase();
+    final telefono = telefonoClienteController.text.trim().toLowerCase();
+
+    if (nombre.isEmpty ||
+        apellido.isEmpty ||
+        direccion.isEmpty ||
+        telefono.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Todos los campos deben estar completos.')),
+      );
+      return;
+    }
+
+    try {
+      await ClientesServiciosFirebase.actualizarClientePorId(
+        idSeleccionado!,
+        nombre: nombre,
+        apellido: apellido,
+        direccion: direccion,
+        telefono: telefono,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cliente actualizado correctamente.')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al actualizar el cliente: $e')),
+      );
+    }
+  }
+
+  void _handleEliminar() async {
+    if (idSeleccionado == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Debe seleccionar un cliente para eliminar.')),
+      );
+      return;
+    }
+
+    final confirmacion = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar eliminación'),
+        content: const Text(
+            '¿Está seguro que desea eliminar este cliente? Esta acción no se puede deshacer.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmacion != true) return;
+
+    try {
+      await ClientesServiciosFirebase.eliminarClientePorId(idSeleccionado!);
+
+      // Limpia campos y actualiza lista
+      setState(() {
+        idSeleccionado = null;
+        nombreClienteController.clear();
+        apellidoClienteController.clear();
+        direccionClienteController.clear();
+        telefonoClienteController.clear();
+        zonaClienteController.clear();
+      });
+
+      await cargarNombresClientes();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cliente eliminado correctamente.')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al eliminar el cliente: $e')),
+      );
     }
   }
 
@@ -74,7 +178,7 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Imagen de fondo
+          // Fondo
           Image.asset(
             AppAssets.bgClientes,
             fit: BoxFit.cover,
@@ -87,7 +191,7 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
           // Menú superior
           const CustomTopBar(title: 'BUSCAR CLIENTES'),
 
-          // Cuerpo principal
+          // Cuerpo
           Padding(
             padding: const EdgeInsets.only(top: 130, bottom: 80),
             child: SingleChildScrollView(
@@ -97,14 +201,17 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
                   Center(
                     child: CustomInfoCard(
                       title: 'Datos para buscar',
-                      height: 200,
                       width: 400,
+                      height: 200,
                       children: [
                         CustomSimpleInformation(
                           label: 'Nombre',
                           controller: nombreBusquedaController,
                         ),
-                        // MENÚ DESPLEGABLE para seleccionar nombre
+
+                        const SizedBox(height: 5),
+
+                        // Menú desplegable
                         Container(
                           width: 350,
                           height: 50,
@@ -112,34 +219,34 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
                             color: AppColors.negroSuave,
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: Center(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: DropdownButtonHideUnderline(
                             child: DropdownButton<String>(
-                              value: nombreSeleccionado,
+                              value: idSeleccionado,
+                              isExpanded: true,
                               hint: const Text(
-                                'Seleccionar nombre...',
+                                'Seleccionar cliente...',
                                 style: TextStyle(color: Colors.white),
                               ),
                               dropdownColor: AppColors.negroSuave,
                               iconEnabledColor: Colors.white,
-                              isExpanded: true,
-                              underline: const SizedBox(),
-                              onChanged: (String? newValue) {
-                                if (newValue != null) {
+                              style: const TextStyle(color: Colors.white),
+                              onChanged: (String? newId) {
+                                if (newId != null) {
                                   setState(() {
-                                    nombreSeleccionado = newValue;
+                                    idSeleccionado = newId;
                                   });
-                                  print('🟡 Seleccionado: $newValue');
-                                  cargarDatosDelCliente(newValue);
+                                  cargarDatosClientePorId(newId);
                                 }
                               },
-                              items: nombresClientes.map((String nombre) {
+                              items: clientes.map((cliente) {
                                 return DropdownMenuItem<String>(
-                                  value: nombre,
+                                  value: cliente['id'],
                                   child: Center(
                                     child: Text(
-                                      nombre,
-                                      style: const TextStyle(
-                                          color: Colors.white, fontSize: 16),
+                                      cliente['nombreCompleto']!.toUpperCase(),
+                                      style:
+                                          const TextStyle(color: Colors.white),
                                     ),
                                   ),
                                 );
@@ -151,14 +258,14 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 50),
+                  const SizedBox(height: 30),
 
                   /// Bloque 2: Datos del cliente
                   Center(
                     child: CustomInfoCard(
                       title: 'Datos del cliente',
-                      height: 400,
                       width: 400,
+                      height: 300,
                       children: [
                         CustomSimpleInformation(
                           label: 'Nombre',
@@ -176,11 +283,25 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
                           label: 'Teléfono',
                           controller: telefonoClienteController,
                         ),
-                        CustomSimpleInformation(
-                          label: 'Zona',
-                          controller: zonaClienteController,
-                        ),
                       ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  Center(
+                    child: CustomBigButton(
+                      text: 'Modificar',
+                      onTap: _handleEditar,
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  Center(
+                    child: CustomBigButton(
+                      text: 'Eliminar',
+                      onTap: _handleEliminar,
                     ),
                   ),
                 ],
