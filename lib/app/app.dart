@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../features/auth/screens/home_screen.dart';
+import '../features/home/screens/home_screen.dart';
 import '../features/catalogo/screens/catalogo_screen.dart';
 import '../features/clientes/screens/clientes_screen.dart';
 import '../features/clientes/screens/agregar_cliente_screen.dart';
