@@ -1,0 +1,1 @@
+flutter drive --driver integration_test/driver.dart --target integration_test/clientes_crud_test.dart --flavor dev
