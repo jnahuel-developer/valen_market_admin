@@ -6,21 +6,26 @@ class CustomHomeButton extends StatelessWidget {
   final String iconPath;
   final String text;
   final VoidCallback? onTap;
+  final Key? fieldKey;
 
   const CustomHomeButton({
     super.key,
     required this.iconPath,
     required this.text,
     this.onTap,
+    this.fieldKey,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
+      key: fieldKey,
       child: Container(
         width: 390,
         height: 70,
+
+        // Recuadro azul con bordes amarillos
         decoration: BoxDecoration(
           color: AppColors.azul,
           borderRadius: BorderRadius.circular(20),
@@ -29,6 +34,8 @@ class CustomHomeButton extends StatelessWidget {
         child: Row(
           children: [
             const SizedBox(width: 25),
+
+            // Ícono a mostrar
             SvgPicture.asset(
               iconPath,
               width: 25,
@@ -36,7 +43,11 @@ class CustomHomeButton extends StatelessWidget {
               colorFilter:
                   const ColorFilter.mode(AppColors.amarillo, BlendMode.srcIn),
             ),
-            const SizedBox(width: 20), // espacio entre ícono y texto
+
+            // Espacio entre ícono y texto
+            const SizedBox(width: 20),
+
+            // Texto a mostrar
             Text(
               text.toUpperCase(),
               style: const TextStyle(
