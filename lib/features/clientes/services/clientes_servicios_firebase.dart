@@ -4,6 +4,10 @@ class ClientesServiciosFirebase {
   static final CollectionReference _clientesRef =
       FirebaseFirestore.instance.collection('BDD_Clientes');
 
+  /* ---------------------------------------------------------------------------------------- */
+  //                            METODOS PARA AGREGAR REGISTROS                                */
+  /* ---------------------------------------------------------------------------------------- */
+
   /// Agrega un nuevo cliente a la base de datos.
   static Future<void> agregarClienteABDD({
     required String nombre,
@@ -24,6 +28,10 @@ class ClientesServiciosFirebase {
     }
   }
 
+  /* ---------------------------------------------------------------------------------------- */
+  //                               METODOS PARA LEER REGISTROS                                */
+  /* ---------------------------------------------------------------------------------------- */
+
   /// Obtiene todos los clientes de la base de datos como una lista de mapas.
   static Future<List<Map<String, dynamic>>> obtenerTodosLosClientes() async {
     try {
@@ -35,6 +43,8 @@ class ClientesServiciosFirebase {
       throw Exception('Error al obtener los clientes: $e');
     }
   }
+
+  /* ---------------------------------------------------------------------------------------- */
 
   /// Obtiene todos los nombres de los clientes como combinaciones Nombre + Apellido con su ID.
   static Future<List<Map<String, dynamic>>>
@@ -61,6 +71,8 @@ class ClientesServiciosFirebase {
     }
   }
 
+  /* ---------------------------------------------------------------------------------------- */
+
   /// Obtiene un cliente por ID del documento.
   static Future<Map<String, dynamic>?> obtenerClientePorId(String id) async {
     try {
@@ -79,6 +91,8 @@ class ClientesServiciosFirebase {
       throw Exception('Error al obtener cliente por ID: $e');
     }
   }
+
+  /* ---------------------------------------------------------------------------------------- */
 
   /// Mantiene método anterior por si se requiere búsqueda por nombre exacto
   static Future<Map<String, dynamic>?> obtenerClientePorNombre(
@@ -105,6 +119,33 @@ class ClientesServiciosFirebase {
     }
   }
 
+  /* ---------------------------------------------------------------------------------------- */
+
+  static Future<String?> obtenerIdPorNombreYApellido({
+    required String nombre,
+    required String apellido,
+  }) async {
+    try {
+      final snapshot = await _clientesRef
+          .where('Nombre', isEqualTo: nombre.trim().toLowerCase())
+          .where('Apellido', isEqualTo: apellido.trim().toLowerCase())
+          .limit(1)
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        return snapshot.docs.first.id;
+      } else {
+        return null;
+      }
+    } catch (e) {
+      throw Exception('Error al obtener ID por nombre y apellido: $e');
+    }
+  }
+
+  /* ---------------------------------------------------------------------------------------- */
+  //                              METODOS PARA EDITAR REGISTROS                               */
+  /* ---------------------------------------------------------------------------------------- */
+
   static Future<void> actualizarClientePorId(
     String id, {
     required String nombre,
@@ -124,11 +165,27 @@ class ClientesServiciosFirebase {
     }
   }
 
+  /* ---------------------------------------------------------------------------------------- */
+  //                           METODOS PARA ELIMINAR REGISTROS                                */
+  /* ---------------------------------------------------------------------------------------- */
+
   static Future<void> eliminarClientePorId(String id) async {
     try {
       await _clientesRef.doc(id).delete();
     } catch (e) {
       throw Exception('Error al eliminar cliente: $e');
+    }
+  }
+
+  /// Elimina todos los clientes de la base de datos.
+  static Future<void> eliminarTodosLosClientes() async {
+    try {
+      final snapshot = await _clientesRef.get();
+      for (final doc in snapshot.docs) {
+        await doc.reference.delete();
+      }
+    } catch (e) {
+      throw Exception('Error al eliminar todos los clientes: $e');
     }
   }
 }

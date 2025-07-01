@@ -7,60 +7,67 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('CRUD Clientes - Firebase', () {
-    String? idCliente;
-
+    // Inicia la app para asegurar que Firebase esté inicializado.
     setUpAll(() async {
-      // Inicia la app para asegurar que Firebase esté inicializado.
       app.main();
       await Future.delayed(const Duration(seconds: 5));
     });
 
-    testWidgets('Agregar cliente', (tester) async {
+    test('Test CRUD completo de ClientesServiciosFirebase', () async {
+      // 1) Eliminar todos los clientes
+      await ClientesServiciosFirebase.eliminarTodosLosClientes();
+
+      // 2) Obtener la lista completa de clientes y debe estar vacía
+      final clientesIniciales =
+          await ClientesServiciosFirebase.obtenerTodosLosClientes();
+      expect(clientesIniciales.isEmpty, true);
+
+      // 3) Agregar un registro nuevo
+      const nombre = 'juan';
+      const apellido = 'perez';
+      const direccionOriginal = 'calle falsa 123';
+      const telefonoOriginal = '555-1234';
+
       await ClientesServiciosFirebase.agregarClienteABDD(
-        nombre: 'juan',
-        apellido: 'perez',
-        direccion: 'calle falsa 123',
-        telefono: '123456789',
+        nombre: nombre,
+        apellido: apellido,
+        direccion: direccionOriginal,
+        telefono: telefonoOriginal,
       );
-      final clientes =
-          await ClientesServiciosFirebase.obtenerTodosLosClientes();
-      final agregado = clientes.firstWhere(
-        (c) => c['Nombre'] == 'juan',
-        orElse: () => {},
-      );
-      expect(agregado.isNotEmpty, true);
-      idCliente = agregado['id'];
-    });
 
-/*
-    testWidgets('Modificar cliente', (tester) async {
-      expect(idCliente, isNotNull);
+      // 4) Buscar el cliente por nombre y apellido -> debe devolver un ID válido
+      final id = await ClientesServiciosFirebase.obtenerIdPorNombreYApellido(
+        nombre: nombre,
+        apellido: apellido,
+      );
+      expect(id, isNotNull);
+
+      // 5) Actualizar el registro con nueva dirección y teléfono
+      const nuevaDireccion = 'avenida siempre viva 742';
+      const nuevoTelefono = '555-5678';
+
       await ClientesServiciosFirebase.actualizarClientePorId(
-        idCliente!,
-        {
-          'Nombre': 'juan modificado',
-          'Apellido': 'perez modificado',
-          'Dirección': 'calle modificada',
-          'Teléfono': '987654321',
-        },
+        id!,
+        nombre: nombre,
+        apellido: apellido,
+        direccion: nuevaDireccion,
+        telefono: nuevoTelefono,
       );
-      final clientes =
-          await ClientesServiciosFirebase.obtenerTodosLosClientes();
-      final modificado = clientes.firstWhere(
-        (c) => c['Nombre'] == 'juan modificado',
-        orElse: () => {},
-      );
-      expect(modificado.isNotEmpty, true);
-    });
-*/
 
-    testWidgets('Eliminar cliente', (tester) async {
-      expect(idCliente, isNotNull);
-      await ClientesServiciosFirebase.eliminarClientePorId(idCliente!);
-      final clientes =
+      // 6) Leer el registro actualizado y verificar dirección y teléfono
+      final clienteActualizado =
+          await ClientesServiciosFirebase.obtenerClientePorId(id);
+      expect(clienteActualizado, isNotNull);
+      expect(clienteActualizado!['Dirección'], nuevaDireccion);
+      expect(clienteActualizado['Teléfono'], nuevoTelefono);
+
+      // 7) Eliminar el registro por ID
+      await ClientesServiciosFirebase.eliminarClientePorId(id);
+
+      // 8) Leer todos los clientes y debe estar vacío nuevamente
+      final clientesFinales =
           await ClientesServiciosFirebase.obtenerTodosLosClientes();
-      final existe = clientes.any((c) => c['id'] == idCliente);
-      expect(existe, false);
+      expect(clientesFinales.isEmpty, true);
     });
   });
 }
