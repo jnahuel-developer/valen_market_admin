@@ -1,0 +1,64 @@
+valen_market_admin/
+│
+├── integration_test/
+│   └── clientes_firebase_test.dart
+│
+├── lib/
+│   │── app/
+│   │   └── app.dart
+│   │
+│   │── config/
+│   │   │── environment.dart
+│   │   │── firebase_options_dev.dart
+│   │   └── firebase_options_prod.dart
+│   │
+│   │── constants/
+│   │   │── app_colors.dart
+│   │   └── assets.dart
+│   │
+│   │── features/
+│   │   │── home/
+│   │   │   └── screens/
+│   │   │       └── home_screen.dart
+│   │   │
+│   │   │── catalogo/
+│   │   │   └── screens/
+│   │   │       └── catalogo_screen.dart
+│   │   │
+│   │   │── clientes/
+│   │   │   │── screens/
+│   │   │   │   │── agregar_cliente_screen.dart
+│   │   │   │   │── buscar_cliente_screen.dart
+│   │   │   │   └── clientes_screen.dart
+│   │   │   └── services/
+│   │   │       └── clientes_servicios_firebase.dart
+│   │   │
+│   │   │── fichas/
+│   │   │   └── screens/
+│   │   │       └── fichas_screen.dart
+│   │   │
+│   │   └── recorrido/
+│   │       └── screens/
+│   │           └── recorrido_screen.dart
+│   │
+│   │── utils/
+│   │       └── validador_texto.dart
+│   │
+│   │── widgets/
+│   │       │── custom_big_button.dart
+│   │       │── custom_bottom_navbar.dart
+│   │       │── custom_home_button.dart
+│   │       │── custom_info_card.dart
+│   │       │── custom_opciones_desplegables.dart
+│   │       │── custom_simple_information.dart
+│   │       └── custom_top_bar.dart
+│   │
+│   │── main_common.dart
+│   │── main_dev.dart
+│   └── main_prod.dart
+│
+├── test/
+│   └── utils/
+│       └── firebase_test_setup.dart
+│
+└── firebase.json

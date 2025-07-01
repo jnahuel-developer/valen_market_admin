@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:valen_market_admin/constants/assets.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
+import 'package:valen_market_admin/constants/pantallas.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
   const CustomBottomNavBar({super.key});
@@ -23,13 +24,13 @@ class CustomBottomNavBar extends StatelessWidget {
             Navigator.pop(context);
           }),
           _iconButton(AppAssets.iconUser,
-              () => _navigateIfNotCurrent(context, '/clientes')),
+              () => _navigateIfNotCurrent(context, PANTALLA__Clientes)),
           _iconButton(AppAssets.iconHome,
-              () => _navigateIfNotCurrent(context, '/home')),
+              () => _navigateIfNotCurrent(context, PANTALLA__Home)),
           _iconButton(AppAssets.iconTicket,
-              () => _navigateIfNotCurrent(context, '/fichas')),
+              () => _navigateIfNotCurrent(context, PANTALLA__Fichas)),
           _iconButton(AppAssets.iconCart,
-              () => _navigateIfNotCurrent(context, '/catalogo')),
+              () => _navigateIfNotCurrent(context, PANTALLA__Catalogo)),
         ],
       ),
     );

@@ -1,0 +1,34 @@
+/* -------------------------------------------------------------------- */
+/*                  Bloque de funcionamiento normal                     */
+/* -------------------------------------------------------------------- */
+
+// Recompilar la app y lanzarla a ejecución para usarla manualmente en el ambiente de desarrollo
+flutter clean; flutter pub get; flutter run -t lib/main_dev.dart --flavor dev
+
+// Recompilar la app y lanzarla a ejecución para usarla manualmente en el ambiente de producción
+flutter clean; flutter pub get; flutter run -t lib/main_prod.dart --flavor prod
+
+
+
+/* -------------------------------------------------------------------- */
+/*                          Bloque de testeos                           */
+/* -------------------------------------------------------------------- */
+
+// Modificar la seguridad de la sesion para poder iniciar el emulador de Firebase
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+
+// Lanzar a ejecución el emulador
+Firebase emulators:start
+
+// Acceder a la consola de FireStorage emulada
+http://127.0.0.1:4000/firestore
+
+// Ejecutar las pruebas de integración en el ambiente de desarrollo para probar los metodos de CRUD de Clientes
+flutter drive --driver integration_test/driver.dart --target integration_test/clientes_crud_test.dart --flavor dev
+
+// Ejecutar las pruebas de integración en el ambiente de desarrollo para corroborar el flujo de UI y agregar un cliente
+flutter drive --driver=integration_test/driver.dart --target=integration_test/agregar_cliente_flow_test.dart --flavor dev
+
+
+
+

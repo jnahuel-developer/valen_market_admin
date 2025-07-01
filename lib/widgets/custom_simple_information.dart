@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class CustomSimpleInformation extends StatelessWidget {
   final String label;
   final TextEditingController controller;
+  final Key? fieldKey;
 
   const CustomSimpleInformation({
     super.key,
     required this.label,
     required this.controller,
+    this.fieldKey,
   });
 
   @override
@@ -41,6 +43,7 @@ class CustomSimpleInformation extends StatelessWidget {
             alignment: Alignment.center,
             child: TextField(
               controller: controller,
+              key: fieldKey,
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 20),
               decoration: const InputDecoration(
