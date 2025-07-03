@@ -23,7 +23,8 @@ jobs:
         run: flutter pub get
 
       - name: Ejecutar unit tests
-        run: flutter test
+      # run: flutter test
+        run: flutter test integration_test
 
       # Descomenta esta sección si querés correr también los tests de integración
       # Tené en cuenta que tests de integración que dependan de dispositivos físicos o emuladores
