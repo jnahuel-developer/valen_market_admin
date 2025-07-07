@@ -1,7 +1,14 @@
 valen_market_admin/
 │
+├── lib/
+│   │── icons/
+│   │   └── Todos los archivos de íconos usados en la app, en formato svg
+│   └── images/
+│       └── Todas las imágenes que se usan en la app
+│
 ├── integration_test/
-│   └── clientes_firebase_test.dart
+│   │── agregar_cliente_flow_test.dart.dart
+│   └── driver.dart
 │
 ├── lib/
 │   │── app/
@@ -14,13 +21,12 @@ valen_market_admin/
 │   │
 │   │── constants/
 │   │   │── app_colors.dart
-│   │   └── assets.dart
+│   │   │── assets.dart
+│   │   │── keys.dart
+│   │   │── pantallas.dart
+│   │   └── textos.dart
 │   │
 │   │── features/
-│   │   │── home/
-│   │   │   └── screens/
-│   │   │       └── home_screen.dart
-│   │   │
 │   │   │── catalogo/
 │   │   │   └── screens/
 │   │   │       └── catalogo_screen.dart
@@ -36,6 +42,10 @@ valen_market_admin/
 │   │   │── fichas/
 │   │   │   └── screens/
 │   │   │       └── fichas_screen.dart
+│   │   │
+│   │   │── home/
+│   │   │   └── screens/
+│   │   │       └── home_screen.dart
 │   │   │
 │   │   └── recorrido/
 │   │       └── screens/
@@ -58,7 +68,6 @@ valen_market_admin/
 │   └── main_prod.dart
 │
 ├── test/
-│   └── utils/
-│       └── firebase_test_setup.dart
+│   └── clientes_crud_test.dart
 │
 └── firebase.json

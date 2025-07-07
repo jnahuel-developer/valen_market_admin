@@ -1,5 +1,5 @@
 /* -------------------------------------------------------------------- */
-/*                  Bloque de funcionamiento normal                     */
+/*           ANDROID -  Bloque de funcionamiento normal                 */
 /* -------------------------------------------------------------------- */
 
 // Recompilar la app y lanzarla a ejecución para usarla manualmente en el ambiente de desarrollo
@@ -7,6 +7,24 @@ flutter clean; flutter pub get; flutter run -t lib/main_dev.dart --flavor dev
 
 // Recompilar la app y lanzarla a ejecución para usarla manualmente en el ambiente de producción
 flutter clean; flutter pub get; flutter run -t lib/main_prod.dart --flavor prod
+
+flutter clean; flutter pub get; flutter build apk -t lib/main_dev.dart
+
+
+/* -------------------------------------------------------------------- */
+/*               WEB -  Bloque de funcionamiento normal                 */
+/* -------------------------------------------------------------------- */
+
+// Recompilar la app y lanzarla a ejecución para usarla manualmente en el ambiente de desarrollo
+flutter clean; flutter pub get; flutter run -d chrome -t lib/main_dev.dart --flavor dev
+
+
+
+/* ------------------------------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------------------------------------------ */
 
 
 
