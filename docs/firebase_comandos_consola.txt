@@ -1,0 +1,5 @@
+// Permitir ejecución de scripts (solo temporal o local)
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+
+// Agregar al Path
+$env:PATH += ";$HOME\AppData\Local\Pub\Cache\bin"

@@ -5,3 +5,6 @@ const String PANTALLA__Clientes__BuscarCliente = '/buscar_cliente';
 const String PANTALLA__Fichas = '/fichas';
 const String PANTALLA__Catalogo = '/catalogo';
 const String PANTALLA__Recorrido = '/recorrido';
+const String PANTALLA_WEB__Login = '/login';
+const String PANTALLA_WEB__Home = '/web_home';
+const String PANTALLA_WEB__LoginYExport = '/login_y_export';

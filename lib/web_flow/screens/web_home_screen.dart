@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:valen_market_admin/features/clientes/services/clientes_servicios_google_sheets.dart';
+import 'package:valen_market_admin/features/clientes/services/clientes_servicios_google_sheets_web.dart';
 import 'web_clientes_screen.dart';
 
 class WebHomeScreen extends StatelessWidget {
@@ -18,6 +20,21 @@ class WebHomeScreen extends StatelessWidget {
                 MaterialPageRoute(builder: (_) => const WebClientesScreen()),
               );
             }),
+            const SizedBox(height: 20),
+            /*
+            ElevatedButton(
+              onPressed: () async {
+                await ClientesServiciosGoogleSheets.exportarClientes(context);
+              },
+              child: const Text('Exportar a Google Sheets'),
+            ),
+            */
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () =>
+                  ClientesServiciosGoogleSheetsWeb.exportarClientes(context),
+              child: const Text('Exportar a Google Sheets'),
+            ),
             const SizedBox(height: 20),
             _buildButton(context, 'FICHAS', () {}),
             const SizedBox(height: 20),
