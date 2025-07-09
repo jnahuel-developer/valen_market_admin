@@ -3,7 +3,7 @@
 /* -------------------------------------------------------------------- */
 
 // Recompilar la app y lanzarla a ejecución para usarla manualmente en el ambiente de desarrollo
-flutter clean; flutter pub get; flutter run -t lib/main_dev.dart --flavor dev
+flutter clean; flutter pub get; flutter run -t lib/main_dev.dart --flavor dev -v
 
 // Recompilar la app y lanzarla a ejecución para usarla manualmente en el ambiente de producción
 flutter clean; flutter pub get; flutter run -t lib/main_prod.dart --flavor prod
@@ -16,7 +16,7 @@ flutter clean; flutter pub get; flutter build apk -t lib/main_dev.dart
 /* -------------------------------------------------------------------- */
 
 // Recompilar la app y lanzarla a ejecución para usarla manualmente en el ambiente de desarrollo
-flutter clean; flutter pub get; flutter run -d chrome -t lib/main_dev.dart --flavor dev
+flutter clean; flutter pub get; flutter run -d chrome -t lib/main_dev.dart
 
 
 

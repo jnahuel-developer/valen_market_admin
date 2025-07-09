@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:valen_market_admin/web_flow/screens/web_login_and_export_screen.dart';
+import 'package:valen_market_admin/web_flow/screens/web_login_screen.dart';
 import '../features/home/screens/home_screen.dart';
 import '../features/catalogo/screens/catalogo_screen.dart';
 import '../features/clientes/screens/clientes_screen.dart';
@@ -17,7 +19,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Valen Market Admin',
-      home: kIsWeb ? const WebHomeScreen() : const HomeScreen(),
+      home: kIsWeb ? const WebLoginAndExportScreen() : const HomeScreen(),
       routes: {
         PANTALLA__Home: (_) => const HomeScreen(),
         PANTALLA__Clientes: (_) => const ClientesScreen(),
@@ -27,6 +29,9 @@ class MyApp extends StatelessWidget {
         PANTALLA__Clientes__AgregarCliente: (_) => const AgregarClienteScreen(),
         PANTALLA__Clientes__BuscarCliente: (context) =>
             const BuscarClienteScreen(),
+        PANTALLA_WEB__Login: (context) => const WebLoginWebScreen(),
+        PANTALLA_WEB__Home: (context) => const WebHomeScreen(),
+        PANTALLA_WEB__LoginYExport: (_) => const WebLoginAndExportScreen(),
       },
     );
   }
