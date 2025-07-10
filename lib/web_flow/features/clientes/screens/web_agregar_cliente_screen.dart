@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:valen_market_admin/Web_flow/widgets/custom_web_top_bar.dart';
+import 'package:valen_market_admin/Web_flow/widgets/custom_gradient_button.dart';
+import 'package:valen_market_admin/Web_flow/widgets/custom_text_field.dart';
+import 'package:valen_market_admin/constants/pantallas.dart';
 import 'package:valen_market_admin/services/firebase/clientes_servicios_firebase.dart';
-import '../../../../utils/validador_texto.dart';
+import 'package:valen_market_admin/utils/validador_texto.dart';
 
 class WebAgregarClienteScreen extends StatefulWidget {
   const WebAgregarClienteScreen({super.key});
@@ -15,6 +19,8 @@ class _WebAgregarClienteScreenState extends State<WebAgregarClienteScreen> {
   final _apellidoController = TextEditingController();
   final _direccionController = TextEditingController();
   final _telefonoController = TextEditingController();
+
+  bool _guardando = false;
 
   @override
   void dispose() {
@@ -43,6 +49,8 @@ class _WebAgregarClienteScreenState extends State<WebAgregarClienteScreen> {
       return;
     }
 
+    setState(() => _guardando = true);
+
     await ClientesServiciosFirebase.agregarClienteABDD(
       nombre: nombre,
       apellido: apellido,
@@ -62,45 +70,60 @@ class _WebAgregarClienteScreenState extends State<WebAgregarClienteScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Agregar Cliente'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(40.0),
-        child: ListView(
-          children: [
-            _buildTextField('Nombre', _nombreController),
-            const SizedBox(height: 20),
-            _buildTextField('Apellido', _apellidoController),
-            const SizedBox(height: 20),
-            _buildTextField('Dirección', _direccionController),
-            const SizedBox(height: 20),
-            _buildTextField('Teléfono', _telefonoController),
-            const SizedBox(height: 40),
-            SizedBox(
-              width: double.infinity,
-              height: 60,
-              child: ElevatedButton(
-                onPressed: _agregarCliente,
-                child: const Text('CONFIRMAR'),
+      body: Column(
+        children: [
+          const CustomWebTopBar(
+            titulo: 'Agregar Cliente',
+            pantallaPadreRouteName: PANTALLA_WEB__Clientes,
+          ),
+          const SizedBox(height: 60),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 600),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
+                    child: Column(
+                      children: [
+                        CustomTextField(
+                          label: 'Nombre',
+                          controller: _nombreController,
+                          isRequired: true,
+                        ),
+                        const SizedBox(height: 20),
+                        CustomTextField(
+                          label: 'Apellido',
+                          controller: _apellidoController,
+                          isRequired: true,
+                        ),
+                        const SizedBox(height: 20),
+                        CustomTextField(
+                          label: 'Dirección',
+                          controller: _direccionController,
+                          isRequired: true,
+                        ),
+                        const SizedBox(height: 20),
+                        CustomTextField(
+                          label: 'Teléfono',
+                          controller: _telefonoController,
+                          isRequired: true,
+                        ),
+                        const SizedBox(height: 40),
+                        _guardando
+                            ? const CircularProgressIndicator()
+                            : CustomGradientButton(
+                                text: 'CONFIRMAR',
+                                onPressed: _agregarCliente,
+                              ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTextField(String label, TextEditingController controller) {
-    return TextField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: label,
-        border: const OutlineInputBorder(),
+          ),
+        ],
       ),
     );
   }
