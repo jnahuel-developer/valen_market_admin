@@ -1,0 +1,14 @@
+Jerarquía web
+
+    web_home_screen
+        │──web_clientes_screen
+        │   │──web_agregar_cliente_screen
+        │   └──web_buscar_cliente_screen
+        │──web_catalogo_screen
+        │   │──web_agregar_producto_screen
+        │   └──web_buscar_producto_screen
+        │──web_fichas_screen
+        │   │──web_agregar_fichas_screen
+        │   └──web_buscar_fichas_screen
+        └──web_planilla_de_cobros
+            └──web_volcar_planilla_screen
