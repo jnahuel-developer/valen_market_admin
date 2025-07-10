@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:valen_market_admin/Web_flow/widgets/custom_web_top_bar.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
-import '../../clientes/screens/web_clientes_screen.dart';
+import 'package:valen_market_admin/constants/pantallas.dart';
 
 class WebHomeScreen extends StatelessWidget {
   const WebHomeScreen({super.key});
@@ -22,16 +22,20 @@ class WebHomeScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   _buildButton(context, 'CLIENTES', () {
-                    Navigator.push(
+                    Navigator.pushNamed(
                       context,
-                      MaterialPageRoute(
-                          builder: (_) => const WebClientesScreen()),
+                      PANTALLA_WEB__Clientes,
+                    );
+                  }),
+                  const SizedBox(height: 20),
+                  _buildButton(context, 'CATÁLOGO', () {
+                    Navigator.pushNamed(
+                      context,
+                      PANTALLA_WEB__Catalogo,
                     );
                   }),
                   const SizedBox(height: 20),
                   _buildButton(context, 'FICHAS', () {}),
-                  const SizedBox(height: 20),
-                  _buildButton(context, 'CATÁLOGO', () {}),
                   const SizedBox(height: 20),
                   _buildButton(context, 'PLANILLA DE COBROS', () {}),
                 ],

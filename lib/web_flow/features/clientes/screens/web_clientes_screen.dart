@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import 'package:valen_market_admin/Web_flow/features/clientes/screens/web_agregar_cliente_screen.dart';
 import 'package:valen_market_admin/Web_flow/widgets/custom_web_top_bar.dart';
 import 'package:valen_market_admin/Web_flow/widgets/custom_gradient_button.dart';
 import 'package:valen_market_admin/services/google/clientes_servicios_google_sheets_web.dart';
@@ -28,7 +26,7 @@ class _WebClientesScreenState extends State<WebClientesScreen> {
     if (url != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('✅ Exportación exitosa.'),
+          content: const Text('Exportación exitosa.'),
           action: SnackBarAction(
             label: 'ABRIR',
             onPressed: () => launchUrl(Uri.parse(url)),
@@ -37,7 +35,7 @@ class _WebClientesScreenState extends State<WebClientesScreen> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('❌ No se pudo exportar a Excel.')),
+        const SnackBar(content: Text('No se pudo exportar a Excel.')),
       );
     }
   }
@@ -53,37 +51,38 @@ class _WebClientesScreenState extends State<WebClientesScreen> {
           ),
           const SizedBox(height: 60),
           Expanded(
-            child: Center(
-              child: _exportando
-                  ? const CircularProgressIndicator()
-                  : Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CustomGradientButton(
-                          text: 'AGREGAR',
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const WebAgregarClienteScreen(),
-                              ),
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 20),
-                        CustomGradientButton(
-                          text: 'BUSCAR',
-                          onPressed: () {
-                            // Implementar luego
-                          },
-                        ),
-                        const SizedBox(height: 20),
-                        CustomGradientButton(
-                          text: 'PASAR A EXCEL',
-                          onPressed: _pasarAExcel,
-                        ),
-                      ],
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CustomGradientButton(
+                      text: 'AGREGAR',
+                      onPressed: () {
+                        Navigator.pushNamed(
+                          context,
+                          PANTALLA_WEB__Clientes__AgregarCliente,
+                        );
+                      },
                     ),
+                    const SizedBox(height: 20),
+                    CustomGradientButton(
+                      text: 'BUSCAR',
+                      onPressed: () {
+                        // Implementar luego
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    _exportando
+                        ? const CircularProgressIndicator()
+                        : CustomGradientButton(
+                            text: 'PASAR A EXCEL',
+                            onPressed: _pasarAExcel,
+                          ),
+                  ],
+                ),
+              ),
             ),
           ),
         ],

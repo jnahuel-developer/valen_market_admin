@@ -1,5 +1,9 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:valen_market_admin/Web_flow/features/catalogo/screens/web_agregar_producto_screen.dart';
+import 'package:valen_market_admin/Web_flow/features/catalogo/screens/web_catalogo_screen.dart';
+import 'package:valen_market_admin/Web_flow/features/catalogo/screens/web_ver_catalogo_screen.dart';
+import 'package:valen_market_admin/Web_flow/features/clientes/screens/web_agregar_cliente_screen.dart';
 import 'package:valen_market_admin/Web_flow/features/clientes/screens/web_clientes_screen.dart';
 import 'package:valen_market_admin/Web_flow/features/login/screens/web_login.dart';
 import '../Android_flow/features/home/screens/home_screen.dart';
@@ -32,6 +36,13 @@ class MyApp extends StatelessWidget {
         PANTALLA_WEB__Home: (context) => const WebHomeScreen(),
         PANTALLA_WEB__Login: (_) => const WebLoginScreen(),
         PANTALLA_WEB__Clientes: (_) => const WebClientesScreen(),
+        PANTALLA_WEB__Clientes__AgregarCliente: (_) =>
+            const WebAgregarClienteScreen(),
+        PANTALLA_WEB__Catalogo: (_) => const WebCatalogoScreen(),
+        PANTALLA_WEB__Catalogo__AgregarProducto: (_) =>
+            const WebAgregarProductoScreen(),
+        PANTALLA_WEB__Catalogo__VerCatalogo: (_) =>
+            const WebVerCatalogoScreen(),
       },
     );
   }
