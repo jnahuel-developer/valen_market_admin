@@ -1,6 +1,6 @@
 valen_market_admin/
 │
-├── lib/
+├── assets/
 │   │── icons/
 │   │   └── Todos los archivos de íconos usados en la app, en formato svg
 │   └── images/
@@ -11,6 +11,39 @@ valen_market_admin/
 │   └── driver.dart
 │
 ├── lib/
+│   │── Android_flow/
+│   │   │── features/
+│   │   │   │── catalogo/
+│   │   │   │   └── screens/
+│   │   │   │       └── catalogo_screen.dart
+│   │   │   │
+│   │   │   │── clientes/
+│   │   │   │   └── screens/
+│   │   │   │       │── agregar_cliente_screen.dart
+│   │   │   │       │── buscar_cliente_screen.dart
+│   │   │   │       └── clientes_screen.dart
+│   │   │   │
+│   │   │   │── fichas/
+│   │   │   │   └── screens/
+│   │   │   │       └── fichas_screen.dart
+│   │   │   │
+│   │   │   │── home/
+│   │   │   │   └── screens/
+│   │   │   │       └── home_screen.dart
+│   │   │   │
+│   │   │   └── recorrido/
+│   │   │       └── screens/
+│   │   │           └── recorrido_screen.dart
+│   │   │
+│   │   └── widgets/
+│   │           │── custom_big_button.dart
+│   │           │── custom_bottom_navbar.dart
+│   │           │── custom_home_button.dart
+│   │           │── custom_info_card.dart
+│   │           │── custom_opciones_desplegables.dart
+│   │           │── custom_simple_information.dart
+│   │           └── custom_top_bar.dart
+│   │
 │   │── app/
 │   │   └── app.dart
 │   │
@@ -26,42 +59,42 @@ valen_market_admin/
 │   │   │── pantallas.dart
 │   │   └── textos.dart
 │   │
-│   │── features/
-│   │   │── catalogo/
-│   │   │   └── screens/
-│   │   │       └── catalogo_screen.dart
-│   │   │
-│   │   │── clientes/
-│   │   │   │── screens/
-│   │   │   │   │── agregar_cliente_screen.dart
-│   │   │   │   │── buscar_cliente_screen.dart
-│   │   │   │   └── clientes_screen.dart
-│   │   │   └── services/
-│   │   │       └── clientes_servicios_firebase.dart
-│   │   │
-│   │   │── fichas/
-│   │   │   └── screens/
-│   │   │       └── fichas_screen.dart
-│   │   │
-│   │   │── home/
-│   │   │   └── screens/
-│   │   │       └── home_screen.dart
-│   │   │
-│   │   └── recorrido/
-│   │       └── screens/
-│   │           └── recorrido_screen.dart
+│   │── services/
+│   │   │── firebase/
+│   │   │   └── clientes_servicios_firebase.dart
+│   │   └── google/
+│   │       └── clientes_servicios_google_sheets_web.dart
 │   │
 │   │── utils/
-│   │       └── validador_texto.dart
+│   │   └── validador_texto.dart
 │   │
-│   │── widgets/
-│   │       │── custom_big_button.dart
-│   │       │── custom_bottom_navbar.dart
-│   │       │── custom_home_button.dart
-│   │       │── custom_info_card.dart
-│   │       │── custom_opciones_desplegables.dart
-│   │       │── custom_simple_information.dart
-│   │       └── custom_top_bar.dart
+│   │── Web_flow/
+│   │   └── features/
+│   │       │── catalogo/
+│   │       │   └── screens/
+│   │       │       └── web_catalogo_screen.dart
+│   │       │
+│   │       │── clientes/
+│   │       │   └── screens/
+│   │       │       │── web_agregar_cliente_screen.dart
+│   │       │       │── web_buscar_cliente_screen.dart
+│   │       │       └── web_clientes_screen.dart
+│   │       │
+│   │       │── fichas/
+│   │       │   └── screens/
+│   │       │       └── web_fichas_screen.dart
+│   │       │
+│   │       │── home/
+│   │       │   └── screens/
+│   │       │       └── web_home_screen.dart
+│   │       │
+│   │       │── planillas/
+│   │       │   └── screens/
+│   │       │       └── web_planilla_de_cobros.dart
+│   │       │
+│   │       └── login/
+│   │           └── screens/
+│   │               └── web_login.dart
 │   │
 │   │── main_common.dart
 │   │── main_dev.dart
