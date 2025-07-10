@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:valen_market_admin/features/clientes/services/clientes_servicios_google_sheets.dart';
-import 'package:valen_market_admin/features/clientes/services/clientes_servicios_google_sheets_web.dart';
-import 'web_clientes_screen.dart';
+import 'package:valen_market_admin/Web_flow/widgets/custom_web_top_bar.dart';
+import 'package:valen_market_admin/constants/app_colors.dart';
+import '../../clientes/screens/web_clientes_screen.dart';
 
 class WebHomeScreen extends StatelessWidget {
   const WebHomeScreen({super.key});
@@ -9,40 +9,36 @@ class WebHomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Valen Market Admin - Web')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildButton(context, 'CLIENTES', () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const WebClientesScreen()),
-              );
-            }),
-            const SizedBox(height: 20),
-            /*
-            ElevatedButton(
-              onPressed: () async {
-                await ClientesServiciosGoogleSheets.exportarClientes(context);
-              },
-              child: const Text('Exportar a Google Sheets'),
+      body: Column(
+        children: [
+          const CustomWebTopBar(
+            titulo: 'Home',
+            pantallaPadreRouteName: null,
+          ),
+          const SizedBox(height: 60),
+          Expanded(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  _buildButton(context, 'CLIENTES', () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const WebClientesScreen()),
+                    );
+                  }),
+                  const SizedBox(height: 20),
+                  _buildButton(context, 'FICHAS', () {}),
+                  const SizedBox(height: 20),
+                  _buildButton(context, 'CATÁLOGO', () {}),
+                  const SizedBox(height: 20),
+                  _buildButton(context, 'PLANILLA DE COBROS', () {}),
+                ],
+              ),
             ),
-            */
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () =>
-                  ClientesServiciosGoogleSheetsWeb.exportarClientes(context),
-              child: const Text('Exportar a Google Sheets'),
-            ),
-            const SizedBox(height: 20),
-            _buildButton(context, 'FICHAS', () {}),
-            const SizedBox(height: 20),
-            _buildButton(context, 'CATALOGO', () {}),
-            const SizedBox(height: 20),
-            _buildButton(context, 'PLANILLA DE COBROS', () {}),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -50,11 +46,30 @@ class WebHomeScreen extends StatelessWidget {
   Widget _buildButton(
       BuildContext context, String label, VoidCallback onPressed) {
     return SizedBox(
-      width: 300,
+      width: 320,
       height: 60,
       child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: WebColors.plataTranslucida,
+          foregroundColor: WebColors.textoRosa,
+          elevation: 4,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+            side: const BorderSide(
+              color: WebColors.bordeRosa,
+              width: 2,
+            ),
+          ),
+        ),
         onPressed: onPressed,
-        child: Text(label),
+        child: Text(
+          label,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            letterSpacing: 1.2,
+          ),
+        ),
       ),
     );
   }

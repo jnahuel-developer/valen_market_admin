@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:valen_market_admin/constants/assets.dart';
-import 'package:valen_market_admin/widgets/custom_bottom_navbar.dart';
-import 'package:valen_market_admin/widgets/custom_top_bar.dart';
-import 'package:valen_market_admin/widgets/custom_home_button.dart';
+import 'package:valen_market_admin/Android_flow/widgets/custom_bottom_navbar.dart';
+import 'package:valen_market_admin/Android_flow/widgets/custom_top_bar.dart';
+import 'package:valen_market_admin/Android_flow/widgets/custom_home_button.dart';
 
 class FichasScreen extends StatelessWidget {
   const FichasScreen({super.key});

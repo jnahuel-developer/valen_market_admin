@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../features/clientes/services/clientes_servicios_firebase.dart';
-import '../../utils/validador_texto.dart';
+import 'package:valen_market_admin/services/firebase/clientes_servicios_firebase.dart';
+import '../../../../utils/validador_texto.dart';
 
 class WebAgregarClienteScreen extends StatefulWidget {
   const WebAgregarClienteScreen({super.key});
@@ -25,7 +25,7 @@ class _WebAgregarClienteScreenState extends State<WebAgregarClienteScreen> {
     super.dispose();
   }
 
-  void _agregarCliente() async {
+  Future<void> _agregarCliente() async {
     final nombre = _nombreController.text.trim();
     final apellido = _apellidoController.text.trim();
     final direccion = _direccionController.text.trim();
@@ -35,6 +35,7 @@ class _WebAgregarClienteScreenState extends State<WebAgregarClienteScreen> {
         !ValidadorTexto.esEntradaSegura(apellido) ||
         !ValidadorTexto.esEntradaSegura(direccion) ||
         !ValidadorTexto.esEntradaSegura(telefono)) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text('Alguno de los datos ingresados no es seguro')),
@@ -49,11 +50,13 @@ class _WebAgregarClienteScreenState extends State<WebAgregarClienteScreen> {
       telefono: telefono,
     );
 
+    if (!mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Cliente agregado exitosamente')),
     );
 
-    Navigator.pop(context); // Volver a pantalla de CLIENTES
+    Navigator.pop(context);
   }
 
   @override

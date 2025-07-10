@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:valen_market_admin/main_dev.dart' as app;
-import 'package:valen_market_admin/features/clientes/services/clientes_servicios_firebase.dart';
+import 'package:valen_market_admin/services/firebase/clientes_servicios_firebase.dart';
 
 void main() {
   group('CRUD Clientes - Firebase', () {

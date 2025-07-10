@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:valen_market_admin/constants/assets.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
-import 'package:valen_market_admin/features/clientes/services/clientes_servicios_firebase.dart';
-import 'package:valen_market_admin/widgets/custom_big_button.dart';
-import 'package:valen_market_admin/widgets/custom_bottom_navbar.dart';
-import 'package:valen_market_admin/widgets/custom_info_card.dart';
-import 'package:valen_market_admin/widgets/custom_simple_information.dart';
-import 'package:valen_market_admin/widgets/custom_top_bar.dart';
+import 'package:valen_market_admin/Android_flow/widgets/custom_big_button.dart';
+import 'package:valen_market_admin/Android_flow/widgets/custom_bottom_navbar.dart';
+import 'package:valen_market_admin/Android_flow/widgets/custom_info_card.dart';
+import 'package:valen_market_admin/Android_flow/widgets/custom_simple_information.dart';
+import 'package:valen_market_admin/Android_flow/widgets/custom_top_bar.dart';
+import 'package:valen_market_admin/services/firebase/clientes_servicios_firebase.dart';
 
 class BuscarClienteScreen extends StatefulWidget {
   const BuscarClienteScreen({super.key});
@@ -43,6 +43,7 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
     try {
       final data =
           await ClientesServiciosFirebase.obtenerNombresCompletosConId();
+      if (!mounted) return;
       setState(() {
         clientes = data
             .map((e) => {
@@ -59,23 +60,23 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
   Future<void> cargarDatosClientePorId(String id) async {
     try {
       final datos = await ClientesServiciosFirebase.obtenerClientePorId(id);
-      if (datos != null) {
-        setState(() {
-          nombreClienteController.text = datos['Nombre'];
-          apellidoClienteController.text = datos['Apellido'];
-          direccionClienteController.text = datos['Dirección'];
-          telefonoClienteController.text = datos['Teléfono'];
-          zonaClienteController.text =
-              datos.containsKey('Zona') ? datos['Zona'] : '';
-        });
-      }
+      if (!mounted || datos == null) return;
+
+      setState(() {
+        nombreClienteController.text = datos['Nombre'];
+        apellidoClienteController.text = datos['Apellido'];
+        direccionClienteController.text = datos['Dirección'];
+        telefonoClienteController.text = datos['Teléfono'];
+        zonaClienteController.text = datos['Zona'] ?? '';
+      });
     } catch (e) {
       debugPrint('❌ Error al cargar cliente por ID: $e');
     }
   }
 
-  void _handleEditar() async {
+  Future<void> _handleEditar() async {
     if (idSeleccionado == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text('Debe seleccionar un cliente para editar.')),
@@ -88,10 +89,8 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
     final direccion = direccionClienteController.text.trim().toLowerCase();
     final telefono = telefonoClienteController.text.trim().toLowerCase();
 
-    if (nombre.isEmpty ||
-        apellido.isEmpty ||
-        direccion.isEmpty ||
-        telefono.isEmpty) {
+    if ([nombre, apellido, direccion, telefono].any((e) => e.isEmpty)) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text('Todos los campos deben estar completos.')),
@@ -108,18 +107,21 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
         telefono: telefono,
       );
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Cliente actualizado correctamente.')),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al actualizar el cliente: $e')),
       );
     }
   }
 
-  void _handleEliminar() async {
+  Future<void> _handleEliminar() async {
     if (idSeleccionado == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text('Debe seleccionar un cliente para eliminar.')),
@@ -132,7 +134,8 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Confirmar eliminación'),
         content: const Text(
-            '¿Está seguro que desea eliminar este cliente? Esta acción no se puede deshacer.'),
+          '¿Está seguro que desea eliminar este cliente? Esta acción no se puede deshacer.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -146,12 +149,12 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
       ),
     );
 
-    if (confirmacion != true) return;
+    if (!mounted || confirmacion != true) return;
 
     try {
       await ClientesServiciosFirebase.eliminarClientePorId(idSeleccionado!);
+      if (!mounted) return;
 
-      // Limpia campos y actualiza lista
       setState(() {
         idSeleccionado = null;
         nombreClienteController.clear();
@@ -163,10 +166,12 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
 
       await cargarNombresClientes();
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Cliente eliminado correctamente.')),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al eliminar el cliente: $e')),
       );
@@ -178,7 +183,6 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Fondo
           Image.asset(
             AppAssets.bgClientes,
             fit: BoxFit.cover,
@@ -187,17 +191,12 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
             color: AppColors.blancoTraslucido,
             colorBlendMode: BlendMode.srcOver,
           ),
-
-          // Menú superior
           const CustomTopBar(title: 'BUSCAR CLIENTES'),
-
-          // Cuerpo
           Padding(
             padding: const EdgeInsets.only(top: 130, bottom: 80),
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  /// Bloque 1: Datos para buscar
                   Center(
                     child: CustomInfoCard(
                       title: 'Datos para buscar',
@@ -208,59 +207,12 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
                           label: 'Nombre',
                           controller: nombreBusquedaController,
                         ),
-
                         const SizedBox(height: 5),
-
-                        // Menú desplegable
-                        Container(
-                          width: 350,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: AppColors.negroSuave,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: idSeleccionado,
-                              isExpanded: true,
-                              hint: const Text(
-                                'Seleccionar cliente...',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              dropdownColor: AppColors.negroSuave,
-                              iconEnabledColor: Colors.white,
-                              style: const TextStyle(color: Colors.white),
-                              onChanged: (String? newId) {
-                                if (newId != null) {
-                                  setState(() {
-                                    idSeleccionado = newId;
-                                  });
-                                  cargarDatosClientePorId(newId);
-                                }
-                              },
-                              items: clientes.map((cliente) {
-                                return DropdownMenuItem<String>(
-                                  value: cliente['id'],
-                                  child: Center(
-                                    child: Text(
-                                      cliente['nombreCompleto']!.toUpperCase(),
-                                      style:
-                                          const TextStyle(color: Colors.white),
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                          ),
-                        ),
+                        _buildDropdown(),
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 30),
-
-                  /// Bloque 2: Datos del cliente
                   Center(
                     child: CustomInfoCard(
                       title: 'Datos del cliente',
@@ -286,35 +238,63 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 10),
-
                   Center(
-                    child: CustomBigButton(
-                      text: 'Modificar',
-                      onTap: _handleEditar,
-                    ),
-                  ),
-
+                      child: CustomBigButton(
+                          text: 'Modificar', onTap: _handleEditar)),
                   const SizedBox(height: 10),
-
                   Center(
-                    child: CustomBigButton(
-                      text: 'Eliminar',
-                      onTap: _handleEliminar,
-                    ),
-                  ),
+                      child: CustomBigButton(
+                          text: 'Eliminar', onTap: _handleEliminar)),
                 ],
               ),
             ),
           ),
-
-          // Menú inferior
           const Align(
             alignment: Alignment.bottomCenter,
             child: CustomBottomNavBar(),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDropdown() {
+    return Container(
+      width: 350,
+      height: 50,
+      decoration: BoxDecoration(
+        color: AppColors.negroSuave,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: idSeleccionado,
+          isExpanded: true,
+          hint: const Text('Seleccionar cliente...',
+              style: TextStyle(color: Colors.white)),
+          dropdownColor: AppColors.negroSuave,
+          iconEnabledColor: Colors.white,
+          style: const TextStyle(color: Colors.white),
+          onChanged: (String? newId) {
+            if (newId != null) {
+              setState(() => idSeleccionado = newId);
+              cargarDatosClientePorId(newId);
+            }
+          },
+          items: clientes.map((cliente) {
+            return DropdownMenuItem<String>(
+              value: cliente['id'],
+              child: Center(
+                child: Text(
+                  cliente['nombreCompleto']!.toUpperCase(),
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
       ),
     );
   }

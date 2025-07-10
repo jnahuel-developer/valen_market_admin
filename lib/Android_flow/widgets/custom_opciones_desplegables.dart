@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:valen_market_admin/constants/app_colors.dart';
 
 class CustomOpcionesDesplegables extends StatelessWidget {
   final List<String> opciones;
@@ -18,7 +19,7 @@ class CustomOpcionesDesplegables extends StatelessWidget {
       width: 350,
       height: 50,
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.8),
+        color: AppColors.sombra,
         borderRadius: BorderRadius.circular(20),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16),

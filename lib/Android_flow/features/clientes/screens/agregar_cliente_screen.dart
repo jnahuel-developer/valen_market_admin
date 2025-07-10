@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:valen_market_admin/utils/validador_texto.dart';
-import 'package:valen_market_admin/widgets/custom_simple_information.dart';
-import 'package:valen_market_admin/widgets/custom_info_card.dart';
+import 'package:valen_market_admin/Android_flow/widgets/custom_simple_information.dart';
+import 'package:valen_market_admin/Android_flow/widgets/custom_info_card.dart';
 import 'package:valen_market_admin/constants/assets.dart';
-import 'package:valen_market_admin/widgets/custom_top_bar.dart';
-import 'package:valen_market_admin/widgets/custom_bottom_navbar.dart';
-import 'package:valen_market_admin/widgets/custom_big_button.dart';
-import 'package:valen_market_admin/features/clientes/services/clientes_servicios_firebase.dart';
+import 'package:valen_market_admin/Android_flow/widgets/custom_top_bar.dart';
+import 'package:valen_market_admin/Android_flow/widgets/custom_bottom_navbar.dart';
+import 'package:valen_market_admin/Android_flow/widgets/custom_big_button.dart';
+import 'package:valen_market_admin/services/firebase/clientes_servicios_firebase.dart';
 import 'package:valen_market_admin/constants/textos.dart';
 import 'package:valen_market_admin/constants/keys.dart';
 import 'package:valen_market_admin/constants/pantallas.dart';
@@ -33,7 +33,7 @@ class _AgregarClienteScreenState extends State<AgregarClienteScreen> {
     super.dispose();
   }
 
-  void _handleAgregar() async {
+  Future<void> _handleAgregar() async {
     final nombre = nombreController.text;
     final apellido = apellidoController.text;
     final direccion = direccionController.text;
@@ -43,10 +43,12 @@ class _AgregarClienteScreenState extends State<AgregarClienteScreen> {
     final esSeguro = inputs.every(ValidadorTexto.esEntradaSegura);
 
     if (!esSeguro) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text(
-                TEXTO_ES__agregar_clientes_screen__snackbar__datos_invalidos)),
+          content: Text(
+              TEXTO_ES__agregar_clientes_screen__snackbar__datos_invalidos),
+        ),
       );
       return;
     }
@@ -59,13 +61,15 @@ class _AgregarClienteScreenState extends State<AgregarClienteScreen> {
         telefono: telefono,
       );
 
-      // Ir a la pantalla de Clientes luego de guardar
+      if (!mounted) return;
       Navigator.pushReplacementNamed(context, PANTALLA__Clientes);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(
-                TEXTO_ES__agregar_clientes_screen__snackbar__error_al_guardar)),
+        const SnackBar(
+          content: Text(
+              TEXTO_ES__agregar_clientes_screen__snackbar__error_al_guardar),
+        ),
       );
     }
   }
@@ -75,8 +79,6 @@ class _AgregarClienteScreenState extends State<AgregarClienteScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          //
-          // Imagen de fondo de la pantalla
           Opacity(
             opacity: 0.5,
             child: Image.asset(
@@ -86,18 +88,13 @@ class _AgregarClienteScreenState extends State<AgregarClienteScreen> {
               height: double.infinity,
             ),
           ),
-
-          // Menú superior
           const CustomTopBar(title: TEXTO_ES__agregar_clientes_screen__titulo),
-
-          // Cuerpo principal envuelto en SingleChildScrollView
           Padding(
             padding: const EdgeInsets.only(top: 130, bottom: 80),
             child: SingleChildScrollView(
               key: KEY__agregar_clientes_screen__scrollview__principal,
               child: Column(
                 children: [
-                  /// Bloque 1: Datos para buscar
                   Center(
                     child: CustomInfoCard(
                       title:
@@ -136,10 +133,7 @@ class _AgregarClienteScreenState extends State<AgregarClienteScreen> {
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 40),
-
-                  // Botón para agregar clientes a la BBDD
                   Center(
                     child: CustomBigButton(
                       text:
@@ -153,8 +147,6 @@ class _AgregarClienteScreenState extends State<AgregarClienteScreen> {
               ),
             ),
           ),
-
-          // Menú inferior
           const Align(
             alignment: Alignment.bottomCenter,
             child: CustomBottomNavBar(),

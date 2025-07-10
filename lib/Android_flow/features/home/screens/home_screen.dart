@@ -3,8 +3,8 @@ import 'package:valen_market_admin/constants/assets.dart';
 import 'package:valen_market_admin/constants/keys.dart';
 import 'package:valen_market_admin/constants/pantallas.dart';
 import 'package:valen_market_admin/constants/textos.dart';
-import 'package:valen_market_admin/widgets/custom_home_button.dart';
-import 'package:valen_market_admin/widgets/custom_top_bar.dart';
+import 'package:valen_market_admin/Android_flow/widgets/custom_home_button.dart';
+import 'package:valen_market_admin/Android_flow/widgets/custom_top_bar.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
