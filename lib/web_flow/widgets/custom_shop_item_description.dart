@@ -28,7 +28,8 @@ class CustomShopItemDescription extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+        width: 350, // fijo para versión en grid de 3 columnas
+        margin: const EdgeInsets.all(15),
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(color: WebColors.bordeRosa, width: 2),
@@ -53,10 +54,10 @@ class CustomShopItemDescription extends StatelessWidget {
               child: Image.network(
                 imageUrl,
                 fit: BoxFit.cover,
-                height: 250,
+                height: 200,
                 width: double.infinity,
                 errorBuilder: (context, error, stackTrace) => Container(
-                  height: 250,
+                  height: 200,
                   color: Colors.grey[300],
                   alignment: Alignment.center,
                   child: const Icon(Icons.image_not_supported, size: 50),
@@ -80,67 +81,40 @@ class CustomShopItemDescription extends StatelessWidget {
 
             const SizedBox(height: 15),
 
-            // Descripción corta (izquierda)
+            // Contenido textual alineado y equiespaciado
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: Text(
-                descripcionCorta,
-                style: const TextStyle(
-                  fontSize: 18,
-                ),
-              ),
-            ),
-
-            // Descripción larga si existe
-            if (descripcionLarga != null &&
-                descripcionLarga!.trim().isNotEmpty) ...[
-              const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                child: Text(
-                  descripcionLarga!,
-                  style: const TextStyle(
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-            ],
-
-            const SizedBox(height: 15),
-
-            // Precio
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: Text(
-                'Precio = \$${precio.toStringAsFixed(2)}',
-                style: const TextStyle(fontSize: 18),
-              ),
-            ),
-
-            const SizedBox(height: 5),
-
-            // Cuotas
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: Text(
-                'Cuotas = $cuotas',
-                style: const TextStyle(fontSize: 18),
-              ),
-            ),
-
-            const SizedBox(height: 5),
-
-            // Stock
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-              child: Text(
-                'Stock = $stock',
-                style: const TextStyle(fontSize: 18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _textItem('Resumen', descripcionCorta, fontSize: 18),
+                  const SizedBox(height: 10),
+                  if (descripcionLarga != null &&
+                      descripcionLarga!.trim().isNotEmpty)
+                    _textItem('Descripción', descripcionLarga!, fontSize: 12),
+                  if (descripcionLarga != null &&
+                      descripcionLarga!.trim().isNotEmpty)
+                    const SizedBox(height: 10),
+                  _textItem('Precio', '\$${precio.toStringAsFixed(2)}',
+                      fontSize: 18),
+                  const SizedBox(height: 10),
+                  _textItem('Cuotas', cuotas.toString(), fontSize: 18),
+                  const SizedBox(height: 10),
+                  _textItem('Stock', stock.toString(), fontSize: 18),
+                  const SizedBox(height: 15),
+                ],
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _textItem(String label, String value, {double fontSize = 14}) {
+    return Text(
+      '$label = $value',
+      style: TextStyle(fontSize: fontSize),
     );
   }
 }

@@ -56,23 +56,42 @@ class _WebVerCatalogoScreenState extends State<WebVerCatalogoScreen> {
                 : _productos.isEmpty
                     ? const Center(
                         child: Text('No hay productos en el catálogo.'))
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(vertical: 20),
-                        itemCount: _productos.length,
-                        itemBuilder: (context, index) {
-                          final producto = _productos[index];
-                          return CustomShopItemDescription(
-                            nombre: producto['NombreDelProducto'] ?? '',
-                            descripcionCorta:
-                                producto['DescripcionCorta'] ?? '',
-                            descripcionLarga: producto['DescripcionLarga'],
-                            precio: (producto['Precio'] ?? 0).toDouble(),
-                            cuotas: (producto['CantidadDeCuotas'] ?? 0).toInt(),
-                            stock: (producto['Stock'] ?? 0).toInt(),
-                            imageUrl: producto['LinkDeLaFoto'] ?? '',
-                            onTap: () {
-                              // Acción futura al tocar el ítem
-                            },
+                    : LayoutBuilder(
+                        builder: (context, constraints) {
+                          final isWide = constraints.maxWidth >= 1000;
+                          final itemWidth = isWide
+                              ? 350.0
+                              : (constraints.maxWidth - 30).toDouble();
+
+                          return SingleChildScrollView(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 15, vertical: 20),
+                            child: Wrap(
+                              alignment: WrapAlignment.center,
+                              spacing: 15,
+                              runSpacing: 15,
+                              children: _productos.map((producto) {
+                                return SizedBox(
+                                  width: itemWidth,
+                                  child: CustomShopItemDescription(
+                                    nombre: producto['NombreDelProducto'] ?? '',
+                                    descripcionCorta:
+                                        producto['DescripcionCorta'] ?? '',
+                                    descripcionLarga:
+                                        producto['DescripcionLarga'],
+                                    precio:
+                                        (producto['Precio'] ?? 0).toDouble(),
+                                    cuotas: (producto['CantidadDeCuotas'] ?? 0)
+                                        .toInt(),
+                                    stock: (producto['Stock'] ?? 0).toInt(),
+                                    imageUrl: producto['LinkDeLaFoto'] ?? '',
+                                    onTap: () {
+                                      // Acción futura
+                                    },
+                                  ),
+                                );
+                              }).toList(),
+                            ),
                           );
                         },
                       ),
