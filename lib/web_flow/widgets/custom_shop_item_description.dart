@@ -47,21 +47,14 @@ class CustomShopItemDescription extends StatelessWidget {
           children: [
             // Imagen del producto
             ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(18),
-                topRight: Radius.circular(18),
-              ),
+              borderRadius: BorderRadius.circular(15),
               child: Image.network(
                 imageUrl,
-                fit: BoxFit.cover,
                 height: 200,
                 width: double.infinity,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  height: 200,
-                  color: Colors.grey[300],
-                  alignment: Alignment.center,
-                  child: const Icon(Icons.image_not_supported, size: 50),
-                ),
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) =>
+                    const Icon(Icons.broken_image, size: 100),
               ),
             ),
 

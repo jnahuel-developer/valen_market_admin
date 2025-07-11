@@ -6,6 +6,7 @@ class CustomTextField extends StatelessWidget {
   final bool isRequired;
   final TextInputType keyboardType;
   final int maxLines;
+  final bool isPassword;
 
   const CustomTextField({
     super.key,
@@ -14,6 +15,7 @@ class CustomTextField extends StatelessWidget {
     this.isRequired = false,
     this.keyboardType = TextInputType.text,
     this.maxLines = 1,
+    this.isPassword = false,
   });
 
   @override
@@ -21,7 +23,10 @@ class CustomTextField extends StatelessWidget {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
-      maxLines: maxLines,
+      maxLines: isPassword ? 1 : maxLines,
+      obscureText: isPassword,
+      enableSuggestions: !isPassword,
+      autocorrect: !isPassword,
       decoration: InputDecoration(
         labelText: label,
         labelStyle: const TextStyle(fontWeight: FontWeight.w500),

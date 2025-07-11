@@ -5,7 +5,12 @@ import 'package:valen_market_admin/Web_flow/features/catalogo/screens/web_catalo
 import 'package:valen_market_admin/Web_flow/features/catalogo/screens/web_ver_catalogo_screen.dart';
 import 'package:valen_market_admin/Web_flow/features/clientes/screens/web_agregar_cliente_screen.dart';
 import 'package:valen_market_admin/Web_flow/features/clientes/screens/web_clientes_screen.dart';
-import 'package:valen_market_admin/Web_flow/features/login/screens/web_login.dart';
+import 'package:valen_market_admin/Web_flow/features/dropbox/screens/web_dropbox_auth_screen.dart';
+import 'package:valen_market_admin/Web_flow/features/dropbox/screens/web_dropbox_check_screen.dart';
+import 'package:valen_market_admin/Web_flow/features/login/screens/web_login_email_password_screen.dart';
+import 'package:valen_market_admin/Web_flow/features/login/screens/web_login_screen.dart';
+import 'package:valen_market_admin/Web_flow/features/login/screens/web_register_screen.dart';
+import 'package:valen_market_admin/Web_flow/features/login/screens/web_registration_waiting_screen.dart';
 import '../Android_flow/features/home/screens/home_screen.dart';
 import '../Android_flow/features/catalogo/screens/catalogo_screen.dart';
 import '../Android_flow/features/clientes/screens/clientes_screen.dart';
@@ -43,6 +48,13 @@ class MyApp extends StatelessWidget {
             const WebAgregarProductoScreen(),
         PANTALLA_WEB__Catalogo__VerCatalogo: (_) =>
             const WebVerCatalogoScreen(),
+        PANTALLA_WEB__Dropbox__Auth: (_) => const WebDropboxAuthScreen(),
+        PANTALLA_WEB__Dropbox__Check: (_) => const WebDropboxCheckScreen(),
+        PANTALLA_WEB__Login__ConEmail: (_) =>
+            const WebLoginEmailPasswordScreen(),
+        PANTALLA_WEB__Login__CrearUsuario: (_) => const WebRegisterScreen(),
+        PANTALLA_WEB__Login__Registro__EsperandoVerificacion: (_) =>
+            const WebRegistrationWaitingScreen(),
       },
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:valen_market_admin/services/dropbox/dropbox_servicios_web.dart';
 import 'package:valen_market_admin/services/firebase/auth_servicios_firebase_web.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
 import 'package:valen_market_admin/constants/pantallas.dart';
@@ -34,6 +35,7 @@ class CustomWebTopBar extends StatelessWidget {
 
     if (confirmar == true) {
       await AuthServiciosFirebaseWeb.logout();
+      await DropboxServiciosWeb.clearAccessToken();
       if (context.mounted) {
         Navigator.pushNamedAndRemoveUntil(
           context,
