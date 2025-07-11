@@ -55,10 +55,12 @@ class _WebAgregarProductoScreenState extends State<WebAgregarProductoScreen> {
 
   Future<void> _guardarProducto() async {
     if (_formKey.currentState?.validate() != true || _imagenBytes == null) {
+      print('[AgregarProducto] ❗ Validación fallida o imagen no seleccionada.');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content:
-                Text('Todos los campos son obligatorios, incluida la imagen.')),
+          content:
+              Text('Todos los campos son obligatorios, incluida la imagen.'),
+        ),
       );
       return;
     }
@@ -71,11 +73,18 @@ class _WebAgregarProductoScreenState extends State<WebAgregarProductoScreen> {
       final fecha = DateFormat('yyyyMMdd').format(DateTime.now());
       final nombreImagen = '${nombreProducto.replaceAll(" ", "_")}__$fecha.jpg';
 
+      print('[AgregarProducto] ✅ UID: $uid');
+      print('[AgregarProducto] ✅ Nombre imagen: $nombreImagen');
+      print('[AgregarProducto] ⏳ Subiendo imagen a Dropbox...');
+
       final urlImagen = await DropboxServiciosWeb.uploadImageFromWeb(
         bytes: _imagenBytes!,
         fileName: nombreImagen,
         userId: uid!,
       );
+
+      print('[AgregarProducto] ✅ Imagen subida. URL: $urlImagen');
+      print('[AgregarProducto] ⏳ Guardando documento en Firebase...');
 
       await _catalogoService.agregarProducto(
         nombreDelProducto: nombreProducto,
@@ -87,6 +96,8 @@ class _WebAgregarProductoScreenState extends State<WebAgregarProductoScreen> {
         linkDeLaFoto: urlImagen ?? 'No disponible',
       );
 
+      print('[AgregarProducto] ✅ Producto guardado en Firebase');
+
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -94,6 +105,7 @@ class _WebAgregarProductoScreenState extends State<WebAgregarProductoScreen> {
       );
       Navigator.pop(context, true);
     } catch (e) {
+      print('[AgregarProducto] ❌ Error al guardar: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al guardar producto: $e')),

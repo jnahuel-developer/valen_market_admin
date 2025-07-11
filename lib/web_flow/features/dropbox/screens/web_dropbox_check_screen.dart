@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:valen_market_admin/constants/pantallas.dart';
@@ -34,8 +33,8 @@ class _WebDropboxCheckScreenState extends State<WebDropboxCheckScreen> {
         return;
       }
 
-      final claves = await FirebaseService.getDropboxAdminKeys(adminId);
-      print('[DropboxCheck] Claves obtenidas: ${claves != null}');
+      final claves = await FirebaseService.getDropboxGlobalKeys();
+      print('[DropboxCheck] Claves globales obtenidas: ${claves != null}');
 
       if (claves == null ||
           claves['appKey'] == null ||
@@ -63,7 +62,7 @@ class _WebDropboxCheckScreenState extends State<WebDropboxCheckScreen> {
         _redirigirAAutorizacion();
       }
     } catch (e) {
-      print('[DropboxCheck] Error inesperado: $e');
+      print('[DropboxCheck] ❌ Error inesperado: $e');
       if (!mounted) return;
       _redirigirAAutorizacion();
     }

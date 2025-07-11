@@ -23,15 +23,25 @@ class _WebVerCatalogoScreenState extends State<WebVerCatalogoScreen> {
   }
 
   Future<void> _cargarProductos() async {
+    print('[Catalogo] 🔄 Cargando productos del catálogo...');
     setState(() => _cargando = true);
     try {
       final productos = await _catalogoService.obtenerTodosLosProductos();
+      print('[Catalogo] ✅ Productos obtenidos: ${productos.length}');
+
+      for (var producto in productos) {
+        print('---');
+        print('[Catalogo] 📦 Producto: ${producto['NombreDelProducto']}');
+        print('[Catalogo] 🔗 Imagen: ${producto['LinkDeLaFoto']}');
+      }
+
       if (!mounted) return;
       setState(() {
         _productos = productos;
         _cargando = false;
       });
     } catch (e) {
+      print('[Catalogo] ❌ Error al cargar productos: $e');
       if (!mounted) return;
       setState(() => _cargando = false);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -71,22 +81,35 @@ class _WebVerCatalogoScreenState extends State<WebVerCatalogoScreen> {
                               spacing: 15,
                               runSpacing: 15,
                               children: _productos.map((producto) {
+                                final nombre =
+                                    producto['NombreDelProducto'] ?? '';
+                                final descCorta =
+                                    producto['DescripcionCorta'] ?? '';
+                                final descLarga = producto['DescripcionLarga'];
+                                final precio =
+                                    (producto['Precio'] ?? 0).toDouble();
+                                final cuotas =
+                                    (producto['CantidadDeCuotas'] ?? 0).toInt();
+                                final stock = (producto['Stock'] ?? 0).toInt();
+                                final imagenUrl =
+                                    producto['LinkDeLaFoto'] ?? '';
+
+                                print('[Render] Rendering producto: $nombre');
+                                print('[Render] Imagen URL: $imagenUrl');
+
                                 return SizedBox(
                                   width: itemWidth,
                                   child: CustomShopItemDescription(
-                                    nombre: producto['NombreDelProducto'] ?? '',
-                                    descripcionCorta:
-                                        producto['DescripcionCorta'] ?? '',
-                                    descripcionLarga:
-                                        producto['DescripcionLarga'],
-                                    precio:
-                                        (producto['Precio'] ?? 0).toDouble(),
-                                    cuotas: (producto['CantidadDeCuotas'] ?? 0)
-                                        .toInt(),
-                                    stock: (producto['Stock'] ?? 0).toInt(),
-                                    imageUrl: producto['LinkDeLaFoto'] ?? '',
+                                    nombre: nombre,
+                                    descripcionCorta: descCorta,
+                                    descripcionLarga: descLarga,
+                                    precio: precio,
+                                    cuotas: cuotas,
+                                    stock: stock,
+                                    imageUrl: imagenUrl,
                                     onTap: () {
-                                      // Acción futura
+                                      print(
+                                          '[Tap] Producto seleccionado: $nombre');
                                     },
                                   ),
                                 );

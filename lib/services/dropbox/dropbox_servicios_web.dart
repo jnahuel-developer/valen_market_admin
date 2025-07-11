@@ -28,7 +28,6 @@ class DropboxServiciosWeb {
     if (_appKey == null) {
       throw Exception('La appKey de Dropbox no fue configurada.');
     }
-
     return '$_authorizeUrl?client_id=$_appKey&response_type=code&token_access_type=offline';
   }
 
@@ -110,9 +109,14 @@ class DropboxServiciosWeb {
   }
 
   static Future<void> limpiarTokens() async {
-    await _secureStorage.delete(key: _accessTokenKey);
-    await _secureStorage.delete(key: _refreshTokenKey);
-    _client = null;
+    try {
+      await _secureStorage.delete(key: _accessTokenKey);
+      await _secureStorage.delete(key: _refreshTokenKey);
+    } catch (e) {
+      print('[Dropbox] ⚠️ Error al limpiar tokens: $e');
+    } finally {
+      _client = null;
+    }
   }
 
   static Future<void> _refreshAccessToken() async {
@@ -148,9 +152,7 @@ class DropboxServiciosWeb {
   static Future<String> _getValidAccessToken() async {
     final accessToken = await _secureStorage.read(key: _accessTokenKey);
 
-    if (accessToken != null) {
-      return accessToken;
-    }
+    if (accessToken != null) return accessToken;
 
     await _refreshAccessToken();
     final newAccessToken = await _secureStorage.read(key: _accessTokenKey);
@@ -162,49 +164,13 @@ class DropboxServiciosWeb {
     return newAccessToken;
   }
 
-  static Future<void> clearAccessToken() async {
-    await _secureStorage.delete(key: _accessTokenKey);
-    await _secureStorage.delete(key: _refreshTokenKey);
-    _client = null;
-  }
-
-  /// Obtener un enlace compartido existente si ya se creó previamente
-  static Future<String?> _getExistingSharedLink(String path) async {
-    final accessToken = await _getValidAccessToken();
-    final url = 'https://api.dropboxapi.com/2/sharing/list_shared_links';
-
-    final response = await http.post(
-      Uri.parse(url),
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-        'Content-Type': 'application/json',
-      },
-      body: json.encode({'path': path}),
-    );
-
-    if (response.statusCode == 200) {
-      final jsonResponse = json.decode(response.body);
-      if (jsonResponse['links'] != null && jsonResponse['links'].isNotEmpty) {
-        final existingLink = jsonResponse['links'][0]['url'];
-
-        // Mostrar la URL existente para depuración
-        print("Enlace compartido existente: $existingLink");
-
-        // Reemplazar el parámetro `dl=0` por `raw=1`
-        String modifiedLink = existingLink.replaceFirst('dl=0', 'raw=1');
-
-        // Mostrar la URL modificada para depuración
-        print("URL modificada para carga directa: $modifiedLink");
-
-        return modifiedLink;
-      } else {
-        throw Exception(
-            'No se encontró un enlace compartido existente para $path');
-      }
-    } else {
-      throw Exception(
-          'Error al obtener enlace compartido existente: ${response.body}');
+  static String _convertToDirectDropboxUrl(String sharedLink) {
+    if (sharedLink.contains("www.dropbox.com")) {
+      return sharedLink
+          .replaceFirst("www.dropbox.com", "dl.dropboxusercontent.com")
+          .replaceFirst("?dl=0", "?raw=1");
     }
+    return sharedLink;
   }
 
   static Future<String?> createSharedLink(String privateUrl) async {
@@ -228,21 +194,51 @@ class DropboxServiciosWeb {
       final jsonResponse = json.decode(response.body);
       String sharedLink = jsonResponse['url'];
 
-      // Mostrar la URL original para depuración
-      print("URL original generada: $sharedLink");
+      // ✅ Transformar a enlace directo usable desde Flutter Web
+      final directUrl = _convertToDirectDropboxUrl(sharedLink);
 
-      // Reemplazar el parámetro `dl=0` por `raw=1`
-      String modifiedLink = sharedLink.replaceFirst('dl=0', 'raw=1');
-
-      // Mostrar la URL modificada para depuración
-      print("URL modificada para carga directa: $modifiedLink");
-
-      return modifiedLink;
+      print("🔗 Enlace directo generado: $directUrl");
+      return directUrl;
     } else if (response.statusCode == 409) {
-      // Si ya existe un enlace compartido, obtener el enlace existente
       return await _getExistingSharedLink(path);
     } else {
       throw Exception('Error al crear enlace compartido: ${response.body}');
+    }
+  }
+
+  static Future<String?> _getExistingSharedLink(String path) async {
+    final accessToken = await _getValidAccessToken();
+    final url = 'https://api.dropboxapi.com/2/sharing/list_shared_links';
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({'path': path}),
+    );
+
+    if (response.statusCode == 200) {
+      final jsonResponse = json.decode(response.body);
+      if (jsonResponse['links'] != null && jsonResponse['links'].isNotEmpty) {
+        final link = jsonResponse['links'][0]['url'];
+
+        print("[Dropbox] 🔁 Enlace ya existente: $link");
+
+        final usableLink = link
+            .replaceFirst('www.dropbox.com', 'dl.dropboxusercontent.com')
+            .replaceFirst('?dl=0', '');
+
+        print("[Dropbox] ✅ Enlace convertido para Web: $usableLink");
+
+        return usableLink;
+      } else {
+        throw Exception('No hay enlaces compartidos existentes para $path');
+      }
+    } else {
+      throw Exception(
+          'Error al buscar enlace existente: ${response.statusCode} - ${response.body}');
     }
   }
 
@@ -252,7 +248,7 @@ class DropboxServiciosWeb {
     required String userId,
   }) async {
     final accessToken = await _getValidAccessToken();
-    final filePath = '/$userId/$fileName';
+    final filePath = '/Catalogo/$fileName';
 
     final request = http.Request('POST', Uri.parse(_uploadUrl))
       ..headers['Authorization'] = 'Bearer $accessToken'
@@ -272,8 +268,8 @@ class DropboxServiciosWeb {
       final path = json.decode(body)['path_display'];
       return await createSharedLink('https://www.dropbox.com/home$path');
     } else {
-      final body = await response.stream.bytesToString();
-      throw Exception('Error al subir imagen: ${response.statusCode} - $body');
+      final error = await response.stream.bytesToString();
+      throw Exception('Error al subir imagen: ${response.statusCode} - $error');
     }
   }
 }

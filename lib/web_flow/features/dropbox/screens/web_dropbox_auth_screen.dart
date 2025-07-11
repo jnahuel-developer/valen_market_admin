@@ -23,30 +23,21 @@ class _WebDropboxAuthScreenState extends State<WebDropboxAuthScreen> {
   @override
   void initState() {
     super.initState();
-    _cargarClaves();
+    _cargarClavesGlobales();
   }
 
-  Future<void> _cargarClaves() async {
-    print('[DropboxAuth] Iniciando carga de claves...');
+  Future<void> _cargarClavesGlobales() async {
+    print('[DropboxAuth] Iniciando carga de claves globales...');
 
     try {
-      final adminId = await _secureStorage.read(key: 'UID');
-      print('[DropboxAuth] UID leído desde storage: $adminId');
-
-      if (adminId == null || adminId.isEmpty) {
-        setState(() => _mensaje = 'Error: No se encontró UID de sesión.');
-        print('[DropboxAuth] UID no disponible');
-        return;
-      }
-
-      final claves = await FirebaseService.getDropboxAdminKeys(adminId);
-      print('[DropboxAuth] Claves obtenidas: ${claves != null}');
+      final claves = await FirebaseService.getDropboxGlobalKeys();
+      print('[DropboxAuth] Claves globales obtenidas: ${claves != null}');
 
       if (claves == null ||
           claves['appKey'] == null ||
           claves['appSecret'] == null) {
-        setState(
-            () => _mensaje = 'Error: No se encontraron claves de Dropbox.');
+        setState(() =>
+            _mensaje = 'Error: No se encontraron claves globales de Dropbox.');
         print('[DropboxAuth] Claves nulas o incompletas');
         return;
       }
@@ -84,7 +75,6 @@ class _WebDropboxAuthScreenState extends State<WebDropboxAuthScreen> {
     }
 
     print('[DropboxAuth] Iniciando autenticación con código ingresado...');
-
     setState(() => _mensaje = null);
 
     try {
