@@ -36,6 +36,7 @@ class _WebRegistrationWaitingScreenState
           );
         }
       } else {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('📧 Aún no has verificado tu email'),

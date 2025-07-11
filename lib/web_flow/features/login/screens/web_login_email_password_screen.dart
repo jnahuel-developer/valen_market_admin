@@ -48,6 +48,7 @@ class _WebLoginEmailPasswordScreenState
           await _secureStorage.write(key: 'UID', value: uid);
           final tokenGoogleOk = await AuthServiciosFirebaseWeb.loginConGoogle();
 
+          if (!mounted) return;
           if (tokenGoogleOk) {
             Navigator.pushReplacementNamed(
                 context, PANTALLA_WEB__Dropbox__Check);
@@ -58,6 +59,7 @@ class _WebLoginEmailPasswordScreenState
             );
           }
         } else {
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('❌ No se pudo obtener el UID')),
           );

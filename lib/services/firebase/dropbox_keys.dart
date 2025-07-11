@@ -23,7 +23,6 @@ class FirebaseService {
       }
       return null;
     } catch (e) {
-      print('[DropboxKeys] ❌ Error al obtener claves globales: $e');
       return null;
     }
   }

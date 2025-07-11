@@ -62,9 +62,12 @@ class _WebRegisterScreenState extends State<WebRegisterScreen> {
         const secureStorage = FlutterSecureStorage();
         await secureStorage.write(key: 'UID', value: uid);
 
+        if (!mounted) return;
+
         Navigator.pushReplacementNamed(
             context, PANTALLA_WEB__Login__Registro__EsperandoVerificacion);
       } else {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('No se pudo obtener el UID')),
         );

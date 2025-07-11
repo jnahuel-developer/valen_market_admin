@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:valen_market_admin/Web_flow/widgets/custom_web_top_bar.dart';
 import 'package:valen_market_admin/Web_flow/widgets/custom_text_field.dart';
@@ -17,7 +16,6 @@ class WebDropboxAuthScreen extends StatefulWidget {
 
 class _WebDropboxAuthScreenState extends State<WebDropboxAuthScreen> {
   final _codeController = TextEditingController();
-  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   String? _mensaje;
 
   @override
@@ -27,42 +25,30 @@ class _WebDropboxAuthScreenState extends State<WebDropboxAuthScreen> {
   }
 
   Future<void> _cargarClavesGlobales() async {
-    print('[DropboxAuth] Iniciando carga de claves globales...');
-
     try {
       final claves = await FirebaseService.getDropboxGlobalKeys();
-      print('[DropboxAuth] Claves globales obtenidas: ${claves != null}');
 
       if (claves == null ||
           claves['appKey'] == null ||
           claves['appSecret'] == null) {
         setState(() =>
             _mensaje = 'Error: No se encontraron claves globales de Dropbox.');
-        print('[DropboxAuth] Claves nulas o incompletas');
         return;
       }
 
-      print('[DropboxAuth] appKey: ${claves['appKey']}');
-      print('[DropboxAuth] appSecret: ${claves['appSecret']}');
-
       DropboxServiciosWeb.definirClaves(
           claves['appKey']!, claves['appSecret']!);
-      print('[DropboxAuth] Claves definidas correctamente.');
     } catch (e) {
       setState(() => _mensaje = 'Error al cargar claves: $e');
-      print('[DropboxAuth] Error durante carga de claves: $e');
     }
   }
 
   void _abrirUrlDropbox() async {
-    print('[DropboxAuth] Solicitando URL de autorización...');
     try {
       final url = Uri.parse(DropboxServiciosWeb.generarUrlDeAutorizacion());
-      print('[DropboxAuth] URL generada: $url');
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } catch (e) {
       setState(() => _mensaje = 'Error al abrir la URL: $e');
-      print('[DropboxAuth] Error al abrir la URL: $e');
     }
   }
 
@@ -70,21 +56,17 @@ class _WebDropboxAuthScreenState extends State<WebDropboxAuthScreen> {
     final code = _codeController.text.trim();
     if (code.isEmpty) {
       setState(() => _mensaje = 'Debe ingresar un código válido.');
-      print('[DropboxAuth] Código vacío');
       return;
     }
 
-    print('[DropboxAuth] Iniciando autenticación con código ingresado...');
     setState(() => _mensaje = null);
 
     try {
       await DropboxServiciosWeb.autenticar(code);
-      print('[DropboxAuth] Autenticación exitosa');
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, PANTALLA_WEB__Home);
     } catch (e) {
       setState(() => _mensaje = 'Error durante la autenticación: $e');
-      print('[DropboxAuth] Error en autenticación: $e');
     }
   }
 

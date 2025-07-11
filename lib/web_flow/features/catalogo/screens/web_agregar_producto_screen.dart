@@ -1,4 +1,4 @@
-import 'dart:html' as html;
+import 'dart:js_interop' as web;
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -9,6 +9,7 @@ import 'package:valen_market_admin/Web_flow/widgets/custom_web_top_bar.dart';
 import 'package:valen_market_admin/constants/pantallas.dart';
 import 'package:valen_market_admin/services/firebase/catalogo_servicios_firebase.dart';
 import 'package:valen_market_admin/services/dropbox/dropbox_servicios_web.dart';
+import 'package:web/web.dart' as web;
 
 class WebAgregarProductoScreen extends StatefulWidget {
   const WebAgregarProductoScreen({super.key});
@@ -35,32 +36,40 @@ class _WebAgregarProductoScreenState extends State<WebAgregarProductoScreen> {
   String? _nombreArchivo;
 
   Future<void> _seleccionarImagen() async {
-    final uploadInput = html.FileUploadInputElement()..accept = 'image/*';
-    uploadInput.click();
+    final input = web.document.createElement('input') as web.HTMLInputElement;
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.click();
 
-    uploadInput.onChange.listen((event) {
-      final file = uploadInput.files?.first;
-      if (file != null) {
-        final reader = html.FileReader();
-        reader.readAsArrayBuffer(file);
-        reader.onLoadEnd.listen((_) {
-          setState(() {
-            _imagenBytes = reader.result as Uint8List;
-            _nombreArchivo = file.name;
+    input.onChange.listen((event) {
+      final files = input.files;
+      if (files != null && files.length > 0) {
+        final file = files.item(0);
+        if (file != null) {
+          _nombreArchivo = file.name;
+
+          final reader = web.FileReader();
+          reader.readAsArrayBuffer(file);
+          reader.onLoadEnd.listen((_) {
+            final result = reader.result;
+            if (result case final web.JSArrayBuffer buffer) {
+              final dartBuffer = buffer.toDart;
+              setState(() {
+                _imagenBytes = Uint8List.view(dartBuffer);
+              });
+            }
           });
-        });
+        }
       }
     });
   }
 
   Future<void> _guardarProducto() async {
     if (_formKey.currentState?.validate() != true || _imagenBytes == null) {
-      print('[AgregarProducto] ❗ Validación fallida o imagen no seleccionada.');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content:
-              Text('Todos los campos son obligatorios, incluida la imagen.'),
-        ),
+            content:
+                Text('Todos los campos son obligatorios, incluida la imagen.')),
       );
       return;
     }
@@ -73,18 +82,11 @@ class _WebAgregarProductoScreenState extends State<WebAgregarProductoScreen> {
       final fecha = DateFormat('yyyyMMdd').format(DateTime.now());
       final nombreImagen = '${nombreProducto.replaceAll(" ", "_")}__$fecha.jpg';
 
-      print('[AgregarProducto] ✅ UID: $uid');
-      print('[AgregarProducto] ✅ Nombre imagen: $nombreImagen');
-      print('[AgregarProducto] ⏳ Subiendo imagen a Dropbox...');
-
       final urlImagen = await DropboxServiciosWeb.uploadImageFromWeb(
         bytes: _imagenBytes!,
         fileName: nombreImagen,
         userId: uid!,
       );
-
-      print('[AgregarProducto] ✅ Imagen subida. URL: $urlImagen');
-      print('[AgregarProducto] ⏳ Guardando documento en Firebase...');
 
       await _catalogoService.agregarProducto(
         nombreDelProducto: nombreProducto,
@@ -96,8 +98,6 @@ class _WebAgregarProductoScreenState extends State<WebAgregarProductoScreen> {
         linkDeLaFoto: urlImagen ?? 'No disponible',
       );
 
-      print('[AgregarProducto] ✅ Producto guardado en Firebase');
-
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -105,7 +105,6 @@ class _WebAgregarProductoScreenState extends State<WebAgregarProductoScreen> {
       );
       Navigator.pop(context, true);
     } catch (e) {
-      print('[AgregarProducto] ❌ Error al guardar: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al guardar producto: $e')),
@@ -124,7 +123,7 @@ class _WebAgregarProductoScreenState extends State<WebAgregarProductoScreen> {
             titulo: 'Agregar Producto',
             pantallaPadreRouteName: PANTALLA_WEB__Catalogo,
           ),
-          const SizedBox(height: 60),
+          const SizedBox(height: 20),
           Expanded(
             child: SingleChildScrollView(
               child: Center(
@@ -140,35 +139,36 @@ class _WebAgregarProductoScreenState extends State<WebAgregarProductoScreen> {
                               label: 'Nombre del Producto',
                               controller: _nombreController,
                               isRequired: true),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 15),
                           CustomTextField(
                               label: 'Descripción Corta',
                               controller: _descCortaController,
                               isRequired: true),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 15),
                           CustomTextField(
                               label: 'Descripción Larga',
                               controller: _descLargaController,
                               maxLines: 3),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 15),
                           CustomTextField(
-                              label: 'Precio',
-                              controller: _precioController,
-                              keyboardType: TextInputType.number,
-                              isRequired: true),
-                          const SizedBox(height: 20),
+                            label: 'Precio',
+                            controller: _precioController,
+                            isRequired: true,
+                            isMoney: true,
+                          ),
+                          const SizedBox(height: 15),
                           CustomTextField(
                               label: 'Cantidad de Cuotas',
                               controller: _cuotasController,
                               keyboardType: TextInputType.number,
                               isRequired: true),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 15),
                           CustomTextField(
                               label: 'Stock',
                               controller: _stockController,
                               keyboardType: TextInputType.number,
                               isRequired: true),
-                          const SizedBox(height: 30),
+                          const SizedBox(height: 20),
                           CustomGradientButton(
                             text: _imagenBytes == null
                                 ? 'SELECCIONAR IMAGEN'
@@ -179,7 +179,7 @@ class _WebAgregarProductoScreenState extends State<WebAgregarProductoScreen> {
                             const SizedBox(height: 10),
                             Text('📷 $_nombreArchivo'),
                           ],
-                          const SizedBox(height: 40),
+                          const SizedBox(height: 20),
                           _guardando
                               ? const CircularProgressIndicator()
                               : CustomGradientButton(

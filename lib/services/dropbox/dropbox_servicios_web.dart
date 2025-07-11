@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
-import 'package:oauth2/oauth2.dart' as oauth2;
 
 class DropboxServiciosWeb {
   static const String _authorizeUrl =
@@ -11,7 +10,6 @@ class DropboxServiciosWeb {
   static const String _uploadUrl =
       'https://content.dropboxapi.com/2/files/upload';
 
-  static oauth2.Client? _client;
   static String? _appKey;
   static String? _appSecret;
 
@@ -52,7 +50,6 @@ class DropboxServiciosWeb {
           key: _accessTokenKey, value: tokenData['access_token']);
       await _secureStorage.write(
           key: _refreshTokenKey, value: tokenData['refresh_token']);
-      _client = oauth2.Client(oauth2.Credentials(tokenData['access_token']));
     } else {
       throw Exception(
           'Error en autenticación: ${response.statusCode} - ${response.body}');
@@ -64,7 +61,6 @@ class DropboxServiciosWeb {
     final refreshToken = await _secureStorage.read(key: _refreshTokenKey);
 
     if (accessToken != null) {
-      _client = oauth2.Client(oauth2.Credentials(accessToken));
       return true;
     } else if (refreshToken != null) {
       try {
@@ -101,7 +97,6 @@ class DropboxServiciosWeb {
           key: _accessTokenKey, value: tokenData['access_token']);
       await _secureStorage.write(
           key: _refreshTokenKey, value: tokenData['refresh_token']);
-      _client = oauth2.Client(oauth2.Credentials(tokenData['access_token']));
     } else {
       throw Exception(
           'Error al renovar token: ${response.statusCode} - ${response.body}');
@@ -113,10 +108,8 @@ class DropboxServiciosWeb {
       await _secureStorage.delete(key: _accessTokenKey);
       await _secureStorage.delete(key: _refreshTokenKey);
     } catch (e) {
-      print('[Dropbox] ⚠️ Error al limpiar tokens: $e');
-    } finally {
-      _client = null;
-    }
+//      print('[Dropbox] ⚠️ Error al limpiar tokens: $e');
+    } finally {}
   }
 
   static Future<void> _refreshAccessToken() async {
@@ -142,7 +135,6 @@ class DropboxServiciosWeb {
           key: _accessTokenKey, value: tokenData['access_token']);
       await _secureStorage.write(
           key: _refreshTokenKey, value: tokenData['refresh_token']);
-      _client = oauth2.Client(oauth2.Credentials(tokenData['access_token']));
     } else {
       throw Exception(
           'Error al renovar el token: ${response.statusCode} - ${response.body}');
@@ -197,7 +189,6 @@ class DropboxServiciosWeb {
       // ✅ Transformar a enlace directo usable desde Flutter Web
       final directUrl = _convertToDirectDropboxUrl(sharedLink);
 
-      print("🔗 Enlace directo generado: $directUrl");
       return directUrl;
     } else if (response.statusCode == 409) {
       return await _getExistingSharedLink(path);
@@ -224,13 +215,9 @@ class DropboxServiciosWeb {
       if (jsonResponse['links'] != null && jsonResponse['links'].isNotEmpty) {
         final link = jsonResponse['links'][0]['url'];
 
-        print("[Dropbox] 🔁 Enlace ya existente: $link");
-
         final usableLink = link
             .replaceFirst('www.dropbox.com', 'dl.dropboxusercontent.com')
             .replaceFirst('?dl=0', '');
-
-        print("[Dropbox] ✅ Enlace convertido para Web: $usableLink");
 
         return usableLink;
       } else {

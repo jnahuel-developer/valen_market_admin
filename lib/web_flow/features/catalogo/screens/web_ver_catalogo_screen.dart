@@ -23,17 +23,9 @@ class _WebVerCatalogoScreenState extends State<WebVerCatalogoScreen> {
   }
 
   Future<void> _cargarProductos() async {
-    print('[Catalogo] 🔄 Cargando productos del catálogo...');
     setState(() => _cargando = true);
     try {
       final productos = await _catalogoService.obtenerTodosLosProductos();
-      print('[Catalogo] ✅ Productos obtenidos: ${productos.length}');
-
-      for (var producto in productos) {
-        print('---');
-        print('[Catalogo] 📦 Producto: ${producto['NombreDelProducto']}');
-        print('[Catalogo] 🔗 Imagen: ${producto['LinkDeLaFoto']}');
-      }
 
       if (!mounted) return;
       setState(() {
@@ -41,7 +33,6 @@ class _WebVerCatalogoScreenState extends State<WebVerCatalogoScreen> {
         _cargando = false;
       });
     } catch (e) {
-      print('[Catalogo] ❌ Error al cargar productos: $e');
       if (!mounted) return;
       setState(() => _cargando = false);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -94,9 +85,6 @@ class _WebVerCatalogoScreenState extends State<WebVerCatalogoScreen> {
                                 final imagenUrl =
                                     producto['LinkDeLaFoto'] ?? '';
 
-                                print('[Render] Rendering producto: $nombre');
-                                print('[Render] Imagen URL: $imagenUrl');
-
                                 return SizedBox(
                                   width: itemWidth,
                                   child: CustomShopItemDescription(
@@ -107,10 +95,7 @@ class _WebVerCatalogoScreenState extends State<WebVerCatalogoScreen> {
                                     cuotas: cuotas,
                                     stock: stock,
                                     imageUrl: imagenUrl,
-                                    onTap: () {
-                                      print(
-                                          '[Tap] Producto seleccionado: $nombre');
-                                    },
+                                    onTap: () {},
                                   ),
                                 );
                               }).toList(),
