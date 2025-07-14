@@ -38,7 +38,7 @@ class WebHomeScreen extends StatelessWidget {
                   CustomGradientButton(
                     text: 'FICHAS',
                     onPressed: () {
-                      // Acción futura
+                      Navigator.pushNamed(context, PANTALLA_WEB__Fichas);
                     },
                   ),
                   const SizedBox(height: 20),

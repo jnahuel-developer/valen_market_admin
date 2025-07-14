@@ -7,6 +7,7 @@ import 'package:valen_market_admin/Web_flow/features/clientes/screens/web_agrega
 import 'package:valen_market_admin/Web_flow/features/clientes/screens/web_clientes_screen.dart';
 import 'package:valen_market_admin/Web_flow/features/dropbox/screens/web_dropbox_auth_screen.dart';
 import 'package:valen_market_admin/Web_flow/features/dropbox/screens/web_dropbox_check_screen.dart';
+import 'package:valen_market_admin/Web_flow/features/fichas/screens/web_fichas_screen.dart';
 import 'package:valen_market_admin/Web_flow/features/login/screens/web_login_email_password_screen.dart';
 import 'package:valen_market_admin/Web_flow/features/login/screens/web_login_screen.dart';
 import 'package:valen_market_admin/Web_flow/features/login/screens/web_register_screen.dart';
@@ -38,23 +39,36 @@ class MyApp extends StatelessWidget {
         PANTALLA__Clientes__AgregarCliente: (_) => const AgregarClienteScreen(),
         PANTALLA__Clientes__BuscarCliente: (context) =>
             const BuscarClienteScreen(),
-        PANTALLA_WEB__Home: (context) => const WebHomeScreen(),
+
+        // Pantallas web de Logueo
         PANTALLA_WEB__Login: (_) => const WebLoginScreen(),
-        PANTALLA_WEB__Clientes: (_) => const WebClientesScreen(),
-        PANTALLA_WEB__Clientes__AgregarCliente: (_) =>
-            const WebAgregarClienteScreen(),
-        PANTALLA_WEB__Catalogo: (_) => const WebCatalogoScreen(),
-        PANTALLA_WEB__Catalogo__AgregarProducto: (_) =>
-            const WebAgregarProductoScreen(),
-        PANTALLA_WEB__Catalogo__VerCatalogo: (_) =>
-            const WebVerCatalogoScreen(),
-        PANTALLA_WEB__Dropbox__Auth: (_) => const WebDropboxAuthScreen(),
-        PANTALLA_WEB__Dropbox__Check: (_) => const WebDropboxCheckScreen(),
         PANTALLA_WEB__Login__ConEmail: (_) =>
             const WebLoginEmailPasswordScreen(),
         PANTALLA_WEB__Login__CrearUsuario: (_) => const WebRegisterScreen(),
         PANTALLA_WEB__Login__Registro__EsperandoVerificacion: (_) =>
             const WebRegistrationWaitingScreen(),
+
+        // Pantallas web de Home
+        PANTALLA_WEB__Home: (context) => const WebHomeScreen(),
+
+        // Pantallas web de Clientes
+        PANTALLA_WEB__Clientes: (_) => const WebClientesScreen(),
+        PANTALLA_WEB__Clientes__AgregarCliente: (_) =>
+            const WebAgregarClienteScreen(),
+
+        // Pantallas web de Catálogo
+        PANTALLA_WEB__Catalogo: (_) => const WebCatalogoScreen(),
+        PANTALLA_WEB__Catalogo__AgregarProducto: (_) =>
+            const WebAgregarProductoScreen(),
+        PANTALLA_WEB__Catalogo__VerCatalogo: (_) =>
+            const WebVerCatalogoScreen(),
+
+        // Pantallas web de Acceso a Dropbox
+        PANTALLA_WEB__Dropbox__Auth: (_) => const WebDropboxAuthScreen(),
+        PANTALLA_WEB__Dropbox__Check: (_) => const WebDropboxCheckScreen(),
+
+        // Pantallas web de Fichas
+        PANTALLA_WEB__Fichas: (_) => const WebFichasScreen(),
       },
     );
   }

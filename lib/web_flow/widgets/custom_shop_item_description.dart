@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:valen_market_admin/Web_flow/features/catalogo/screens/web_editar_producto_screen.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
+import 'package:valen_market_admin/services/firebase/catalogo_servicios_firebase.dart';
 
 class CustomShopItemDescription extends StatelessWidget {
+  final String id;
   final String nombre;
   final String descripcionCorta;
   final String? descripcionLarga;
@@ -9,10 +12,11 @@ class CustomShopItemDescription extends StatelessWidget {
   final int cuotas;
   final int stock;
   final String imageUrl;
-  final VoidCallback? onTap;
+  final VoidCallback? onRefresh;
 
   const CustomShopItemDescription({
     super.key,
+    required this.id,
     required this.nombre,
     required this.descripcionCorta,
     this.descripcionLarga,
@@ -20,91 +24,178 @@ class CustomShopItemDescription extends StatelessWidget {
     required this.cuotas,
     required this.stock,
     required this.imageUrl,
-    this.onTap,
+    this.onRefresh,
   });
+
+  Future<void> _confirmarAccion(BuildContext context, String tipo) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('$tipo producto'),
+        content: Text("¿Seguro que quieres $tipo el producto '$nombre'?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(tipo),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar == true) {
+      switch (tipo) {
+        case 'Eliminar':
+          await CatalogoServiciosFirebase().eliminarProducto(id);
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Producto '$nombre' eliminado")),
+            );
+            onRefresh?.call();
+          }
+          break;
+        case 'Editar':
+          final producto = {
+            'id': id,
+            'NombreDelProducto': nombre,
+            'DescripcionCorta': descripcionCorta,
+            'DescripcionLarga': descripcionLarga,
+            'Precio': precio,
+            'CantidadDeCuotas': cuotas,
+            'Stock': stock,
+            'LinkDeLaFoto': imageUrl,
+          };
+          if (context.mounted) {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => WebEditarProductoScreen(producto: producto),
+              ),
+            );
+            if (result == true) onRefresh?.call();
+          }
+          break;
+        case 'Promocionar':
+          // Acción futura
+          break;
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 350, // fijo para versión en grid de 3 columnas
-        margin: const EdgeInsets.all(15),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: WebColors.bordeRosa, width: 2),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 6,
-              offset: Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Imagen del producto
-            ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(15)),
-              child: Container(
-                height: 200,
-                width: double.infinity,
-                color: Colors.grey[200],
+    return Container(
+      width: 350,
+      margin: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: WebColors.bordeRosa, width: 2),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 6,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          const SizedBox(height: 5),
+          // Imagen del producto con margen y borde
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 5),
+            child: Container(
+              height: 190,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(color: WebColors.textoRosa, width: 1.5),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
                 child: Image.network(
                   imageUrl,
                   fit: BoxFit.contain,
-                  alignment: Alignment.center,
+                  width: double.infinity,
                   errorBuilder: (_, __, ___) =>
                       const Center(child: Icon(Icons.broken_image, size: 100)),
                 ),
               ),
             ),
+          ),
+          const SizedBox(height: 10),
 
-            const SizedBox(height: 15),
-
-            // Nombre del producto (centrado)
-            Center(
-              child: Text(
-                nombre,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+          // Botones de acciones
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  tooltip: 'Promocionar',
+                  icon:
+                      const Icon(Icons.local_offer, color: WebColors.textoRosa),
+                  onPressed: () => _confirmarAccion(context, 'Promocionar'),
                 ),
+                IconButton(
+                  tooltip: 'Editar',
+                  icon: const Icon(Icons.edit, color: WebColors.textoRosa),
+                  onPressed: () => _confirmarAccion(context, 'Editar'),
+                ),
+                IconButton(
+                  tooltip: 'Eliminar',
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  onPressed: () => _confirmarAccion(context, 'Eliminar'),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 10),
+
+          // Nombre del producto
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Text(
+              nombre,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
             ),
+          ),
 
-            const SizedBox(height: 15),
+          const SizedBox(height: 10),
 
-            // Contenido textual alineado y equiespaciado
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _textItem('Resumen', descripcionCorta, fontSize: 18),
-                  const SizedBox(height: 10),
-                  if (descripcionLarga != null &&
-                      descripcionLarga!.trim().isNotEmpty)
-                    _textItem('Descripción', descripcionLarga!, fontSize: 12),
-                  if (descripcionLarga != null &&
-                      descripcionLarga!.trim().isNotEmpty)
-                    const SizedBox(height: 10),
-                  _textItem('Precio', '\$${precio.toStringAsFixed(2)}',
-                      fontSize: 18),
-                  const SizedBox(height: 10),
-                  _textItem('Cuotas', cuotas.toString(), fontSize: 18),
-                  const SizedBox(height: 10),
-                  _textItem('Stock', stock.toString(), fontSize: 18),
-                  const SizedBox(height: 15),
-                ],
-              ),
+          // Texto descriptivo
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _textItem('Resumen', descripcionCorta, fontSize: 16),
+                const SizedBox(height: 8),
+                if (descripcionLarga != null &&
+                    descripcionLarga!.trim().isNotEmpty)
+                  _textItem('Descripción', descripcionLarga!, fontSize: 12),
+                if (descripcionLarga != null &&
+                    descripcionLarga!.trim().isNotEmpty)
+                  const SizedBox(height: 8),
+                _textItem('Precio', '\$${precio.toInt()}', fontSize: 16),
+                const SizedBox(height: 8),
+                _textItem('Cuotas', cuotas.toString(), fontSize: 16),
+                const SizedBox(height: 8),
+                _textItem('Stock', stock.toString(), fontSize: 16),
+                const SizedBox(height: 10),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

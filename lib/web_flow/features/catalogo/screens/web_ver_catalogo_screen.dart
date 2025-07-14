@@ -88,14 +88,19 @@ class _WebVerCatalogoScreenState extends State<WebVerCatalogoScreen> {
                                 return SizedBox(
                                   width: itemWidth,
                                   child: CustomShopItemDescription(
-                                    nombre: nombre,
-                                    descripcionCorta: descCorta,
-                                    descripcionLarga: descLarga,
-                                    precio: precio,
-                                    cuotas: cuotas,
-                                    stock: stock,
-                                    imageUrl: imagenUrl,
-                                    onTap: () {},
+                                    id: producto['id'],
+                                    nombre: producto['NombreDelProducto'] ?? '',
+                                    descripcionCorta:
+                                        producto['DescripcionCorta'] ?? '',
+                                    descripcionLarga:
+                                        producto['DescripcionLarga'],
+                                    precio:
+                                        (producto['Precio'] ?? 0).toDouble(),
+                                    cuotas: (producto['CantidadDeCuotas'] ?? 0)
+                                        .toInt(),
+                                    stock: (producto['Stock'] ?? 0).toInt(),
+                                    imageUrl: producto['LinkDeLaFoto'] ?? '',
+                                    onRefresh: _cargarProductos,
                                   ),
                                 );
                               }).toList(),
