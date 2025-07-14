@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:valen_market_admin/Web_flow/widgets/custom_web_cliente_section.dart';
-import 'package:valen_market_admin/Web_flow/widgets/custom_web_productos_section.dart';
+import 'package:valen_market_admin/Web_flow/widgets/custom_web_ficha_cliente_section.dart';
+import 'package:valen_market_admin/Web_flow/widgets/custom_web_ficha_productos_section.dart';
 import 'package:valen_market_admin/Web_flow/widgets/custom_web_top_bar.dart';
 import 'package:valen_market_admin/constants/pantallas.dart';
 

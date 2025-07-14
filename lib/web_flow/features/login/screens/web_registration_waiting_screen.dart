@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:valen_market_admin/Web_flow/widgets/custom_web_top_bar.dart';
-import 'package:valen_market_admin/Web_flow/widgets/custom_gradient_button.dart';
+import 'package:valen_market_admin/Web_flow/widgets/custom_web_gradient_button.dart';
 import 'package:valen_market_admin/constants/pantallas.dart';
 import 'package:valen_market_admin/services/firebase/auth_servicios_firebase_web.dart';
 
