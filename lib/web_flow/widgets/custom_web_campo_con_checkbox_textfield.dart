@@ -6,6 +6,7 @@ class CustomWebCampoConCheckboxTextField extends StatelessWidget {
   final TextEditingController controller;
   final bool isEditable;
   final ValueChanged<bool> onCheckboxChanged;
+  final ValueChanged<String>? onTextChanged; // Nuevo parámetro opcional
 
   const CustomWebCampoConCheckboxTextField({
     super.key,
@@ -13,6 +14,7 @@ class CustomWebCampoConCheckboxTextField extends StatelessWidget {
     required this.controller,
     required this.isEditable,
     required this.onCheckboxChanged,
+    this.onTextChanged,
   });
 
   @override
@@ -46,6 +48,9 @@ class CustomWebCampoConCheckboxTextField extends StatelessWidget {
                 color: WebColors.negro,
                 fontSize: 16,
               ),
+              onSubmitted: isEditable
+                  ? onTextChanged
+                  : null, // Ejecutar al presionar Enter
               decoration: InputDecoration(
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 15, vertical: 12),

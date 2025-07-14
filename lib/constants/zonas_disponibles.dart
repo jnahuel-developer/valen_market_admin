@@ -3,5 +3,5 @@ const List<String> zonasDisponibles = [
   'Norte',
   'Este',
   'Oeste',
-  'Suer',
+  'Sur',
 ];
