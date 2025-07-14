@@ -30,4 +30,8 @@ class WebColors {
 // Degradado plata
   static const Color plataClara = Color(0xFFEEEEEE);
   static const Color plataOscura = Color(0xFFD0D0D0);
+
+  static const bordeNegro = Colors.black;
+  static const bordeGrisClaro = Color(0xFFCCCCCC);
+  static const blanco = Colors.white;
 }
