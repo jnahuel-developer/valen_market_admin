@@ -31,10 +31,11 @@ class WebColors {
   static const Color plataClara = Color(0xFFEEEEEE);
   static const Color plataOscura = Color(0xFFD0D0D0);
 
-  static const Negro = Colors.black;
+  static const negro = Colors.black;
+  static const grisClaro = Color(0xFFCCCCCC);
 
-  static const bordeNegro = Negro;
-  static const bordeGrisClaro = Color(0xFFCCCCCC);
+  static const bordeNegro = negro;
+  static const bordeGrisClaro = grisClaro;
   static const blanco = Colors.white;
 
   static const checkboxMorado = Color(0xFF8E24AA); // Morado

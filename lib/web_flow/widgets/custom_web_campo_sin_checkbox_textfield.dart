@@ -15,33 +15,33 @@ class CustomWebCampoSinCheckboxTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
+        const SizedBox(width: 40),
         SizedBox(
-          width: 80,
+          width: 90,
           child: Text(
             label,
-            style: const TextStyle(
-              fontWeight: FontWeight.w500,
-              fontSize: 14,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
           ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 15),
         Expanded(
-          child: TextField(
-            controller: controller,
-            enabled: false,
-            style: const TextStyle(
-              fontStyle: FontStyle.italic,
-              color: WebColors.Negro,
-              fontSize: 14,
-            ),
-            decoration: InputDecoration(
-              isDense: true,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
-              disabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide(color: WebColors.bordeGrisClaro),
+          child: SizedBox(
+            height: 50,
+            child: TextField(
+              controller: controller,
+              enabled: false,
+              style: const TextStyle(
+                fontStyle: FontStyle.italic,
+                color: WebColors.negro,
+                fontSize: 16,
+              ),
+              decoration: InputDecoration(
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+                disabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide(color: WebColors.grisClaro),
+                ),
               ),
             ),
           ),

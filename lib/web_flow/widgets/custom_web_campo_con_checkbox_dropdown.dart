@@ -25,25 +25,26 @@ class CustomWebCampoConCheckboxDropdown extends StatelessWidget {
       children: [
         Checkbox(
           value: isEditable,
-          onChanged: (bool? newValue) {
-            if (newValue != null) onCheckboxChanged(newValue);
+          onChanged: (value) {
+            if (value != null) onCheckboxChanged(value);
           },
           activeColor: WebColors.checkboxMorado,
         ),
-        Text(
-          label,
-          style: const TextStyle(
-            fontWeight: FontWeight.w500,
-            fontSize: 14,
+        SizedBox(
+          width: 90,
+          child: Text(
+            label,
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
           ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 15),
         Expanded(
           child: Container(
+            height: 50,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
               border: Border.all(
-                color: isEditable ? WebColors.Negro : WebColors.bordeGrisClaro,
+                color: isEditable ? WebColors.negro : WebColors.grisClaro,
               ),
               borderRadius: BorderRadius.circular(20),
             ),
@@ -53,18 +54,18 @@ class CustomWebCampoConCheckboxDropdown extends StatelessWidget {
               onChanged: isEditable ? onChanged : null,
               underline: const SizedBox(),
               iconEnabledColor:
-                  isEditable ? WebColors.Negro : WebColors.bordeGrisClaro,
+                  isEditable ? WebColors.negro : WebColors.grisClaro,
               style: TextStyle(
                 fontStyle: isEditable ? FontStyle.normal : FontStyle.italic,
-                color: WebColors.Negro,
-                fontSize: 14,
+                color: WebColors.negro,
+                fontSize: 16,
               ),
               hint: Text(
                 'Seleccionar zona',
                 style: TextStyle(
                   fontStyle: FontStyle.italic,
-                  color: WebColors.bordeGrisClaro,
-                  fontSize: 14,
+                  color: WebColors.grisClaro,
+                  fontSize: 16,
                 ),
               ),
               items: options.map((zona) {

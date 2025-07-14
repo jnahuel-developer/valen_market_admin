@@ -56,7 +56,9 @@ class _CustomWebClienteSectionState extends State<CustomWebClienteSection> {
 
                 _nombreController.text = cliente['nombre'] ?? '';
                 _apellidoController.text = cliente['apellido'] ?? '';
-                _zonaSeleccionada = cliente['zona'];
+                _zonaSeleccionada = (cliente['zona']?.isNotEmpty == true)
+                    ? cliente['zona']
+                    : null;
                 _direccionController.text = cliente['direccion'] ?? '';
                 _telefonoController.text = cliente['telefono'] ?? '';
               });

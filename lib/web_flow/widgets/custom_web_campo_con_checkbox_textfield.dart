@@ -18,46 +18,49 @@ class CustomWebCampoConCheckboxTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Checkbox(
           value: isEditable,
-          onChanged: (bool? newValue) {
-            if (newValue != null) onCheckboxChanged(newValue);
+          onChanged: (value) {
+            if (value != null) onCheckboxChanged(value);
           },
           activeColor: WebColors.checkboxMorado,
         ),
-        Text(
-          label,
-          style: const TextStyle(
-            fontWeight: FontWeight.w500,
-            fontSize: 14,
+        SizedBox(
+          width: 90,
+          child: Text(
+            label,
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
           ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 15),
         Expanded(
-          child: TextField(
-            controller: controller,
-            enabled: isEditable,
-            style: TextStyle(
-              fontStyle: isEditable ? FontStyle.normal : FontStyle.italic,
-              color: WebColors.Negro,
-              fontSize: 14,
-            ),
-            decoration: InputDecoration(
-              isDense: true,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide(color: WebColors.bordeGrisClaro),
+          child: SizedBox(
+            height: 50,
+            child: TextField(
+              controller: controller,
+              enabled: isEditable,
+              style: TextStyle(
+                fontStyle: isEditable ? FontStyle.normal : FontStyle.italic,
+                color: WebColors.negro,
+                fontSize: 16,
               ),
-              disabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide(color: WebColors.bordeGrisClaro),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide(color: WebColors.Negro, width: 1.5),
+              decoration: InputDecoration(
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide(color: WebColors.negro),
+                ),
+                disabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide(color: WebColors.grisClaro),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide(color: WebColors.negro, width: 1.5),
+                ),
               ),
             ),
           ),
