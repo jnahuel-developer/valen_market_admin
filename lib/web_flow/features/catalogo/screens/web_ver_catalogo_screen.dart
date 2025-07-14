@@ -26,6 +26,7 @@ class _WebVerCatalogoScreenState extends State<WebVerCatalogoScreen> {
     setState(() => _cargando = true);
     try {
       final productos = await _catalogoService.obtenerTodosLosProductos();
+
       if (!mounted) return;
       setState(() {
         _productos = productos;
@@ -71,23 +72,30 @@ class _WebVerCatalogoScreenState extends State<WebVerCatalogoScreen> {
                               spacing: 15,
                               runSpacing: 15,
                               children: _productos.map((producto) {
+                                final nombre =
+                                    producto['NombreDelProducto'] ?? '';
+                                final descCorta =
+                                    producto['DescripcionCorta'] ?? '';
+                                final descLarga = producto['DescripcionLarga'];
+                                final precio =
+                                    (producto['Precio'] ?? 0).toDouble();
+                                final cuotas =
+                                    (producto['CantidadDeCuotas'] ?? 0).toInt();
+                                final stock = (producto['Stock'] ?? 0).toInt();
+                                final imagenUrl =
+                                    producto['LinkDeLaFoto'] ?? '';
+
                                 return SizedBox(
                                   width: itemWidth,
                                   child: CustomShopItemDescription(
-                                    nombre: producto['NombreDelProducto'] ?? '',
-                                    descripcionCorta:
-                                        producto['DescripcionCorta'] ?? '',
-                                    descripcionLarga:
-                                        producto['DescripcionLarga'],
-                                    precio:
-                                        (producto['Precio'] ?? 0).toDouble(),
-                                    cuotas: (producto['CantidadDeCuotas'] ?? 0)
-                                        .toInt(),
-                                    stock: (producto['Stock'] ?? 0).toInt(),
-                                    imageUrl: producto['LinkDeLaFoto'] ?? '',
-                                    onTap: () {
-                                      // Acción futura
-                                    },
+                                    nombre: nombre,
+                                    descripcionCorta: descCorta,
+                                    descripcionLarga: descLarga,
+                                    precio: precio,
+                                    cuotas: cuotas,
+                                    stock: stock,
+                                    imageUrl: imagenUrl,
+                                    onTap: () {},
                                   ),
                                 );
                               }).toList(),
