@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:valen_market_admin/Web_flow/widgets/custom_web_top_bar.dart';
-import 'package:valen_market_admin/Web_flow/widgets/custom_gradient_button.dart';
+import 'package:valen_market_admin/Web_flow/widgets/custom_web_gradient_button.dart';
 import 'package:valen_market_admin/constants/pantallas.dart';
 
 class WebHomeScreen extends StatelessWidget {
@@ -38,7 +38,7 @@ class WebHomeScreen extends StatelessWidget {
                   CustomGradientButton(
                     text: 'FICHAS',
                     onPressed: () {
-                      // Acción futura
+                      Navigator.pushNamed(context, PANTALLA_WEB__Fichas);
                     },
                   ),
                   const SizedBox(height: 20),

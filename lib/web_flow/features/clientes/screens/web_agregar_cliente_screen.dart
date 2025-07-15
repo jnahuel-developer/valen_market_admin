@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:valen_market_admin/Web_flow/widgets/custom_web_top_bar.dart';
-import 'package:valen_market_admin/Web_flow/widgets/custom_gradient_button.dart';
-import 'package:valen_market_admin/Web_flow/widgets/custom_text_field.dart';
+import 'package:valen_market_admin/Web_flow/widgets/custom_web_gradient_button.dart';
+import 'package:valen_market_admin/Web_flow/widgets/custom_web_text_field.dart';
 import 'package:valen_market_admin/constants/pantallas.dart';
 import 'package:valen_market_admin/services/firebase/clientes_servicios_firebase.dart';
 import 'package:valen_market_admin/utils/validador_texto.dart';

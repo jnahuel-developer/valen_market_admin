@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:valen_market_admin/Web_flow/widgets/custom_web_top_bar.dart';
-import 'package:valen_market_admin/Web_flow/widgets/custom_shop_item_description.dart';
+import 'package:valen_market_admin/Web_flow/widgets/custom_web_shop_item_description.dart';
 import 'package:valen_market_admin/constants/pantallas.dart';
 import 'package:valen_market_admin/services/firebase/catalogo_servicios_firebase.dart';
 
@@ -88,14 +88,19 @@ class _WebVerCatalogoScreenState extends State<WebVerCatalogoScreen> {
                                 return SizedBox(
                                   width: itemWidth,
                                   child: CustomShopItemDescription(
-                                    nombre: nombre,
-                                    descripcionCorta: descCorta,
-                                    descripcionLarga: descLarga,
-                                    precio: precio,
-                                    cuotas: cuotas,
-                                    stock: stock,
-                                    imageUrl: imagenUrl,
-                                    onTap: () {},
+                                    id: producto['id'],
+                                    nombre: producto['NombreDelProducto'] ?? '',
+                                    descripcionCorta:
+                                        producto['DescripcionCorta'] ?? '',
+                                    descripcionLarga:
+                                        producto['DescripcionLarga'],
+                                    precio:
+                                        (producto['Precio'] ?? 0).toDouble(),
+                                    cuotas: (producto['CantidadDeCuotas'] ?? 0)
+                                        .toInt(),
+                                    stock: (producto['Stock'] ?? 0).toInt(),
+                                    imageUrl: producto['LinkDeLaFoto'] ?? '',
+                                    onRefresh: _cargarProductos,
                                   ),
                                 );
                               }).toList(),
