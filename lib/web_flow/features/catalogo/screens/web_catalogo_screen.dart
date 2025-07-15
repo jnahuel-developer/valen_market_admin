@@ -3,8 +3,8 @@ import 'package:valen_market_admin/Web_flow/widgets/custom_web_top_bar.dart';
 import 'package:valen_market_admin/Web_flow/widgets/custom_web_gradient_button.dart';
 import 'package:valen_market_admin/constants/pantallas.dart';
 
-class WebHomeScreen extends StatelessWidget {
-  const WebHomeScreen({super.key});
+class WebCatalogoScreen extends StatelessWidget {
+  const WebCatalogoScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -12,8 +12,8 @@ class WebHomeScreen extends StatelessWidget {
       body: Column(
         children: [
           const CustomWebTopBar(
-            titulo: 'Inicio',
-            pantallaPadreRouteName: null,
+            titulo: 'Catálogo',
+            pantallaPadreRouteName: PANTALLA_WEB__Home,
           ),
           const SizedBox(height: 60),
           Expanded(
@@ -22,30 +22,43 @@ class WebHomeScreen extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   CustomGradientButton(
-                    text: 'CLIENTES',
+                    text: 'VER CATÁLOGO',
                     onPressed: () {
-                      Navigator.pushNamed(context, PANTALLA_WEB__Clientes);
+                      Navigator.pushNamed(
+                        context,
+                        PANTALLA_WEB__Catalogo__VerCatalogo,
+                      );
                     },
                   ),
                   const SizedBox(height: 20),
                   CustomGradientButton(
-                    text: 'CATÁLOGO',
+                    text: 'AGREGAR PRODUCTO',
                     onPressed: () {
-                      Navigator.pushNamed(context, PANTALLA_WEB__Catalogo);
+                      Navigator.pushNamed(
+                        context,
+                        PANTALLA_WEB__Catalogo__AgregarProducto,
+                      );
                     },
                   ),
                   const SizedBox(height: 20),
                   CustomGradientButton(
-                    text: 'FICHAS',
+                    text: 'BUSCAR PRODUCTO',
                     onPressed: () {
-                      Navigator.pushNamed(context, PANTALLA_WEB__Fichas);
+                      // Implementar luego
                     },
                   ),
                   const SizedBox(height: 20),
                   CustomGradientButton(
-                    text: 'PLANILLA DE COBROS',
+                    text: 'MODIFICAR PRODUCTO',
                     onPressed: () {
-                      // Acción futura
+                      // Implementar luego
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  CustomGradientButton(
+                    text: 'ELIMINAR PRODUCTO',
+                    onPressed: () {
+                      // Implementar luego
                     },
                   ),
                 ],

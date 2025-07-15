@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:valen_market_admin/services/dropbox/dropbox_servicios_web.dart';
 import 'package:valen_market_admin/services/firebase/auth_servicios_firebase_web.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
 import 'package:valen_market_admin/constants/pantallas.dart';
@@ -33,13 +34,23 @@ class CustomWebTopBar extends StatelessWidget {
     );
 
     if (confirmar == true) {
-      await AuthServiciosFirebaseWeb.logout();
-      if (context.mounted) {
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          PANTALLA_WEB__Login,
-          (_) => false,
-        );
+      try {
+        await AuthServiciosFirebaseWeb.logout();
+        await DropboxServiciosWeb.limpiarTokens();
+
+        if (context.mounted) {
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            PANTALLA_WEB__Login,
+            (_) => false,
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Error al cerrar sesión')),
+          );
+        }
       }
     }
   }
@@ -60,6 +71,10 @@ class CustomWebTopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool mostrarFlecha = pantallaPadreRouteName != null &&
         pantallaPadreRouteName != ModalRoute.of(context)?.settings.name;
+
+    final isMobile = MediaQuery.of(context).size.width < 600;
+    final titleFontSize = isMobile ? 16.0 : 20.0;
+    final buttonFontSize = isMobile ? 12.0 : 14.0;
 
     return Container(
       height: 60,
@@ -91,8 +106,8 @@ class CustomWebTopBar extends StatelessWidget {
           Center(
             child: Text(
               titulo,
-              style: const TextStyle(
-                fontSize: 20,
+              style: TextStyle(
+                fontSize: titleFontSize,
                 color: WebColors.textoRosa,
                 fontWeight: FontWeight.bold,
               ),
@@ -104,16 +119,19 @@ class CustomWebTopBar extends StatelessWidget {
             alignment: Alignment.centerRight,
             child: ElevatedButton.icon(
               onPressed: () => _confirmarLogout(context),
-              icon: const Icon(Icons.logout, size: 20),
-              label: const Text(
-                'Cerrar sesión',
-                style: TextStyle(fontWeight: FontWeight.w600),
+              icon: Icon(Icons.logout, size: isMobile ? 16 : 20),
+              label: Text(
+                isMobile ? 'Cerrar' : 'Cerrar sesión',
+                style: TextStyle(
+                  fontSize: buttonFontSize,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: WebColors.blancoTraslucido,
                 foregroundColor: WebColors.textoRosa,
                 elevation: 0,
-                padding: const EdgeInsets.symmetric(horizontal: 14),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                   side: const BorderSide(

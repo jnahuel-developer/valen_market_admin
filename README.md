@@ -1,120 +1,158 @@
-# 📌 Reglas de diseño y desarrollo de la app ValenMarket Admin
-
-Este documento resume todas las directrices acordadas durante el desarrollo, para mantener coherencia en el código, consistencia en la experiencia de usuario y facilitar el mantenimiento futuro.
+# 📌 Explicación la app ValenMarket y su uso
 
 ------------------------------------------------------------------------------------------
 
-## 🔐 Seguridad y estructura de Firebase
+## 🧾 Descripción General
 
-- Todos los métodos de lectura deben validar la existencia del campo antes de acceder a él.
-- Se debe asumir que un documento puede estar incompleto o tener claves mal formateadas.
-- Si un documento no cumple con los requisitos estructurales esperados, debe ignorarse silenciosamente (no lanzar errores).
-- Todos los documentos deben seguir la estructura validada por la app al insertarse.
-- Se prohíbe la inserción manual sin la app.
+Valen Market Admin es una aplicación web (con soporte para Flutter Android) diseñada para gestionar operaciones internas de una tienda minorista o autoservicio. Está desarrollada con Flutter y ofrece una interfaz adaptada tanto a dispositivos móviles como a entornos de escritorio (navegadores).
 
-------------------------------------------------------------------------------------------
+Esta plataforma permite administrar datos esenciales del negocio, incluyendo clientes, fichas de venta, productos del catálogo y planillas de cobros. Además, incorpora integraciones con Google Sheets, brindando la posibilidad de exportar la base de datos a hojas de cálculo en la nube de forma rápida y segura.
 
-## 🎨 Manejo de colores
-
-- Prohibido el uso de `.withOpacity()` o manipulaciones inline de colores.
-- Todos los colores deben definirse en `app_colors.dart` y referenciarse por nombres legibles como:
-- Se deben crear colores translúcidos como constantes independientes.
 
 ------------------------------------------------------------------------------------------
 
-## 🧱 Estructura del código y reutilización
+## 🚀 Objetivos del Proyecto
 
-- Widgets reutilizables deben:
-  - Estar bien nombrados según su función (ej: `CustomSimpleInformation`, `CustomInfoCard`).
-  - Estar desacoplados de pantallas específicas.
-  - Ubicarse en carpetas compartidas como `widgets/` si se reutilizan en varias pantallas.
-- Los valores como `width`, `height`, `label`, `controller`, etc., deben ser **parámetros configurables** del widget, nunca hardcodeados internamente.
-- Los parámetros opcionales deben tener valores por defecto razonables (ejemplo: `width = 400`).
+✅ Gestionar clientes: agregar, buscar, editar y eliminar clientes almacenados en Firebase.
 
-------------------------------------------------------------------------------------------
+✅ Administrar fichas: registrar fichas de cobros vinculadas a clientes (en desarrollo).
 
-## 🧪 Validaciones de entrada
+✅ Mantener actualizado el catálogo de productos.
 
-- Toda entrada que el usuario complete y que se use en Firebase debe validarse con `ValidadorTexto.esEntradaSegura`.
-- En caso de datos inseguros, debe notificarse al usuario mediante un `SnackBar` claro y legible.
+✅ Registrar y volcar información a planillas de cobros.
 
-------------------------------------------------------------------------------------------
+✅ Exportar todos los datos relevantes a Google Sheets, con estructura organizada y ordenada.
 
-## 🧭 Navegación y comportamiento
+✅ Ofrecer una experiencia simple, eficiente y adaptable a diferentes dispositivos y tamaños de pantalla.
 
-- Menús superior e inferior deben ser widgets reutilizables con comportamiento uniforme en toda la app.
-- Se debe evitar que una pantalla se pueda re-llamar a sí misma desde el menú inferior (se recomienda comprobar la ruta actual).
 
 ------------------------------------------------------------------------------------------
 
-## 🔡 Formato de texto en Firebase
+## 🧰 Tecnologías Utilizadas
 
-- **Al guardar cualquier texto (String)** en Firestore → convertirlo a minúsculas con `toLowerCase()`.
-- **Al mostrar cualquier texto** → formatear con la primera letra en mayúscula usando una función centralizada (por ejemplo, `capitalize()`).
-- Esto aplica a todos los campos visibles por el usuario: nombres, apellidos, direcciones, zonas, etc.
+Área	Herramienta/Framework
+Frontend Web & App	Flutter
+Backend/DB	Firebase Firestore
+Autenticación	Google Sign-In + Firebase Auth
+Exportaciones	Google Sheets API
+Almacenamiento local	SharedPreferences
+Navegación Web	Flutter Web Router (Navigator)
 
-------------------------------------------------------------------------------------------
-
-## 📝 Textos
-
-- Prohibido usar textos hardcodeados directamente en widgets.
-- Todos los textos visibles para el usuario deben definirse en un archivo de constantes, por ejemplo: `constants/textos.dart`.
-- Las claves de los textos deben seguir el formato: TEXTO_ES__nombre_de_la_pantalla__tipo_de_widget__funcion
-
-Ejemplo en el archivo de constantes:
-```dart
-const String TEXTO_ES__clientes_screen__boton__agregar_cliente = 'Agregar cliente';
-
-Y en el widget:
-```dart
-Text(TEXTO_ES__clientes_screen__boton__agregar_cliente)
 
 ------------------------------------------------------------------------------------------
 
-## 🗺️ Rutas y nombres de pantallas
+## 🔐 Autenticación Web
 
-- Prohibido el uso de rutas o nombres de pantallas hardcodeados en la navegación.
-- Todas las rutas deben definirse en un archivo centralizado, siguiendo el formato: PANTALLA__NombreDeLaPantalla
+El sistema de autenticación web está completamente integrado con Firebase y Google Sign-In:
 
-Ejemplo:
-```dart
-const String PANTALLA__AgregarCliente = '/agregar_cliente';
+Al iniciar sesión, el token de acceso (access_token) de Google se guarda de forma segura en SharedPreferences.
 
-Y al navegar:
-```dart
-Navigator.pushNamed(context, PANTALLA__AgregarCliente);
+En visitas posteriores, si el token sigue siendo válido, el usuario es redirigido automáticamente a la pantalla principal sin tener que volver a autenticarse.
 
-------------------------------------------------------------------------------------------
+Un botón de "Cerrar sesión" está disponible en todas las pantallas, y al activarse:
 
-## 🔑 Claves (Keys) de widgets
+Se borra el token local de SharedPreferences.
 
-- Todos los widgets interactivos o relevantes deben tener una `Key`.
-- Las claves deben seguir el formato: KEY__nombre_de_la_pantalla__tipo_de_widget__funcion
+Se cierra la sesión activa de Firebase y Google.
 
-Ejemplo:
-```dart
-Key('KEY__clientes_screen__boton__agregar_cliente')
+Se redirige al login, borrando todo el stack de navegación para evitar accesos posteriores no deseados.
+
+Este comportamiento garantiza una experiencia fluida y segura para el usuario.
+
 
 ------------------------------------------------------------------------------------------
 
-## ✅ Flujo de tests de CRUD con clientes
+## 📦 Estructura del Proyecto
 
-Se debe testear de extremo a extremo:
-1. Eliminar todos los clientes.
-2. Leer todos los clientes y verificar que la lista quede vacía.
-3. Agregar un registro nuevo.
-4. Leer el registro agregado por nombre y apellido.
-5. Actualizar el registro por ID.
-6. Leer el registro actualizado y verificar los nuevos valores.
-7. Eliminar el registro por ID.
-8. Leer todos los clientes y verificar que esté vacío nuevamente.
+La aplicación está organizada por flows para separar claramente la navegación y comportamiento entre versiones:
+
+lib/
+├── Android_flow/    → Pantallas y widgets exclusivos de Android.
+├── Web_flow/        → Pantallas y widgets específicos para Web.
+├── services/        → Lógica compartida entre flujos (Firebase, Google, Auth).
+├── constants/       → Colores, rutas, textos reutilizables.
+├── config/          → Configuración del entorno (Dev / Prod).
+├── utils/           → Validadores y helpers.
+└── main_*.dart      → Archivos de entrada según entorno (dev/prod).
+Además, incluye un sistema de nombres de pantallas centralizado (pantallas.dart) para garantizar consistencia en las rutas.
+
+
+------------------------------------------------------------------------------------------
+
+## 🔁 Navegación Jerárquica Web
+
+Se implementó un sistema jerárquico de navegación exclusivo para la versión Web. Cada pantalla conoce su "pantalla padre", y al presionar la flecha "⬆️", el usuario es llevado a dicha pantalla.
+
+Características:
+
+Se utiliza pushNamedAndRemoveUntil para evitar acumular pantallas en el stack.
+
+Si la pantalla padre es la misma que la actual, no se realiza navegación.
+
+Las pantallas de login no presentan el top bar ni acciones de retroceso.
+
+Ejemplo de jerarquía implementada:
+
+web_home_screen
+│── web_clientes_screen
+│   ├── web_agregar_cliente_screen
+│   └── web_buscar_cliente_screen
+│── web_catalogo_screen
+│   ├── web_agregar_producto_screen
+│   └── web_buscar_producto_screen
+│── web_fichas_screen
+│   ├── web_agregar_fichas_screen
+│   └── web_buscar_fichas_screen
+└── web_planilla_de_cobros
+    └── web_volcar_planilla_screen
+
 
 ------------------------------------------------------------------------------------------
 
-## 🚫 Otras reglas
+## 📤 Exportación a Google Sheets
 
-- Ningún texto, color, ruta o clave debe quedar hardcodeado dentro de widgets o servicios.
-- Evitar dependencias circulares entre archivos.
-- La convención de nombres debe mantenerse consistente en todo el proyecto.
+Desde la interfaz Web, los datos (por ejemplo, de la colección de clientes) pueden ser exportados automáticamente a una hoja de cálculo en Google Drive.
+
+Proceso:
+
+El usuario presiona el botón "Pasar a Excel".
+
+Se muestra un CircularProgressIndicator mientras se realiza la exportación.
+
+Si fue exitoso:
+
+Se genera una URL única de Google Sheets.
+
+Se muestra un SnackBar con botón para abrir la hoja creada directamente.
+
+En caso de error:
+
+Se muestra un mensaje descriptivo sin interrumpir el flujo.
+
+Esta funcionalidad está desacoplada de la UI y se encuentra en el servicio clientes_servicios_google_sheets_web.dart.
+
 
 ------------------------------------------------------------------------------------------
+
+## 🧪 Tests Automáticos
+
+El proyecto incluye tests automáticos de flujo de cliente en integration_test/agregar_cliente_flow_test.dart, utilizando el driver de integración estándar de Flutter.
+
+
+------------------------------------------------------------------------------------------
+
+## 🧭 Cómo correr la aplicación
+
+# Para entorno de desarrollo web
+flutter run -d chrome --dart-define=FLAVOR=dev
+
+# Para entorno de producción web
+flutter build web --dart-define=FLAVOR=prod
+
+
+------------------------------------------------------------------------------------------
+
+## 📝 Documentación adicional
+
+Las reglas de diseño visual, colores y estilos personalizados estarán detalladas en un archivo complementario:
+📄 Design_Rules.md
