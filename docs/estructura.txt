@@ -57,11 +57,18 @@ valen_market_admin/
 │   │   │── assets.dart
 │   │   │── keys.dart
 │   │   │── pantallas.dart
-│   │   └── textos.dart
+│   │   │── textos.dart
+│   │   └── zonas_disponibles.dart
 │   │
 │   │── services/
+│   │   │── dropbox/
+│   │   │   └── dropbox_servicios_web.dart
 │   │   │── firebase/
-│   │   │   └── clientes_servicios_firebase.dart
+│   │   │   │── auth_servicios_firebase_web.dart
+│   │   │   │── catalogo_servicios_firebase.dart
+│   │   │   │── clientes_servicios_firebase.dart
+│   │   │   │── dropbox_keys.dart
+│   │   │   └── fichas_servicios_firebase.dart
 │   │   └── google/
 │   │       └── clientes_servicios_google_sheets_web.dart
 │   │
@@ -69,32 +76,50 @@ valen_market_admin/
 │   │   └── validador_texto.dart
 │   │
 │   │── Web_flow/
-│   │   └── features/
-│   │       │── catalogo/
-│   │       │   └── screens/
-│   │       │       └── web_catalogo_screen.dart
-│   │       │
-│   │       │── clientes/
-│   │       │   └── screens/
-│   │       │       │── web_agregar_cliente_screen.dart
-│   │       │       │── web_buscar_cliente_screen.dart
-│   │       │       └── web_clientes_screen.dart
-│   │       │
-│   │       │── fichas/
-│   │       │   └── screens/
-│   │       │       └── web_fichas_screen.dart
-│   │       │
-│   │       │── home/
-│   │       │   └── screens/
-│   │       │       └── web_home_screen.dart
-│   │       │
-│   │       │── planillas/
-│   │       │   └── screens/
-│   │       │       └── web_planilla_de_cobros.dart
-│   │       │
-│   │       └── login/
-│   │           └── screens/
-│   │               └── web_login.dart
+│   │   │── features/
+│   │   │   │── catalogo/
+│   │   │   │   └── screens/
+│   │   │   │       └── web_catalogo_screen.dart
+│   │   │   │
+│   │   │   │── clientes/
+│   │   │   │   └── screens/
+│   │   │   │       │── web_agregar_cliente_screen.dart
+│   │   │   │       │── web_buscar_cliente_screen.dart
+│   │   │   │       └── web_clientes_screen.dart
+│   │   │   │
+│   │   │   │── fichas/
+│   │   │   │   │── Models/
+│   │   │   │   │   └── ficha_en_curso_model.dart
+│   │   │   │   │── Provider/
+│   │   │   │   │   └── ficha_en_curso_provider.dart
+│   │   │   │   └── screens/
+│   │   │   │       └── web_fichas_screen.dart
+│   │   │   │
+│   │   │   │── home/
+│   │   │   │   └── screens/
+│   │   │   │       └── web_home_screen.dart
+│   │   │   │
+│   │   │   │── planillas/
+│   │   │   │   └── screens/
+│   │   │   │       └── web_planilla_de_cobros.dart
+│   │   │   │
+│   │   │   └── login/
+│   │   │       └── screens/
+│   │   │           └── web_login.dart
+│   │   │
+│   │   └── widgets/
+│   │       │── custom_web_button_styles
+│   │       │── custom_web_campo_con_checkbox_dropdown.dart
+│   │       │── custom_web_campo_con_checkbox_textfield.dart
+│   │       │── custom_web_campo_sin_checkbox_textfield.dart
+│   │       │── custom_web_dropdown_clientes.dart
+│   │       │── custom_web_ficha_cliente_section.dart
+│   │       │── custom_web_ficha_productos_section.dart
+│   │       │── custom_web_ficha_shop_item.dart
+│   │       │── custom_web_gradient_button.dart
+│   │       │── custom_web_shop_item_description.dart
+│   │       │── custom_web_text_field.dart
+│   │       └── custom_web_top_bar.dart
 │   │
 │   │── main_common.dart
 │   │── main_dev.dart

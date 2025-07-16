@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:valen_market_admin/Web_flow/features/fichas/model/ficha_en_curso_model.dart';
+import 'package:valen_market_admin/Web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
 import 'package:valen_market_admin/Web_flow/widgets/custom_web_ficha_shop_item.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
 import 'package:valen_market_admin/services/firebase/catalogo_servicios_firebase.dart';
 
-class CustomWebProductosSection extends StatefulWidget {
+class CustomWebProductosSection extends ConsumerStatefulWidget {
   const CustomWebProductosSection({super.key});
 
   @override
-  State<CustomWebProductosSection> createState() =>
+  ConsumerState<CustomWebProductosSection> createState() =>
       _CustomWebProductosSectionState();
 }
 
-class _CustomWebProductosSectionState extends State<CustomWebProductosSection> {
+class _CustomWebProductosSectionState
+    extends ConsumerState<CustomWebProductosSection> {
   final CatalogoServiciosFirebase _catalogoService =
       CatalogoServiciosFirebase();
   List<Map<String, dynamic>> _productos = [];
@@ -39,6 +43,59 @@ class _CustomWebProductosSectionState extends State<CustomWebProductosSection> {
     }
   }
 
+  void _incrementarProducto(Map<String, dynamic> producto) {
+    final productoId = producto['id'];
+    final cantidadActual = cantidades[productoId] ?? 0;
+    final nuevaCantidad = cantidadActual + 1;
+
+    setState(() {
+      cantidades[productoId] = nuevaCantidad;
+    });
+
+    _agregarOActualizarEnProvider(producto, nuevaCantidad);
+  }
+
+  void _decrementarProducto(Map<String, dynamic> producto) {
+    final productoId = producto['id'];
+    final cantidadActual = cantidades[productoId] ?? 0;
+    if (cantidadActual == 0) return;
+
+    final nuevaCantidad = cantidadActual - 1;
+
+    setState(() {
+      cantidades[productoId] = nuevaCantidad;
+    });
+
+    _agregarOActualizarEnProvider(producto, nuevaCantidad);
+  }
+
+  void _agregarOActualizarEnProvider(
+      Map<String, dynamic> producto, int cantidadSeleccionada) {
+    final productoId = producto['id'];
+
+    if (cantidadSeleccionada == 0) {
+      print('🗑️ Eliminando producto $productoId del provider (cantidad en 0)');
+      ref
+          .read(fichaEnCursoProvider.notifier)
+          .eliminarProductoPorUID(productoId);
+      return;
+    }
+
+    final productoEnFicha = ProductoEnFicha(
+      uidProducto: productoId,
+      unidades: cantidadSeleccionada,
+      precioUnitario: producto['Precio']?.toDouble() ?? 0.0,
+      cantidadDeCuotas: producto['CantidadDeCuotas'] ?? 1,
+      precioDeLasCuotas: 0.0,
+      saldado: false,
+      restante: 0.0,
+    );
+
+    print(
+        '🟩 Actualizando producto en provider: ${productoEnFicha.uidProducto} con unidades: ${productoEnFicha.unidades}');
+    ref.read(fichaEnCursoProvider.notifier).agregarProducto(productoEnFicha);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -52,7 +109,6 @@ class _CustomWebProductosSectionState extends State<CustomWebProductosSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Zona de filtros (por ahora solo un placeholder)
           Container(
             height: 80,
             margin: const EdgeInsets.only(bottom: 20),
@@ -63,8 +119,6 @@ class _CustomWebProductosSectionState extends State<CustomWebProductosSection> {
             ),
             child: const Text('Zona de Filtros (próximamente)'),
           ),
-
-          // Zona de productos
           Expanded(
             child: _cargando
                 ? const Center(child: CircularProgressIndicator())
@@ -73,10 +127,10 @@ class _CustomWebProductosSectionState extends State<CustomWebProductosSection> {
                         const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
                     gridDelegate:
                         const SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 300, // Máximo ancho por ítem
-                      mainAxisSpacing: 12, // Espacio vertical entre ítems
-                      crossAxisSpacing: 12, // Espacio horizontal entre ítems
-                      childAspectRatio: 0.75, // Relación ancho/alto
+                      maxCrossAxisExtent: 300,
+                      mainAxisSpacing: 12,
+                      crossAxisSpacing: 12,
+                      childAspectRatio: 0.75,
                     ),
                     itemCount: _productos.length,
                     itemBuilder: (context, index) {
@@ -87,18 +141,8 @@ class _CustomWebProductosSectionState extends State<CustomWebProductosSection> {
                       return CustomWebFichaShopItem(
                         producto: producto,
                         cantidadSeleccionada: cantidad,
-                        onIncrement: () {
-                          setState(() {
-                            cantidades[productoId] = cantidad + 1;
-                          });
-                        },
-                        onDecrement: () {
-                          if (cantidad > 0) {
-                            setState(() {
-                              cantidades[productoId] = cantidad - 1;
-                            });
-                          }
-                        },
+                        onIncrement: () => _incrementarProducto(producto),
+                        onDecrement: () => _decrementarProducto(producto),
                       );
                     },
                   ),

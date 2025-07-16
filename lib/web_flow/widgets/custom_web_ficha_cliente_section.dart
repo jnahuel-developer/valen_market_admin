@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:valen_market_admin/Web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
 import 'package:valen_market_admin/Web_flow/widgets/custom_web_campo_con_checkbox_dropdown.dart';
 import 'package:valen_market_admin/Web_flow/widgets/custom_web_campo_con_checkbox_textfield.dart';
 import 'package:valen_market_admin/Web_flow/widgets/custom_web_campo_sin_checkbox_textfield.dart';
@@ -7,16 +9,20 @@ import 'package:valen_market_admin/Web_flow/widgets/custom_web_gradient_button.d
 import 'package:valen_market_admin/constants/app_colors.dart';
 import 'package:valen_market_admin/constants/clientes_mock.dart';
 import 'package:valen_market_admin/constants/zonas_disponibles.dart';
+import 'package:valen_market_admin/services/firebase/fichas_servicios_firebase.dart';
 
-class CustomWebClienteSection extends StatefulWidget {
+final fichasService = FichasServiciosFirebase();
+
+class CustomWebClienteSection extends ConsumerStatefulWidget {
   const CustomWebClienteSection({super.key});
 
   @override
-  State<CustomWebClienteSection> createState() =>
+  ConsumerState<CustomWebClienteSection> createState() =>
       _CustomWebClienteSectionState();
 }
 
-class _CustomWebClienteSectionState extends State<CustomWebClienteSection> {
+class _CustomWebClienteSectionState
+    extends ConsumerState<CustomWebClienteSection> {
   String? _clienteSeleccionado;
   String? _zonaSeleccionada;
 
@@ -28,6 +34,83 @@ class _CustomWebClienteSectionState extends State<CustomWebClienteSection> {
   bool _nombreEditable = false;
   bool _apellidoEditable = false;
   bool _zonaEditable = false;
+
+  void _seleccionarCliente(String? value) {
+    if (value == null) {
+      print('⚠️ Cliente seleccionado es null');
+      return;
+    }
+
+    setState(() {
+      _clienteSeleccionado = value;
+      final cliente = clientesMock.firstWhere(
+        (c) => '${c['nombre']} ${c['apellido']}' == value,
+        orElse: () => {},
+      );
+
+      _nombreController.text = cliente['nombre'] ?? '';
+      _apellidoController.text = cliente['apellido'] ?? '';
+      _zonaSeleccionada = cliente['zona'];
+      _direccionController.text = cliente['direccion'] ?? '';
+      _telefonoController.text = cliente['telefono'] ?? '';
+
+      final uidCliente = cliente['UID'];
+      if (uidCliente == null || uidCliente.isEmpty) {
+        print('❌ Error: el cliente seleccionado no tiene UID válido.');
+      } else {
+        print('✅ Cliente seleccionado: $uidCliente');
+        ref.read(fichaEnCursoProvider.notifier).seleccionarCliente(uidCliente);
+      }
+    });
+  }
+
+  Future<void> _agregarFicha() async {
+    final fichaEnCurso = ref.read(fichaEnCursoProvider);
+
+    print('📦 Estado actual antes de guardar ficha:');
+    print('UID Cliente: ${fichaEnCurso.uidCliente}');
+    print(
+        'Cantidad de productos seleccionados: ${fichaEnCurso.productos.length}');
+
+    if (!fichaEnCurso.esValida) {
+      print('❌ La ficha no es válida. Cliente o productos faltantes.');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content:
+                Text('Debes seleccionar un cliente y al menos un producto.')),
+      );
+      return;
+    }
+
+    try {
+      await fichasService.agregarFicha(
+        uidCliente: fichaEnCurso.uidCliente!,
+        productos: fichaEnCurso.productos.map((p) => p.toMap()).toList(),
+        fechaDeVenta: DateTime.now(),
+        frecuenciaDeAviso: 'mensual',
+        proximoAviso: DateTime.now().add(const Duration(days: 30)),
+      );
+
+      print('✅ Ficha agregada correctamente en Firestore');
+
+      ref.read(fichaEnCursoProvider.notifier).limpiarFicha();
+      print('ℹ️ Provider limpiado después de guardar');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Ficha guardada exitosamente.')),
+      );
+
+      // Limpiar UI opcional
+      setState(() {
+        _clienteSeleccionado = null;
+      });
+    } catch (e) {
+      print('❌ Error al guardar la ficha: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al guardar la ficha: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,21 +131,7 @@ class _CustomWebClienteSectionState extends State<CustomWebClienteSection> {
                     .map((c) => '${c['nombre']} ${c['apellido']}')
                     .toList(),
                 clienteSeleccionado: _clienteSeleccionado,
-                onChanged: (value) {
-                  setState(() {
-                    _clienteSeleccionado = value;
-                    final cliente = clientesMock.firstWhere(
-                      (c) => '${c['nombre']} ${c['apellido']}' == value,
-                      orElse: () => {},
-                    );
-
-                    _nombreController.text = cliente['nombre'] ?? '';
-                    _apellidoController.text = cliente['apellido'] ?? '';
-                    _zonaSeleccionada = cliente['zona'];
-                    _direccionController.text = cliente['direccion'] ?? '';
-                    _telefonoController.text = cliente['telefono'] ?? '';
-                  });
-                },
+                onChanged: _seleccionarCliente,
               ),
               const SizedBox(height: 20),
               CustomWebCampoConCheckboxTextField(
@@ -113,7 +182,7 @@ class _CustomWebClienteSectionState extends State<CustomWebClienteSection> {
         // Contenedor para los botones en formato grilla 2x2
         LayoutBuilder(
           builder: (context, constraints) {
-            final double buttonWidth = (constraints.maxWidth / 2) - 20;
+            final double buttonWidth = (constraints.maxWidth / 2) - 50;
 
             return Wrap(
               spacing: 15,
@@ -122,7 +191,7 @@ class _CustomWebClienteSectionState extends State<CustomWebClienteSection> {
                 CustomGradientButton(
                   text: 'Agregar',
                   width: buttonWidth,
-                  onPressed: () {},
+                  onPressed: _agregarFicha,
                 ),
                 CustomGradientButton(
                   text: 'Buscar',
