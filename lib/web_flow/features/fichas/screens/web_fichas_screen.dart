@@ -13,7 +13,7 @@ class WebFichasScreen extends StatelessWidget {
       body: Column(
         children: [
           const CustomWebTopBar(
-            titulo: 'Nueva Ficha',
+            titulo: 'Fichas',
             pantallaPadreRouteName: PANTALLA_WEB__Home,
           ),
           const SizedBox(height: 20),

@@ -7,7 +7,12 @@ import 'package:valen_market_admin/constants/app_colors.dart';
 import 'package:valen_market_admin/services/firebase/catalogo_servicios_firebase.dart';
 
 class CustomWebProductosSection extends ConsumerStatefulWidget {
-  const CustomWebProductosSection({super.key});
+  final List<ProductoEnFicha>? productosDeFicha;
+
+  const CustomWebProductosSection({
+    super.key,
+    this.productosDeFicha,
+  });
 
   @override
   ConsumerState<CustomWebProductosSection> createState() =>
@@ -30,17 +35,44 @@ class _CustomWebProductosSectionState
 
   Future<void> _cargarProductos() async {
     try {
-      final productos = await _catalogoService.obtenerTodosLosProductos();
-      setState(() {
-        _productos = productos;
-        _cargando = false;
-      });
+      if (widget.productosDeFicha != null) {
+        await _cargarProductosDesdeFicha();
+      } else {
+        await _cargarCatalogoCompleto();
+      }
     } catch (e) {
       setState(() => _cargando = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al cargar productos: $e')),
       );
     }
+  }
+
+  Future<void> _cargarCatalogoCompleto() async {
+    final productos = await _catalogoService.obtenerTodosLosProductos();
+    setState(() {
+      _productos = productos;
+      _cargando = false;
+    });
+  }
+
+  Future<void> _cargarProductosDesdeFicha() async {
+    final productos = <Map<String, dynamic>>[];
+
+    for (final productoEnFicha in widget.productosDeFicha!) {
+      final producto = await _catalogoService
+          .obtenerProductoPorId(productoEnFicha.uidProducto);
+
+      if (producto != null) {
+        productos.add(producto);
+        cantidades[productoEnFicha.uidProducto] = productoEnFicha.unidades;
+      }
+    }
+
+    setState(() {
+      _productos = productos;
+      _cargando = false;
+    });
   }
 
   void _incrementarProducto(Map<String, dynamic> producto) {
@@ -74,7 +106,6 @@ class _CustomWebProductosSectionState
     final productoId = producto['id'];
 
     if (cantidadSeleccionada == 0) {
-      print('🗑️ Eliminando producto $productoId del provider (cantidad en 0)');
       ref
           .read(fichaEnCursoProvider.notifier)
           .eliminarProductoPorUID(productoId);
@@ -91,8 +122,6 @@ class _CustomWebProductosSectionState
       restante: 0.0,
     );
 
-    print(
-        '🟩 Actualizando producto en provider: ${productoEnFicha.uidProducto} con unidades: ${productoEnFicha.unidades}');
     ref.read(fichaEnCursoProvider.notifier).agregarProducto(productoEnFicha);
   }
 

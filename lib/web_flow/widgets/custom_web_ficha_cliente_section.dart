@@ -6,6 +6,8 @@ import 'package:valen_market_admin/Web_flow/widgets/custom_web_campo_con_checkbo
 import 'package:valen_market_admin/Web_flow/widgets/custom_web_campo_sin_checkbox_textfield.dart';
 import 'package:valen_market_admin/Web_flow/widgets/custom_web_dropdown_clientes.dart';
 import 'package:valen_market_admin/Web_flow/widgets/custom_web_gradient_button.dart';
+import 'package:valen_market_admin/Web_flow/widgets/custom_web_popup_resultados_busqueda.dart';
+import 'package:valen_market_admin/Web_flow/widgets/custom_web_popup_selector_criterio_busqueda.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
 import 'package:valen_market_admin/constants/clientes_mock.dart';
 import 'package:valen_market_admin/constants/zonas_disponibles.dart';
@@ -112,6 +114,27 @@ class _CustomWebClienteSectionState
     }
   }
 
+  Future<void> _buscarFichas() async {
+    final criterioSeleccionado = await showDialog<String>(
+      context: context,
+      builder: (context) => PopupSelectorCriterioBusqueda(
+        onCriterioSeleccionado: (criterio) {
+          Navigator.of(context).pop(criterio);
+        },
+      ),
+    );
+
+    if (criterioSeleccionado != null) {
+      await showDialog(
+        context: context,
+        builder: (context) => PopupResultadosBusqueda(
+          criterio: criterioSeleccionado,
+          onFichaSeleccionada: (ficha) {},
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -196,7 +219,7 @@ class _CustomWebClienteSectionState
                 CustomGradientButton(
                   text: 'Buscar',
                   width: buttonWidth,
-                  onPressed: () {},
+                  onPressed: () => _buscarFichas(),
                 ),
                 CustomGradientButton(
                   text: 'Editar',

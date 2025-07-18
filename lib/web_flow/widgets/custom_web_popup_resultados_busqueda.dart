@@ -1,0 +1,158 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:valen_market_admin/Web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
+import 'package:valen_market_admin/services/firebase/fichas_servicios_firebase.dart';
+
+class PopupResultadosBusqueda extends ConsumerStatefulWidget {
+  final String criterio;
+  final Function(Map<String, dynamic> fichaSeleccionada) onFichaSeleccionada;
+
+  const PopupResultadosBusqueda({
+    super.key,
+    required this.criterio,
+    required this.onFichaSeleccionada,
+  });
+
+  @override
+  ConsumerState<PopupResultadosBusqueda> createState() =>
+      _PopupResultadosBusquedaState();
+}
+
+class _PopupResultadosBusquedaState
+    extends ConsumerState<PopupResultadosBusqueda> {
+  bool _cargando = true;
+  List<Map<String, dynamic>> _resultados = [];
+  String? _fichaSeleccionadaId;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarFichas();
+  }
+
+  Future<void> _cargarFichas() async {
+    if (widget.criterio == 'Cliente seleccionado') {
+      final uidCliente = ref.read(fichaEnCursoProvider).uidCliente;
+
+      if (uidCliente == null || uidCliente.isEmpty) {
+        Navigator.of(context).pop(); // Cerrar el popup si no hay cliente
+        return;
+      }
+
+      final fichasService = FichasServiciosFirebase();
+      final resultados =
+          await fichasService.buscarFichasPorClienteId(uidCliente);
+
+      if (!mounted) return;
+
+      setState(() {
+        _resultados = resultados;
+        _cargando = false;
+      });
+    } else {
+      // Otros criterios a implementar en el futuro
+      if (!mounted) return;
+      setState(() {
+        _cargando = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Fichas para: ${widget.criterio}'),
+      content: SizedBox(
+        width: 1000,
+        height: 500,
+        child: _cargando
+            ? const Center(child: CircularProgressIndicator())
+            : _resultados.isEmpty
+                ? const Center(child: Text('No se encontraron fichas.'))
+                : _buildTablaResultados(),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancelar'),
+        ),
+        ElevatedButton(
+          onPressed: _fichaSeleccionadaId == null
+              ? null
+              : () {
+                  final ficha = _resultados.firstWhere(
+                    (f) => f['id'] == _fichaSeleccionadaId,
+                  );
+
+                  // Actualizar el provider con la ficha seleccionada
+                  ref
+                      .read(fichaEnCursoProvider.notifier)
+                      .cargarFichaDesdeMapa(ficha);
+
+                  widget.onFichaSeleccionada(ficha);
+                  Navigator.of(context).pop();
+                },
+          child: const Text('Confirmar selección'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTablaResultados() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: DataTable(
+        columns: const [
+          DataColumn(label: Text('')),
+          DataColumn(label: Text('Nombre')),
+          DataColumn(label: Text('Apellido')),
+          DataColumn(label: Text('Zona')),
+          DataColumn(label: Text('Ficha')),
+          DataColumn(label: Text('Venta')),
+          DataColumn(label: Text('Productos')),
+          DataColumn(label: Text('Cuotas pagas')),
+          DataColumn(label: Text('Restante')),
+        ],
+        rows: _resultados.map((ficha) {
+          return DataRow(
+            cells: [
+              DataCell(
+                Radio<String>(
+                  value: ficha['id'],
+                  groupValue: _fichaSeleccionadaId,
+                  onChanged: (value) {
+                    setState(() {
+                      _fichaSeleccionadaId = value;
+                    });
+                  },
+                ),
+              ),
+              DataCell(Text(ficha['nombre'] ?? '')),
+              DataCell(Text(ficha['apellido'] ?? '')),
+              DataCell(Text(ficha['zona'] ?? '')),
+              DataCell(Text(ficha['Nro_de_ficha']?.toString() ?? '')),
+              DataCell(Text(_formatearFecha(ficha['Fecha_de_Venta']))),
+              DataCell(Text(ficha['Cantidad_de_Productos']?.toString() ?? '')),
+              DataCell(Text(ficha['Nro_de_cuotas_pagadas']?.toString() ?? '0')),
+              DataCell(Text(ficha['Restante']?.toString() ?? '0')),
+            ],
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  String _formatearFecha(dynamic fecha) {
+    if (fecha == null) {
+      return '';
+    }
+
+    if (fecha is Timestamp) {
+      final dt = fecha.toDate();
+      return '${dt.day}/${dt.month}/${dt.year}';
+    }
+
+    return '';
+  }
+}

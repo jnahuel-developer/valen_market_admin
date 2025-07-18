@@ -67,4 +67,32 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
   void limpiarFicha() {
     state = FichaEnCurso();
   }
+
+  void cargarFichaDesdeMapa(Map<String, dynamic> ficha) {
+    final uidCliente = ficha['UID_Cliente'] as String?;
+
+    // Cargar productos
+    final int cantidadProductos = ficha['Cantidad_de_Productos'] ?? 0;
+    List<ProductoEnFicha> productos = [];
+
+    for (int i = 0; i < cantidadProductos; i++) {
+      productos.add(
+        ProductoEnFicha(
+          uidProducto: ficha['UID_Producto_$i'] ?? '',
+          unidades: ficha['Unidades_Producto_$i'] ?? 0,
+          precioUnitario: (ficha['Precio_Producto_$i'] ?? 0).toDouble(),
+          cantidadDeCuotas: ficha['Cantidad_de_cuotas_Producto_$i'] ?? 0,
+          precioDeLasCuotas:
+              (ficha['Precio_de_las_cuotas_Producto_$i'] ?? 0).toDouble(),
+          saldado: ficha['Saldado_Producto_$i'] ?? false,
+          restante: (ficha['Restante_Producto_$i'] ?? 0).toDouble(),
+        ),
+      );
+    }
+
+    state = FichaEnCurso(
+      uidCliente: uidCliente,
+      productos: productos,
+    );
+  }
 }
