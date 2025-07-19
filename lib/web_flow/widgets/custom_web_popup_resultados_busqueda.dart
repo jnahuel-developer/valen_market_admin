@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:valen_market_admin/Web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
 import 'package:valen_market_admin/services/firebase/fichas_servicios_firebase.dart';
+import 'package:valen_market_admin/constants/pantallas.dart';
 
 class PopupResultadosBusqueda extends ConsumerStatefulWidget {
   final String criterio;
@@ -36,7 +37,7 @@ class _PopupResultadosBusquedaState
       final uidCliente = ref.read(fichaEnCursoProvider).uidCliente;
 
       if (uidCliente == null || uidCliente.isEmpty) {
-        Navigator.of(context).pop(); // Cerrar el popup si no hay cliente
+        Navigator.of(context).pop();
         return;
       }
 
@@ -51,7 +52,6 @@ class _PopupResultadosBusquedaState
         _cargando = false;
       });
     } else {
-      // Otros criterios a implementar en el futuro
       if (!mounted) return;
       setState(() {
         _cargando = false;
@@ -85,13 +85,21 @@ class _PopupResultadosBusquedaState
                     (f) => f['id'] == _fichaSeleccionadaId,
                   );
 
-                  // Actualizar el provider con la ficha seleccionada
                   ref
                       .read(fichaEnCursoProvider.notifier)
                       .cargarFichaDesdeMapa(ficha);
 
                   widget.onFichaSeleccionada(ficha);
-                  Navigator.of(context).pop();
+
+                  // Y luego navegamos a la pantalla de edición
+                  Future.delayed(const Duration(milliseconds: 200), () {
+                    if (context.mounted) {
+                      Navigator.pushNamed(
+                        context,
+                        PANTALLA_WEB__Fichas__Editar_Eliminar,
+                      );
+                    }
+                  });
                 },
           child: const Text('Confirmar selección'),
         ),
@@ -144,9 +152,7 @@ class _PopupResultadosBusquedaState
   }
 
   String _formatearFecha(dynamic fecha) {
-    if (fecha == null) {
-      return '';
-    }
+    if (fecha == null) return '';
 
     if (fecha is Timestamp) {
       final dt = fecha.toDate();

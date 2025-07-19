@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valen_market_admin/Web_flow/features/fichas/model/ficha_en_curso_model.dart';
+import 'package:valen_market_admin/constants/clientes_mock.dart';
 
 final fichaEnCursoProvider =
     StateNotifierProvider<FichaEnCursoNotifier, FichaEnCurso>(
@@ -9,17 +10,32 @@ final fichaEnCursoProvider =
 class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
   FichaEnCursoNotifier() : super(FichaEnCurso());
 
-  void seleccionarCliente(String uidCliente) {
-    state = state.copyWith(uidCliente: uidCliente);
+  void seleccionarClientePorUID(String uidCliente) {
+    final cliente = clientesMock.firstWhere(
+      (c) => c['UID'] == uidCliente,
+      orElse: () => {},
+    );
+
+    if (cliente.isEmpty) {
+      print('⚠️ Cliente con UID $uidCliente no encontrado');
+      return;
+    }
+
+    state = state.copyWith(
+      uidCliente: uidCliente,
+      nombreCliente: cliente['nombre'] ?? '',
+      apellidoCliente: cliente['apellido'] ?? '',
+      zonaCliente: cliente['zona'] ?? '',
+      direccionCliente: cliente['direccion'] ?? '',
+      telefonoCliente: cliente['telefono'] ?? '',
+    );
   }
 
   void agregarProducto(ProductoEnFicha producto) {
-    // Verificamos si el producto ya existe en la lista
     final indexExistente = state.productos
         .indexWhere((p) => p.uidProducto == producto.uidProducto);
 
     if (indexExistente != -1) {
-      // Ya existe: actualizamos el producto con la nueva cantidad y recalculamos el restante
       final productoExistente = state.productos[indexExistente];
       final nuevaCantidad = producto.unidades;
 
@@ -36,11 +52,8 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
       final productosActualizados = [...state.productos];
       productosActualizados[indexExistente] = productoActualizado;
 
-      print(
-          '🔄 Producto actualizado en provider: ${producto.uidProducto} - unidades: $nuevaCantidad');
       state = state.copyWith(productos: productosActualizados);
     } else {
-      // No existe: agregamos el producto
       final productoConRestante = ProductoEnFicha(
         uidProducto: producto.uidProducto,
         unidades: producto.unidades,
@@ -51,8 +64,6 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
         restante: producto.unidades * producto.precioDeLasCuotas,
       );
 
-      print(
-          '🆕 Producto agregado al provider: ${producto.uidProducto} - unidades: ${producto.unidades}');
       state =
           state.copyWith(productos: [...state.productos, productoConRestante]);
     }
@@ -71,7 +82,12 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
   void cargarFichaDesdeMapa(Map<String, dynamic> ficha) {
     final uidCliente = ficha['UID_Cliente'] as String?;
 
-    // Cargar productos
+    final nombreCliente = ficha['nombre'] as String?;
+    final apellidoCliente = ficha['apellido'] as String?;
+    final zonaCliente = ficha['zona'] as String?;
+    final direccionCliente = ficha['direccion'] as String?;
+    final telefonoCliente = ficha['telefono'] as String?;
+
     final int cantidadProductos = ficha['Cantidad_de_Productos'] ?? 0;
     List<ProductoEnFicha> productos = [];
 
@@ -92,6 +108,11 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
 
     state = FichaEnCurso(
       uidCliente: uidCliente,
+      nombreCliente: nombreCliente,
+      apellidoCliente: apellidoCliente,
+      zonaCliente: zonaCliente,
+      direccionCliente: direccionCliente,
+      telefonoCliente: telefonoCliente,
       productos: productos,
     );
   }
