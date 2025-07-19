@@ -31,6 +31,7 @@ class ProductoEnFicha {
 }
 
 class FichaEnCurso {
+  final String? id; // Nuevo: ID de la ficha
   final String? uidCliente;
   final String? nombreCliente;
   final String? apellidoCliente;
@@ -40,6 +41,7 @@ class FichaEnCurso {
   final List<ProductoEnFicha> productos;
 
   FichaEnCurso({
+    this.id,
     this.uidCliente,
     this.nombreCliente,
     this.apellidoCliente,
@@ -50,6 +52,7 @@ class FichaEnCurso {
   });
 
   FichaEnCurso copyWith({
+    String? id,
     String? uidCliente,
     String? nombreCliente,
     String? apellidoCliente,
@@ -59,6 +62,7 @@ class FichaEnCurso {
     List<ProductoEnFicha>? productos,
   }) {
     return FichaEnCurso(
+      id: id ?? this.id,
       uidCliente: uidCliente ?? this.uidCliente,
       nombreCliente: nombreCliente ?? this.nombreCliente,
       apellidoCliente: apellidoCliente ?? this.apellidoCliente,
@@ -70,4 +74,36 @@ class FichaEnCurso {
   }
 
   bool get esValida => uidCliente != null && productos.isNotEmpty;
+
+  Map<String, dynamic> toMap() {
+    return {
+      'UID_Cliente': uidCliente,
+      'Nombre': nombreCliente,
+      'Apellido': apellidoCliente,
+      'Zona': zonaCliente,
+      'Dirección': direccionCliente,
+      'Teléfono': telefonoCliente,
+      'Cantidad_de_Productos': productos.length,
+      ..._productosToMap(),
+    };
+  }
+
+  Map<String, dynamic> _productosToMap() {
+    final Map<String, dynamic> productosMap = {};
+
+    for (int i = 0; i < productos.length; i++) {
+      final producto = productos[i];
+      productosMap.addAll({
+        'UID_Producto_$i': producto.uidProducto,
+        'Unidades_Producto_$i': producto.unidades,
+        'Precio_Producto_$i': producto.precioUnitario,
+        'Cantidad_de_cuotas_Producto_$i': producto.cantidadDeCuotas,
+        'Precio_de_las_cuotas_Producto_$i': producto.precioDeLasCuotas,
+        'Saldado_Producto_$i': producto.saldado,
+        'Restante_Producto_$i': producto.restante,
+      });
+    }
+
+    return productosMap;
+  }
 }

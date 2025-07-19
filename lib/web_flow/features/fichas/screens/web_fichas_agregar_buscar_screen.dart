@@ -22,6 +22,15 @@ class _WebFichasAgregarBuscarScreenState
     extends ConsumerState<WebFichasAgregarBuscarScreen> {
   final fichasService = FichasServiciosFirebase();
 
+  final GlobalKey<CustomWebClienteSectionState> _clienteKey = GlobalKey();
+  final GlobalKey<CustomWebProductosSectionState> _productosKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    ref.read(fichaEnCursoProvider.notifier).limpiarFicha();
+  }
+
   Future<String?> _mostrarSelectorDeCriterio(BuildContext context) {
     return showDialog<String>(
       context: context,
@@ -44,13 +53,6 @@ class _WebFichasAgregarBuscarScreenState
     );
   }
 
-  void _navegarAEditarFicha(BuildContext context) {
-    print('Valido contexto');
-    if (!context.mounted) return;
-
-    Navigator.pushNamed(context, PANTALLA_WEB__Fichas__Editar_Eliminar);
-  }
-
   Future<void> _agregarFicha() async {
     final fichaEnCurso = ref.read(fichaEnCursoProvider);
 
@@ -63,6 +65,13 @@ class _WebFichasAgregarBuscarScreenState
       return;
     }
 
+    // Mostrar loader
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
     try {
       await fichasService.agregarFicha(
         uidCliente: fichaEnCurso.uidCliente!,
@@ -72,14 +81,22 @@ class _WebFichasAgregarBuscarScreenState
         proximoAviso: DateTime.now().add(const Duration(days: 30)),
       );
 
-      print('✅ Ficha agregada correctamente en Firestore');
-
       ref.read(fichaEnCursoProvider.notifier).limpiarFicha();
+
+      if (!mounted) return;
+
+      Navigator.of(context).pop(); // Cerrar el loader
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Ficha guardada exitosamente.')),
       );
+
+      // Resetear la UI de clientes y productos
+      _clienteKey.currentState?.resetear();
+      _productosKey.currentState?.resetear();
     } catch (e) {
+      if (!mounted) return;
+      Navigator.of(context).pop(); // Cerrar el loader
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al guardar la ficha: $e')),
       );
@@ -91,7 +108,10 @@ class _WebFichasAgregarBuscarScreenState
     return Scaffold(
       body: Column(
         children: [
-          const CustomWebTopBar(titulo: 'Agregar o buscar fichas'),
+          const CustomWebTopBar(
+            titulo: 'Agregar o buscar fichas',
+            pantallaPadreRouteName: PANTALLA_WEB__Home,
+          ),
           Expanded(
             child: Row(
               children: [
@@ -102,8 +122,10 @@ class _WebFichasAgregarBuscarScreenState
                     padding: const EdgeInsets.all(20),
                     child: Column(
                       children: [
-                        const Expanded(
-                          child: CustomWebClienteSection(),
+                        Expanded(
+                          child: CustomWebClienteSection(
+                            key: _clienteKey,
+                          ),
                         ),
                         const SizedBox(height: 15),
                         SizedBox(
@@ -124,8 +146,10 @@ class _WebFichasAgregarBuscarScreenState
                     padding: const EdgeInsets.all(20),
                     child: Column(
                       children: [
-                        const Expanded(
-                          child: CustomWebProductosSection(),
+                        Expanded(
+                          child: CustomWebProductosSection(
+                            key: _productosKey,
+                          ),
                         ),
                         const SizedBox(height: 15),
                         SizedBox(

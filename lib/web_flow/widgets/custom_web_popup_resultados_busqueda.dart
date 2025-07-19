@@ -85,13 +85,13 @@ class _PopupResultadosBusquedaState
                     (f) => f['id'] == _fichaSeleccionadaId,
                   );
 
-                  ref
-                      .read(fichaEnCursoProvider.notifier)
-                      .cargarFichaDesdeMapa(ficha);
+                  ref.read(fichaEnCursoProvider.notifier).cargarFichaDesdeMapa(
+                        ficha,
+                        fichaId: ficha['id'],
+                      );
 
                   widget.onFichaSeleccionada(ficha);
 
-                  // Y luego navegamos a la pantalla de edición
                   Future.delayed(const Duration(milliseconds: 200), () {
                     if (context.mounted) {
                       Navigator.pushNamed(

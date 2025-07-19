@@ -16,13 +16,14 @@ class CustomWebProductosSection extends ConsumerStatefulWidget {
 
   @override
   ConsumerState<CustomWebProductosSection> createState() =>
-      _CustomWebProductosSectionState();
+      CustomWebProductosSectionState();
 }
 
-class _CustomWebProductosSectionState
+class CustomWebProductosSectionState
     extends ConsumerState<CustomWebProductosSection> {
   final CatalogoServiciosFirebase _catalogoService =
       CatalogoServiciosFirebase();
+
   List<Map<String, dynamic>> _productos = [];
   Map<String, int> cantidades = {};
   bool _cargando = true;
@@ -42,6 +43,7 @@ class _CustomWebProductosSectionState
       }
     } catch (e) {
       setState(() => _cargando = false);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al cargar productos: $e')),
       );
@@ -57,7 +59,7 @@ class _CustomWebProductosSectionState
   }
 
   Future<void> _cargarProductosDesdeFicha() async {
-    final productos = <Map<String, dynamic>>[];
+    final productos = <Map<String, dynamic>>{};
 
     for (final productoEnFicha in widget.productosDeFicha!) {
       final producto = await _catalogoService
@@ -70,7 +72,7 @@ class _CustomWebProductosSectionState
     }
 
     setState(() {
-      _productos = productos;
+      _productos = productos.toList();
       _cargando = false;
     });
   }
@@ -123,6 +125,17 @@ class _CustomWebProductosSectionState
     );
 
     ref.read(fichaEnCursoProvider.notifier).agregarProducto(productoEnFicha);
+  }
+
+  // Método público para resetear los productos y cantidades
+  Future<void> resetear() async {
+    setState(() {
+      _productos = [];
+      cantidades = {};
+      _cargando = true;
+    });
+
+    await _cargarCatalogoCompleto();
   }
 
   @override

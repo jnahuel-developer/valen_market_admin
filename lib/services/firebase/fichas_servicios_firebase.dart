@@ -12,8 +12,8 @@ class FichasServiciosFirebase {
   /// Agrega una nueva ficha asociada a un cliente con sus productos seleccionados.
   Future<void> agregarFicha({
     required String uidCliente,
-    required List<Map<String, dynamic>>
-        productos, // Cada map contiene los datos de cada producto
+    // Cada map contiene los datos de cada producto
+    required List<Map<String, dynamic>> productos,
     required DateTime fechaDeVenta,
     required String frecuenciaDeAviso,
     required DateTime proximoAviso,
@@ -56,19 +56,16 @@ class FichasServiciosFirebase {
   }
 
   /* ---------------------------------------------------------------------------------------- */
-  //                    MÉTODOS PARA LEER, ACTUALIZAR Y ELIMINAR FICHAS                      */
+  //                                MÉTODOS PARA LEER FICHAS                                  */
   /* ---------------------------------------------------------------------------------------- */
 
   /// Busca fichas por el UID del cliente y devuelve cada ficha combinada con los datos del cliente.
   Future<List<Map<String, dynamic>>> buscarFichasPorClienteId(
       String uidCliente) async {
     try {
-      print('📥 Buscando fichas con UID_Cliente: $uidCliente');
-
       final fichasSnapshot = await _fichasCollection
           .where('UID_Cliente', isEqualTo: uidCliente)
           .get();
-      print('📊 Fichas encontradas: ${fichasSnapshot.docs.length}');
 
       if (fichasSnapshot.docs.isEmpty) {
         return [];
@@ -76,7 +73,6 @@ class FichasServiciosFirebase {
 
       final clienteData =
           await ClientesServiciosFirebase.obtenerClientePorId(uidCliente);
-      print('📌 Datos del cliente obtenidos: $clienteData');
 
       if (clienteData == null) {
         throw Exception('No se encontró el cliente con UID: $uidCliente');
@@ -88,17 +84,16 @@ class FichasServiciosFirebase {
         fichaData['nombre'] = clienteData['Nombre'] ?? '';
         fichaData['apellido'] = clienteData['Apellido'] ?? '';
         fichaData['zona'] = clienteData['Zona'] ?? '';
+        fichaData['direccion'] = clienteData['Direccion'] ?? '';
+        fichaData['telefono'] = clienteData['Telefono'] ?? '';
         fichaData['Nro_de_cuotas_pagadas'] =
             fichaData['Nro_de_cuotas_pagadas'] ?? 0;
         fichaData['Restante'] = fichaData['Restante'] ?? 0;
         return fichaData;
       }).toList();
 
-      print('📋 Resultado final: ${resultados.length} fichas enriquecidas');
-
       return resultados;
     } catch (e) {
-      print('❌ Error al buscar fichas por cliente ID: $e');
       throw Exception('Error al buscar fichas por cliente ID: $e');
     }
   }
@@ -116,13 +111,11 @@ class FichasServiciosFirebase {
         ultimoNumero = snapshot.data()?['Ultimo_Nro_de_ficha'] ?? 0;
       }
 
-      final siguienteNumero = ultimoNumero + 1;
-
       // Actualizamos en config
       await configDoc.set(
-          {'Ultimo_Nro_de_ficha': siguienteNumero}, SetOptions(merge: true));
+          {'Ultimo_Nro_de_ficha': ultimoNumero + 1}, SetOptions(merge: true));
 
-      return siguienteNumero;
+      return ultimoNumero;
     } catch (e) {
       throw Exception('Error al obtener e incrementar el número de ficha: $e');
     }
@@ -158,8 +151,12 @@ class FichasServiciosFirebase {
     }
   }
 
+  /* ---------------------------------------------------------------------------------------- */
+  //                                MÉTODOS PARA ACTUALIZAR FICHAS                            */
+  /* ---------------------------------------------------------------------------------------- */
+
   /// Actualiza una ficha existente
-  Future<void> actualizarFicha({
+  Future<void> actualizarFichaPorID({
     required String fichaId,
     required Map<String, dynamic> nuevosDatos,
   }) async {
@@ -170,8 +167,12 @@ class FichasServiciosFirebase {
     }
   }
 
+  /* ---------------------------------------------------------------------------------------- */
+  //                               MÉTODOS PARA ELIMINAR FICHAS                               */
+  /* ---------------------------------------------------------------------------------------- */
+
   /// Elimina una ficha por su ID
-  Future<void> eliminarFicha(String fichaId) async {
+  Future<void> eliminarFichaPorID(String fichaId) async {
     try {
       await _fichasCollection.doc(fichaId).delete();
     } catch (e) {

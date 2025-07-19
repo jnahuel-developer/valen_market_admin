@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:valen_market_admin/Web_flow/widgets/custom_web_gradient_button.dart';
 
 class PopupSelectorCriterioBusqueda extends StatelessWidget {
   final Function(String criterioSeleccionado) onCriterioSeleccionado;
@@ -34,12 +35,14 @@ class PopupSelectorCriterioBusqueda extends StatelessWidget {
   }
 
   Widget _buildCriterioButton(BuildContext context, String criterio) {
-    return ElevatedButton(
+    return CustomGradientButton(
+      text: criterio,
       onPressed: () {
         onCriterioSeleccionado(criterio);
         Navigator.of(context).pop(); // Cerrar el popup
       },
-      child: Text(criterio),
+      width: 280,
+      height: 50,
     );
   }
 }

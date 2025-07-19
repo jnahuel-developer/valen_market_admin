@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valen_market_admin/Web_flow/features/fichas/model/ficha_en_curso_model.dart';
-import 'package:valen_market_admin/constants/clientes_mock.dart';
+import 'package:valen_market_admin/services/firebase/clientes_servicios_firebase.dart';
 
 final fichaEnCursoProvider =
     StateNotifierProvider<FichaEnCursoNotifier, FichaEnCurso>(
@@ -10,25 +10,24 @@ final fichaEnCursoProvider =
 class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
   FichaEnCursoNotifier() : super(FichaEnCurso());
 
-  void seleccionarClientePorUID(String uidCliente) {
-    final cliente = clientesMock.firstWhere(
-      (c) => c['UID'] == uidCliente,
-      orElse: () => {},
-    );
+  Future<void> seleccionarClientePorUID(String uidCliente) async {
+    try {
+      final cliente =
+          await ClientesServiciosFirebase.obtenerClientePorId(uidCliente);
 
-    if (cliente.isEmpty) {
-      print('⚠️ Cliente con UID $uidCliente no encontrado');
-      return;
-    }
+      if (cliente == null) {
+        return;
+      }
 
-    state = state.copyWith(
-      uidCliente: uidCliente,
-      nombreCliente: cliente['nombre'] ?? '',
-      apellidoCliente: cliente['apellido'] ?? '',
-      zonaCliente: cliente['zona'] ?? '',
-      direccionCliente: cliente['direccion'] ?? '',
-      telefonoCliente: cliente['telefono'] ?? '',
-    );
+      state = state.copyWith(
+        uidCliente: uidCliente,
+        nombreCliente: cliente['Nombre'] ?? '',
+        apellidoCliente: cliente['Apellido'] ?? '',
+        zonaCliente: cliente['Zona'] ?? '',
+        direccionCliente: cliente['Dirección'] ?? '',
+        telefonoCliente: cliente['Teléfono'] ?? '',
+      );
+    } catch (e) {}
   }
 
   void agregarProducto(ProductoEnFicha producto) {
@@ -79,14 +78,14 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
     state = FichaEnCurso();
   }
 
-  void cargarFichaDesdeMapa(Map<String, dynamic> ficha) {
+  void cargarFichaDesdeMapa(Map<String, dynamic> ficha,
+      {required String fichaId}) {
     final uidCliente = ficha['UID_Cliente'] as String?;
-
-    final nombreCliente = ficha['nombre'] as String?;
-    final apellidoCliente = ficha['apellido'] as String?;
-    final zonaCliente = ficha['zona'] as String?;
-    final direccionCliente = ficha['direccion'] as String?;
-    final telefonoCliente = ficha['telefono'] as String?;
+    final nombreCliente = ficha['Nombre'] as String?;
+    final apellidoCliente = ficha['Apellido'] as String?;
+    final zonaCliente = ficha['Zona'] as String?;
+    final direccionCliente = ficha['Dirección'] as String?;
+    final telefonoCliente = ficha['Teléfono'] as String?;
 
     final int cantidadProductos = ficha['Cantidad_de_Productos'] ?? 0;
     List<ProductoEnFicha> productos = [];
@@ -107,6 +106,7 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
     }
 
     state = FichaEnCurso(
+      id: fichaId,
       uidCliente: uidCliente,
       nombreCliente: nombreCliente,
       apellidoCliente: apellidoCliente,

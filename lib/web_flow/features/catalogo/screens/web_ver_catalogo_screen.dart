@@ -72,6 +72,7 @@ class _WebVerCatalogoScreenState extends State<WebVerCatalogoScreen> {
                               spacing: 15,
                               runSpacing: 15,
                               children: _productos.map((producto) {
+/*
                                 final nombre =
                                     producto['NombreDelProducto'] ?? '';
                                 final descCorta =
@@ -84,7 +85,7 @@ class _WebVerCatalogoScreenState extends State<WebVerCatalogoScreen> {
                                 final stock = (producto['Stock'] ?? 0).toInt();
                                 final imagenUrl =
                                     producto['LinkDeLaFoto'] ?? '';
-
+*/
                                 return SizedBox(
                                   width: itemWidth,
                                   child: CustomShopItemDescription(
