@@ -116,4 +116,22 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
       productos: productos,
     );
   }
+
+  void actualizarDatosCliente({
+    required String uidCliente,
+    required String nombre,
+    required String apellido,
+    required String zona,
+    required String direccion,
+    required String telefono,
+  }) {
+    state = state.copyWith(
+      uidCliente: uidCliente,
+      nombreCliente: nombre,
+      apellidoCliente: apellido,
+      zonaCliente: zona,
+      direccionCliente: direccion,
+      telefonoCliente: telefono,
+    );
+  }
 }

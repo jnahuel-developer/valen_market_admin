@@ -42,7 +42,12 @@ class _WebFichasEditarEliminarScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Ficha actualizada correctamente')),
         );
+
+        // Después de editar volvemos a la pantalla de agregar/buscar
+        Navigator.pushReplacementNamed(
+            context, PANTALLA_WEB__Fichas__Agregar_Buscar);
       } catch (e) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error al actualizar ficha: $e')),
         );
@@ -75,6 +80,7 @@ class _WebFichasEditarEliminarScreenState
         Navigator.pushReplacementNamed(
             context, PANTALLA_WEB__Fichas__Agregar_Buscar);
       } catch (e) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error al eliminar ficha: $e')),
         );
@@ -110,7 +116,7 @@ class _WebFichasEditarEliminarScreenState
 
     final Map<String, dynamic> clienteCargado = {
       'UID': fichaEnCurso.uidCliente ?? '',
-      'Nombre': fichaEnCurso.nombreCliente ?? '',
+      'Nombre': fichaEnCurso.nombreCliente ?? 'Mal cargado',
       'Apellido': fichaEnCurso.apellidoCliente ?? '',
       'Zona': fichaEnCurso.zonaCliente ?? '',
       'Dirección': fichaEnCurso.direccionCliente ?? '',

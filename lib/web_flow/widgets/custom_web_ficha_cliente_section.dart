@@ -73,12 +73,15 @@ class CustomWebClienteSectionState
     if (cliente.isNotEmpty) {
       _cargarCliente(cliente);
 
-      final uidCliente = cliente['id'];
-      if (uidCliente != null && uidCliente.isNotEmpty) {
-        await ref
-            .read(fichaEnCursoProvider.notifier)
-            .seleccionarClientePorUID(uidCliente);
-      }
+      // Actualizamos el provider con todos los datos directamente
+      ref.read(fichaEnCursoProvider.notifier).actualizarDatosCliente(
+            uidCliente: cliente['id'] ?? '',
+            nombre: cliente['Nombre'] ?? '',
+            apellido: cliente['Apellido'] ?? '',
+            zona: cliente['Zona'] ?? '',
+            direccion: cliente['Dirección'] ?? '',
+            telefono: cliente['Teléfono'] ?? '',
+          );
     }
   }
 

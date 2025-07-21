@@ -81,7 +81,7 @@ class _WebFichasAgregarBuscarScreenState
         proximoAviso: DateTime.now().add(const Duration(days: 30)),
       );
 
-      ref.read(fichaEnCursoProvider.notifier).limpiarFicha();
+//      ref.read(fichaEnCursoProvider.notifier).limpiarFicha();
 
       if (!mounted) return;
 
