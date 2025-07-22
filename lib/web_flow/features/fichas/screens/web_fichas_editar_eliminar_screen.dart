@@ -116,7 +116,7 @@ class _WebFichasEditarEliminarScreenState
 
     final Map<String, dynamic> clienteCargado = {
       'UID': fichaEnCurso.uidCliente ?? '',
-      'Nombre': fichaEnCurso.nombreCliente ?? 'Mal cargado',
+      'Nombre': fichaEnCurso.nombreCliente ?? '',
       'Apellido': fichaEnCurso.apellidoCliente ?? '',
       'Zona': fichaEnCurso.zonaCliente ?? '',
       'Dirección': fichaEnCurso.direccionCliente ?? '',

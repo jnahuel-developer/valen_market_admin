@@ -12,17 +12,17 @@ class FichasServiciosFirebase {
   /// Agrega una nueva ficha asociada a un cliente con sus productos seleccionados.
   Future<void> agregarFicha({
     required String uidCliente,
-    // Cada map contiene los datos de cada producto
+    required String nombreCliente,
+    required String apellidoCliente,
+    required String zonaCliente,
     required List<Map<String, dynamic>> productos,
     required DateTime fechaDeVenta,
     required String frecuenciaDeAviso,
     required DateTime proximoAviso,
   }) async {
     try {
-      // Se obtiene el último número de ficha agregar, para ser secuenciales
       final nroFicha = await obtenerYSiguienteNumeroFicha();
 
-      // Construimos el mapa de productos con los campos esperados
       Map<String, dynamic> productosMap = {};
       for (int i = 0; i < productos.length; i++) {
         final producto = productos[i];
@@ -37,10 +37,12 @@ class FichasServiciosFirebase {
         productosMap['Restante_Producto_$i'] = producto['restante'];
       }
 
-      // Documento principal de la ficha
       final fichaData = {
         'Nro_de_ficha': nroFicha,
         'UID_Cliente': uidCliente,
+        'Nombre': nombreCliente,
+        'Apellido': apellidoCliente,
+        'Zona': zonaCliente,
         'Cantidad_de_Productos': productos.length,
         'Fecha_de_Venta': Timestamp.fromDate(fechaDeVenta),
         'Frecuencia_de_aviso': frecuenciaDeAviso,

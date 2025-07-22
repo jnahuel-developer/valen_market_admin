@@ -75,13 +75,16 @@ class _WebFichasAgregarBuscarScreenState
     try {
       await fichasService.agregarFicha(
         uidCliente: fichaEnCurso.uidCliente!,
+        nombreCliente: fichaEnCurso.nombreCliente ?? '',
+        apellidoCliente: fichaEnCurso.apellidoCliente ?? '',
+        zonaCliente: fichaEnCurso.zonaCliente ?? '',
         productos: fichaEnCurso.productos.map((p) => p.toMap()).toList(),
         fechaDeVenta: DateTime.now(),
         frecuenciaDeAviso: 'mensual',
         proximoAviso: DateTime.now().add(const Duration(days: 30)),
       );
 
-//      ref.read(fichaEnCursoProvider.notifier).limpiarFicha();
+      ref.read(fichaEnCursoProvider.notifier).limpiarFicha();
 
       if (!mounted) return;
 

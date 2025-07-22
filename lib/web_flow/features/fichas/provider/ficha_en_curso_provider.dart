@@ -27,7 +27,9 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
         direccionCliente: cliente['Dirección'] ?? '',
         telefonoCliente: cliente['Teléfono'] ?? '',
       );
-    } catch (e) {}
+    } catch (e) {
+      // Nada por ahora
+    }
   }
 
   void agregarProducto(ProductoEnFicha producto) {
@@ -132,6 +134,33 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
       zonaCliente: zona,
       direccionCliente: direccion,
       telefonoCliente: telefono,
+    );
+  }
+
+  void cargarSoloDatosDeFichaYProductos(Map<String, dynamic> ficha,
+      {required String fichaId}) {
+    final int cantidadProductos = ficha['Cantidad_de_Productos'] ?? 0;
+    List<ProductoEnFicha> productos = [];
+
+    for (int i = 0; i < cantidadProductos; i++) {
+      productos.add(
+        ProductoEnFicha(
+          uidProducto: ficha['UID_Producto_$i'] ?? '',
+          unidades: ficha['Unidades_Producto_$i'] ?? 0,
+          precioUnitario: (ficha['Precio_Producto_$i'] ?? 0).toDouble(),
+          cantidadDeCuotas: ficha['Cantidad_de_cuotas_Producto_$i'] ?? 0,
+          precioDeLasCuotas:
+              (ficha['Precio_de_las_cuotas_Producto_$i'] ?? 0).toDouble(),
+          saldado: ficha['Saldado_Producto_$i'] ?? false,
+          restante: (ficha['Restante_Producto_$i'] ?? 0).toDouble(),
+        ),
+      );
+    }
+
+    state = state.copyWith(
+      id: fichaId,
+      productos: productos,
+      // No tocamos ningún dato del cliente
     );
   }
 }

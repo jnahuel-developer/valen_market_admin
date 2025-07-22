@@ -59,6 +59,32 @@ class _PopupResultadosBusquedaState
     }
   }
 
+  Future<void> _confirmarSeleccion() async {
+    if (_fichaSeleccionadaId == null) return;
+
+    final ficha = _resultados.firstWhere(
+      (f) => f['id'] == _fichaSeleccionadaId,
+    );
+
+    if (widget.criterio == 'Cliente seleccionado') {
+      ref.read(fichaEnCursoProvider.notifier).cargarSoloDatosDeFichaYProductos(
+            ficha,
+            fichaId: ficha['id'],
+          );
+    }
+
+    widget.onFichaSeleccionada(ficha);
+
+    Future.delayed(const Duration(milliseconds: 200), () {
+      if (context.mounted) {
+        Navigator.pushNamed(
+          context,
+          PANTALLA_WEB__Fichas__Editar_Eliminar,
+        );
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -78,29 +104,7 @@ class _PopupResultadosBusquedaState
           child: const Text('Cancelar'),
         ),
         ElevatedButton(
-          onPressed: _fichaSeleccionadaId == null
-              ? null
-              : () {
-                  final ficha = _resultados.firstWhere(
-                    (f) => f['id'] == _fichaSeleccionadaId,
-                  );
-
-                  ref.read(fichaEnCursoProvider.notifier).cargarFichaDesdeMapa(
-                        ficha,
-                        fichaId: ficha['id'],
-                      );
-
-                  widget.onFichaSeleccionada(ficha);
-
-                  Future.delayed(const Duration(milliseconds: 200), () {
-                    if (context.mounted) {
-                      Navigator.pushNamed(
-                        context,
-                        PANTALLA_WEB__Fichas__Editar_Eliminar,
-                      );
-                    }
-                  });
-                },
+          onPressed: _fichaSeleccionadaId == null ? null : _confirmarSeleccion,
           child: const Text('Confirmar selección'),
         ),
       ],
@@ -136,9 +140,9 @@ class _PopupResultadosBusquedaState
                   },
                 ),
               ),
-              DataCell(Text(ficha['nombre'] ?? '')),
-              DataCell(Text(ficha['apellido'] ?? '')),
-              DataCell(Text(ficha['zona'] ?? '')),
+              DataCell(Text(ficha['Nombre'] ?? '')),
+              DataCell(Text(ficha['Apellido'] ?? '')),
+              DataCell(Text(ficha['Zona'] ?? '')),
               DataCell(Text(ficha['Nro_de_ficha']?.toString() ?? '')),
               DataCell(Text(_formatearFecha(ficha['Fecha_de_Venta']))),
               DataCell(Text(ficha['Cantidad_de_Productos']?.toString() ?? '')),

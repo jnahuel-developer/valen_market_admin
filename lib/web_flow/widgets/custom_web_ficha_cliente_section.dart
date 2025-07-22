@@ -43,10 +43,6 @@ class CustomWebClienteSectionState
   void initState() {
     super.initState();
     _cargarClientes();
-
-    if (widget.clienteCargado != null) {
-      _cargarCliente(widget.clienteCargado!);
-    }
   }
 
   Future<void> _cargarClientes() async {
@@ -57,8 +53,13 @@ class CustomWebClienteSectionState
         _clientes = clientes;
         _aplicarFiltros();
       });
+
+      // Si se recibió un cliente cargado al construir el widget, cargarlo ahora
+      if (widget.clienteCargado != null) {
+        _cargarCliente(widget.clienteCargado!);
+      }
     } catch (e) {
-      // Error opcional
+      // Manejo de error opcional
     }
   }
 
@@ -90,7 +91,7 @@ class CustomWebClienteSectionState
       _clienteSeleccionado = _formatNombreCompleto(cliente);
       _nombreController.text = cliente['Nombre'] ?? '';
       _apellidoController.text = cliente['Apellido'] ?? '';
-      _zonaSeleccionada = cliente['Zona'];
+      _zonaSeleccionada = cliente['Zona'] ?? '';
       _direccionController.text = cliente['Dirección'] ?? '';
       _telefonoController.text = cliente['Teléfono'] ?? '';
     });
@@ -139,7 +140,6 @@ class CustomWebClienteSectionState
     return texto[0].toUpperCase() + texto.substring(1);
   }
 
-  // Método público para resetear todos los datos visuales
   void resetear() {
     setState(() {
       _clienteSeleccionado = null;

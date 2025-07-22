@@ -106,4 +106,20 @@ class FichaEnCurso {
 
     return productosMap;
   }
+
+  /// -------------------------
+  /// NUEVO: para debug del cliente
+  @override
+  String toString() {
+    return '''
+FichaEnCurso:
+  UID Cliente: $uidCliente
+  Nombre: $nombreCliente
+  Apellido: $apellidoCliente
+  Zona: $zonaCliente
+  Dirección: $direccionCliente
+  Teléfono: $telefonoCliente
+  Productos: ${productos.length}
+''';
+  }
 }
