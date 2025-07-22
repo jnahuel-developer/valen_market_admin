@@ -1,19 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:valen_market_admin/Web_flow/features/fichas/model/ficha_en_curso_model.dart';
+import 'package:valen_market_admin/Web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
 import 'package:valen_market_admin/Web_flow/widgets/custom_web_ficha_shop_item.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
 import 'package:valen_market_admin/services/firebase/catalogo_servicios_firebase.dart';
 
-class CustomWebProductosSection extends StatefulWidget {
-  const CustomWebProductosSection({super.key});
+class CustomWebProductosSection extends ConsumerStatefulWidget {
+  final List<ProductoEnFicha>? productosDeFicha;
+
+  const CustomWebProductosSection({
+    super.key,
+    this.productosDeFicha,
+  });
 
   @override
-  State<CustomWebProductosSection> createState() =>
-      _CustomWebProductosSectionState();
+  ConsumerState<CustomWebProductosSection> createState() =>
+      CustomWebProductosSectionState();
 }
 
-class _CustomWebProductosSectionState extends State<CustomWebProductosSection> {
+class CustomWebProductosSectionState
+    extends ConsumerState<CustomWebProductosSection> {
   final CatalogoServiciosFirebase _catalogoService =
       CatalogoServiciosFirebase();
+
   List<Map<String, dynamic>> _productos = [];
   Map<String, int> cantidades = {};
   bool _cargando = true;
@@ -26,17 +36,106 @@ class _CustomWebProductosSectionState extends State<CustomWebProductosSection> {
 
   Future<void> _cargarProductos() async {
     try {
-      final productos = await _catalogoService.obtenerTodosLosProductos();
-      setState(() {
-        _productos = productos;
-        _cargando = false;
-      });
+      if (widget.productosDeFicha != null) {
+        await _cargarProductosDesdeFicha();
+      } else {
+        await _cargarCatalogoCompleto();
+      }
     } catch (e) {
       setState(() => _cargando = false);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al cargar productos: $e')),
       );
     }
+  }
+
+  Future<void> _cargarCatalogoCompleto() async {
+    final productos = await _catalogoService.obtenerTodosLosProductos();
+    setState(() {
+      _productos = productos;
+      _cargando = false;
+    });
+  }
+
+  Future<void> _cargarProductosDesdeFicha() async {
+    final productos = <Map<String, dynamic>>{};
+
+    for (final productoEnFicha in widget.productosDeFicha!) {
+      final producto = await _catalogoService
+          .obtenerProductoPorId(productoEnFicha.uidProducto);
+
+      if (producto != null) {
+        productos.add(producto);
+        cantidades[productoEnFicha.uidProducto] = productoEnFicha.unidades;
+      }
+    }
+
+    setState(() {
+      _productos = productos.toList();
+      _cargando = false;
+    });
+  }
+
+  void _incrementarProducto(Map<String, dynamic> producto) {
+    final productoId = producto['id'];
+    final cantidadActual = cantidades[productoId] ?? 0;
+    final nuevaCantidad = cantidadActual + 1;
+
+    setState(() {
+      cantidades[productoId] = nuevaCantidad;
+    });
+
+    _agregarOActualizarEnProvider(producto, nuevaCantidad);
+  }
+
+  void _decrementarProducto(Map<String, dynamic> producto) {
+    final productoId = producto['id'];
+    final cantidadActual = cantidades[productoId] ?? 0;
+    if (cantidadActual == 0) return;
+
+    final nuevaCantidad = cantidadActual - 1;
+
+    setState(() {
+      cantidades[productoId] = nuevaCantidad;
+    });
+
+    _agregarOActualizarEnProvider(producto, nuevaCantidad);
+  }
+
+  void _agregarOActualizarEnProvider(
+      Map<String, dynamic> producto, int cantidadSeleccionada) {
+    final productoId = producto['id'];
+
+    if (cantidadSeleccionada == 0) {
+      ref
+          .read(fichaEnCursoProvider.notifier)
+          .eliminarProductoPorUID(productoId);
+      return;
+    }
+
+    final productoEnFicha = ProductoEnFicha(
+      uidProducto: productoId,
+      unidades: cantidadSeleccionada,
+      precioUnitario: producto['Precio']?.toDouble() ?? 0.0,
+      cantidadDeCuotas: producto['CantidadDeCuotas'] ?? 1,
+      precioDeLasCuotas: 0.0,
+      saldado: false,
+      restante: 0.0,
+    );
+
+    ref.read(fichaEnCursoProvider.notifier).agregarProducto(productoEnFicha);
+  }
+
+  // Método público para resetear los productos y cantidades
+  Future<void> resetear() async {
+    setState(() {
+      _productos = [];
+      cantidades = {};
+      _cargando = true;
+    });
+
+    await _cargarCatalogoCompleto();
   }
 
   @override
@@ -52,7 +151,6 @@ class _CustomWebProductosSectionState extends State<CustomWebProductosSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Zona de filtros (por ahora solo un placeholder)
           Container(
             height: 80,
             margin: const EdgeInsets.only(bottom: 20),
@@ -63,8 +161,6 @@ class _CustomWebProductosSectionState extends State<CustomWebProductosSection> {
             ),
             child: const Text('Zona de Filtros (próximamente)'),
           ),
-
-          // Zona de productos
           Expanded(
             child: _cargando
                 ? const Center(child: CircularProgressIndicator())
@@ -73,10 +169,10 @@ class _CustomWebProductosSectionState extends State<CustomWebProductosSection> {
                         const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
                     gridDelegate:
                         const SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 300, // Máximo ancho por ítem
-                      mainAxisSpacing: 12, // Espacio vertical entre ítems
-                      crossAxisSpacing: 12, // Espacio horizontal entre ítems
-                      childAspectRatio: 0.75, // Relación ancho/alto
+                      maxCrossAxisExtent: 300,
+                      mainAxisSpacing: 12,
+                      crossAxisSpacing: 12,
+                      childAspectRatio: 0.75,
                     ),
                     itemCount: _productos.length,
                     itemBuilder: (context, index) {
@@ -87,18 +183,8 @@ class _CustomWebProductosSectionState extends State<CustomWebProductosSection> {
                       return CustomWebFichaShopItem(
                         producto: producto,
                         cantidadSeleccionada: cantidad,
-                        onIncrement: () {
-                          setState(() {
-                            cantidades[productoId] = cantidad + 1;
-                          });
-                        },
-                        onDecrement: () {
-                          if (cantidad > 0) {
-                            setState(() {
-                              cantidades[productoId] = cantidad - 1;
-                            });
-                          }
-                        },
+                        onIncrement: () => _incrementarProducto(producto),
+                        onDecrement: () => _decrementarProducto(producto),
                       );
                     },
                   ),

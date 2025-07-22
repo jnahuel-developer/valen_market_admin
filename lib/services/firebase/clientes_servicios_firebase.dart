@@ -19,6 +19,7 @@ class ClientesServiciosFirebase {
       await _clientesRef.add({
         'Nombre': nombre.trim().toLowerCase(),
         'Apellido': apellido.trim().toLowerCase(),
+        'Zona': 'Norte',
         'Dirección': direccion.trim().toLowerCase(),
         'Teléfono': telefono.trim().toLowerCase(),
         'CantidadDeProductosComprados': 0,
@@ -36,9 +37,11 @@ class ClientesServiciosFirebase {
   static Future<List<Map<String, dynamic>>> obtenerTodosLosClientes() async {
     try {
       final snapshot = await _clientesRef.get();
-      return snapshot.docs
-          .map((doc) => doc.data() as Map<String, dynamic>)
-          .toList();
+      return snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id; // Aseguramos incluir el ID de Firebase
+        return data;
+      }).toList();
     } catch (e) {
       throw Exception('Error al obtener los clientes: $e');
     }
@@ -82,6 +85,7 @@ class ClientesServiciosFirebase {
       if (data != null &&
           data.containsKey('Nombre') &&
           data.containsKey('Apellido') &&
+          data.containsKey('Zona') &&
           data.containsKey('Dirección') &&
           data.containsKey('Teléfono')) {
         return data;
@@ -107,6 +111,7 @@ class ClientesServiciosFirebase {
         if (data != null &&
             data.containsKey('Nombre') &&
             data.containsKey('Apellido') &&
+            data.containsKey('Zona') &&
             data.containsKey('Dirección') &&
             data.containsKey('Teléfono')) {
           return data;
@@ -157,6 +162,7 @@ class ClientesServiciosFirebase {
       await _clientesRef.doc(id).update({
         'Nombre': nombre,
         'Apellido': apellido,
+        'Zona': 'Sur',
         'Dirección': direccion,
         'Teléfono': telefono,
       });
