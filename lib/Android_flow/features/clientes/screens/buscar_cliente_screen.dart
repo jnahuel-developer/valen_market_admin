@@ -53,7 +53,7 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
             .toList();
       });
     } catch (e) {
-      debugPrint('❌ Error al cargar nombres: $e');
+      // Nada por ahora
     }
   }
 
@@ -70,7 +70,7 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
         zonaClienteController.text = datos['Zona'] ?? '';
       });
     } catch (e) {
-      debugPrint('❌ Error al cargar cliente por ID: $e');
+      // Nada por ahora
     }
   }
 
