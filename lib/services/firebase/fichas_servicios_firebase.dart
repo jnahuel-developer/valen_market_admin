@@ -100,6 +100,55 @@ class FichasServiciosFirebase {
     }
   }
 
+  Future<List<Map<String, dynamic>>> buscarFichasPorNombre(
+      String nombre) async {
+    try {
+      final snapshot = await _fichasCollection
+          .where('Nombre', isEqualTo: nombre.toLowerCase())
+          .get();
+
+      return snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id;
+        return data;
+      }).toList();
+    } catch (e) {
+      throw Exception('Error al buscar fichas por nombre: $e');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> buscarFichasPorApellido(
+      String apellido) async {
+    try {
+      final snapshot = await _fichasCollection
+          .where('Apellido', isEqualTo: apellido.toLowerCase())
+          .get();
+
+      return snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id;
+        return data;
+      }).toList();
+    } catch (e) {
+      throw Exception('Error al buscar fichas por apellido: $e');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> buscarFichasPorZona(String zona) async {
+    try {
+      final snapshot =
+          await _fichasCollection.where('Zona', isEqualTo: zona).get();
+
+      return snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id;
+        return data;
+      }).toList();
+    } catch (e) {
+      throw Exception('Error al buscar fichas por zona: $e');
+    }
+  }
+
   // Se obtiene el numero de la ultima ficha registrada para continuarlo
   Future<int> obtenerYSiguienteNumeroFicha() async {
     final configDoc =
