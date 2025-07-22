@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:valen_market_admin/Web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
 import 'package:valen_market_admin/services/firebase/fichas_servicios_firebase.dart';
+import 'package:valen_market_admin/services/firebase/clientes_servicios_firebase.dart';
 import 'package:valen_market_admin/constants/pantallas.dart';
 
 class PopupResultadosBusqueda extends ConsumerStatefulWidget {
@@ -33,6 +34,8 @@ class _PopupResultadosBusquedaState
   }
 
   Future<void> _cargarFichas() async {
+    final fichasService = FichasServiciosFirebase();
+
     if (widget.criterio == 'Cliente seleccionado') {
       final uidCliente = ref.read(fichaEnCursoProvider).uidCliente;
 
@@ -41,12 +44,55 @@ class _PopupResultadosBusquedaState
         return;
       }
 
-      final fichasService = FichasServiciosFirebase();
       final resultados =
           await fichasService.buscarFichasPorClienteId(uidCliente);
 
       if (!mounted) return;
+      setState(() {
+        _resultados = resultados;
+        _cargando = false;
+      });
+    } else if (widget.criterio == 'Nombre seleccionado') {
+      final nombre = ref.read(fichaEnCursoProvider).nombreCliente;
 
+      if (nombre == null || nombre.isEmpty) {
+        Navigator.of(context).pop();
+        return;
+      }
+
+      final resultados = await fichasService.buscarFichasPorNombre(nombre);
+
+      if (!mounted) return;
+      setState(() {
+        _resultados = resultados;
+        _cargando = false;
+      });
+    } else if (widget.criterio == 'Apellido seleccionado') {
+      final apellido = ref.read(fichaEnCursoProvider).apellidoCliente;
+
+      if (apellido == null || apellido.isEmpty) {
+        Navigator.of(context).pop();
+        return;
+      }
+
+      final resultados = await fichasService.buscarFichasPorApellido(apellido);
+
+      if (!mounted) return;
+      setState(() {
+        _resultados = resultados;
+        _cargando = false;
+      });
+    } else if (widget.criterio == 'Zona seleccionada') {
+      final zona = ref.read(fichaEnCursoProvider).zonaCliente;
+
+      if (zona == null || zona.isEmpty) {
+        Navigator.of(context).pop();
+        return;
+      }
+
+      final resultados = await fichasService.buscarFichasPorZona(zona);
+
+      if (!mounted) return;
       setState(() {
         _resultados = resultados;
         _cargando = false;
@@ -71,6 +117,31 @@ class _PopupResultadosBusquedaState
             ficha,
             fichaId: ficha['id'],
           );
+    } else {
+      final String? uidCliente = ficha['UID_Cliente'];
+      if (uidCliente != null && uidCliente.isNotEmpty) {
+        final clienteData =
+            await ClientesServiciosFirebase.obtenerClientePorId(uidCliente);
+
+        if (clienteData != null) {
+          ficha['Nombre'] = clienteData['Nombre'];
+          ficha['Apellido'] = clienteData['Apellido'];
+          ficha['Zona'] = clienteData['Zona'];
+          ficha['Dirección'] = clienteData['Dirección'];
+          ficha['Teléfono'] = clienteData['Teléfono'];
+
+          ref.read(fichaEnCursoProvider.notifier).cargarFichaDesdeMapa(
+                ficha,
+                fichaId: ficha['id'],
+              );
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Cliente no encontrado')),
+            );
+          }
+        }
+      }
     }
 
     widget.onFichaSeleccionada(ficha);
