@@ -3,12 +3,14 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
+import 'package:valen_market_admin/Web_flow/widgets/custom_web_agregar_producto_bloque.dart';
 import 'package:valen_market_admin/Web_flow/widgets/custom_web_text_field.dart';
 import 'package:valen_market_admin/Web_flow/widgets/custom_web_gradient_button.dart';
 import 'package:valen_market_admin/Web_flow/widgets/custom_web_top_bar.dart';
 import 'package:valen_market_admin/constants/pantallas.dart';
 import 'package:valen_market_admin/services/firebase/catalogo_servicios_firebase.dart';
 import 'package:valen_market_admin/services/dropbox/dropbox_servicios_web.dart';
+import 'package:valen_market_admin/constants/app_colors.dart';
 import 'package:web/web.dart' as web;
 
 class WebAgregarProductoScreen extends StatefulWidget {
@@ -123,74 +125,131 @@ class _WebAgregarProductoScreenState extends State<WebAgregarProductoScreen> {
             titulo: 'Agregar Producto',
             pantallaPadreRouteName: PANTALLA_WEB__Catalogo,
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 35),
           Expanded(
-            child: SingleChildScrollView(
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 600),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 40),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        children: [
-                          CustomTextField(
-                              label: 'Nombre del Producto',
-                              controller: _nombreController,
-                              isRequired: true),
-                          const SizedBox(height: 15),
-                          CustomTextField(
-                              label: 'Descripción Corta',
-                              controller: _descCortaController,
-                              isRequired: true),
-                          const SizedBox(height: 15),
-                          CustomTextField(
-                              label: 'Descripción Larga',
-                              controller: _descLargaController,
-                              maxLines: 3),
-                          const SizedBox(height: 15),
-                          CustomTextField(
-                            label: 'Precio',
-                            controller: _precioController,
-                            isRequired: true,
-                            isMoney: true,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        /// Bloque A
+                        CustomWebAgregarProductoBloque(
+                          titulo: 'Información básica',
+                          child: Column(
+                            children: [
+                              CustomTextField(
+                                  label: 'Nombre del Producto',
+                                  controller: _nombreController,
+                                  isRequired: true),
+                              const SizedBox(height: 15),
+                              CustomTextField(
+                                  label: 'Descripción Corta',
+                                  controller: _descCortaController,
+                                  isRequired: true),
+                              const SizedBox(height: 15),
+                              CustomTextField(
+                                  label: 'Descripción Larga',
+                                  controller: _descLargaController,
+                                  maxLines: 3),
+                            ],
                           ),
-                          const SizedBox(height: 15),
-                          CustomTextField(
-                              label: 'Cantidad de Cuotas',
-                              controller: _cuotasController,
-                              keyboardType: TextInputType.number,
-                              isRequired: true),
-                          const SizedBox(height: 15),
-                          CustomTextField(
-                              label: 'Stock',
-                              controller: _stockController,
-                              keyboardType: TextInputType.number,
-                              isRequired: true),
-                          const SizedBox(height: 20),
-                          CustomGradientButton(
-                            text: _imagenBytes == null
-                                ? 'SELECCIONAR IMAGEN'
-                                : 'CAMBIAR IMAGEN',
-                            onPressed: _seleccionarImagen,
+                        ),
+
+                        const SizedBox(width: 15),
+
+                        /// Bloque B
+                        CustomWebAgregarProductoBloque(
+                          titulo: 'Datos comerciales',
+                          child: Column(
+                            children: [
+                              CustomTextField(
+                                label: 'Precio',
+                                controller: _precioController,
+                                isRequired: true,
+                                isMoney: true,
+                              ),
+                              const SizedBox(height: 15),
+                              CustomTextField(
+                                  label: 'Cantidad de Cuotas',
+                                  controller: _cuotasController,
+                                  keyboardType: TextInputType.number,
+                                  isRequired: true),
+                              const SizedBox(height: 15),
+                              CustomTextField(
+                                  label: 'Stock',
+                                  controller: _stockController,
+                                  keyboardType: TextInputType.number,
+                                  isRequired: true),
+                            ],
                           ),
-                          if (_nombreArchivo != null) ...[
-                            const SizedBox(height: 10),
-                            Text('📷 $_nombreArchivo'),
-                          ],
-                          const SizedBox(height: 20),
-                          _guardando
-                              ? const CircularProgressIndicator()
-                              : CustomGradientButton(
-                                  text: 'CONFIRMAR',
-                                  onPressed: _guardarProducto,
-                                ),
-                        ],
-                      ),
+                        ),
+
+                        const SizedBox(width: 15),
+
+                        /// Bloque C
+                        CustomWebAgregarProductoBloque(
+                          titulo: 'Imagen del producto',
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              final anchoDisponible = constraints.maxWidth;
+                              const gap = 15.0;
+                              const imagenSize = 220.0; // tamaño fijo
+
+                              return Column(
+                                children: [
+                                  const SizedBox(height: 10),
+                                  CustomGradientButton(
+                                    text: _imagenBytes == null
+                                        ? 'SELECCIONAR IMAGEN'
+                                        : 'CAMBIAR IMAGEN',
+                                    onPressed: _seleccionarImagen,
+                                    width: anchoDisponible - gap * 2,
+                                  ),
+                                  const SizedBox(height: gap),
+                                  Container(
+                                    width: anchoDisponible - gap * 2,
+                                    height: imagenSize,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      border: Border.all(
+                                        color: WebColors.bordeRosa,
+                                        width: 1.5,
+                                      ),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    padding: const EdgeInsets.all(5),
+                                    child: _imagenBytes != null
+                                        ? FittedBox(
+                                            fit: BoxFit.contain,
+                                            child: Image.memory(_imagenBytes!),
+                                          )
+                                        : const Center(
+                                            child: Text(
+                                                "No hay imagen seleccionada")),
+                                  ),
+                                  const SizedBox(height: gap),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
+                  const SizedBox(height: 15),
+
+                  /// Botón Confirmar
+                  _guardando
+                      ? const CircularProgressIndicator()
+                      : CustomGradientButton(
+                          text: 'CONFIRMAR',
+                          onPressed: _guardarProducto,
+                        ),
+                  const SizedBox(height: 15),
+                ],
               ),
             ),
           ),
