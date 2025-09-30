@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:valen_market_admin/Web_flow/features/catalogo/screens/web_editar_producto_screen.dart';
+import 'package:valen_market_admin/web_flow/features/catalogo/screens/web_editar_producto_screen.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
 import 'package:valen_market_admin/services/firebase/catalogo_servicios_firebase.dart';
 

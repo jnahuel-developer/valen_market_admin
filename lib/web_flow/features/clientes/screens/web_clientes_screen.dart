@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:valen_market_admin/Web_flow/widgets/custom_web_top_bar.dart';
-import 'package:valen_market_admin/Web_flow/widgets/custom_web_gradient_button.dart';
+import 'package:valen_market_admin/web_flow/widgets/custom_web_top_bar.dart';
+import 'package:valen_market_admin/web_flow/widgets/custom_web_gradient_button.dart';
 import 'package:valen_market_admin/services/google/clientes_servicios_google_sheets_web.dart';
 import 'package:valen_market_admin/constants/pantallas.dart';
 

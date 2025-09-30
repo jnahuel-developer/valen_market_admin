@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:valen_market_admin/Web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
+import 'package:valen_market_admin/web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
 import 'package:valen_market_admin/services/firebase/fichas_servicios_firebase.dart';
 import 'package:valen_market_admin/services/firebase/clientes_servicios_firebase.dart';
 import 'package:valen_market_admin/constants/pantallas.dart';

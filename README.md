@@ -68,7 +68,7 @@ La aplicación está organizada por flows para separar claramente la navegación
 
 lib/
 ├── Android_flow/    → Pantallas y widgets exclusivos de Android.
-├── Web_flow/        → Pantallas y widgets específicos para Web.
+├── web_flow/        → Pantallas y widgets específicos para Web.
 ├── services/        → Lógica compartida entre flujos (Firebase, Google, Auth).
 ├── constants/       → Colores, rutas, textos reutilizables.
 ├── config/          → Configuración del entorno (Dev / Prod).

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:valen_market_admin/Web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
-import 'package:valen_market_admin/Web_flow/widgets/custom_web_ficha_cliente_section.dart';
-import 'package:valen_market_admin/Web_flow/widgets/custom_web_ficha_productos_section.dart';
-import 'package:valen_market_admin/Web_flow/widgets/custom_web_gradient_button.dart';
-import 'package:valen_market_admin/Web_flow/widgets/custom_web_top_bar.dart';
+import 'package:valen_market_admin/web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
+import 'package:valen_market_admin/web_flow/widgets/custom_web_ficha_cliente_section.dart';
+import 'package:valen_market_admin/web_flow/widgets/custom_web_ficha_productos_section.dart';
+import 'package:valen_market_admin/web_flow/widgets/custom_web_gradient_button.dart';
+import 'package:valen_market_admin/web_flow/widgets/custom_web_top_bar.dart';
 import 'package:valen_market_admin/constants/pantallas.dart';
 import 'package:valen_market_admin/services/firebase/fichas_servicios_firebase.dart';
 

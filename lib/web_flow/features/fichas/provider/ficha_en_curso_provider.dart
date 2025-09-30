@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:valen_market_admin/Web_flow/features/fichas/model/ficha_en_curso_model.dart';
+import 'package:valen_market_admin/web_flow/features/fichas/model/ficha_en_curso_model.dart';
 import 'package:valen_market_admin/services/firebase/clientes_servicios_firebase.dart';
 
 final fichaEnCursoProvider =

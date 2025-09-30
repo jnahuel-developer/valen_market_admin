@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:valen_market_admin/Web_flow/widgets/custom_web_gradient_button.dart';
+import 'package:valen_market_admin/web_flow/widgets/custom_web_gradient_button.dart';
 
 class PopupSelectorCriterioBusqueda extends StatelessWidget {
   final Function(String criterioSeleccionado) onCriterioSeleccionado;

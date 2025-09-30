@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:valen_market_admin/Web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
-import 'package:valen_market_admin/Web_flow/widgets/custom_web_bloque_con_titulo.dart';
-import 'package:valen_market_admin/Web_flow/widgets/custom_web_campo_con_checkbox_dropdown.dart';
-import 'package:valen_market_admin/Web_flow/widgets/custom_web_campo_con_checkbox_textfield.dart';
-import 'package:valen_market_admin/Web_flow/widgets/custom_web_campo_sin_checkbox_textfield.dart';
-import 'package:valen_market_admin/Web_flow/widgets/custom_web_dropdown_clientes.dart';
+import 'package:valen_market_admin/web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
+import 'package:valen_market_admin/web_flow/widgets/custom_web_bloque_con_titulo.dart';
+import 'package:valen_market_admin/web_flow/widgets/custom_web_campo_con_checkbox_dropdown.dart';
+import 'package:valen_market_admin/web_flow/widgets/custom_web_campo_con_checkbox_textfield.dart';
+import 'package:valen_market_admin/web_flow/widgets/custom_web_campo_sin_checkbox_textfield.dart';
+import 'package:valen_market_admin/web_flow/widgets/custom_web_dropdown_clientes.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
 import 'package:valen_market_admin/constants/zonas_disponibles.dart';
 import 'package:valen_market_admin/services/firebase/clientes_servicios_firebase.dart';

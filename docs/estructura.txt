@@ -75,7 +75,7 @@ valen_market_admin/
 │   │── utils/
 │   │   └── validador_texto.dart
 │   │
-│   │── Web_flow/
+│   │── web_flow/
 │   │   │── features/
 │   │   │   │── catalogo/
 │   │   │   │   └── screens/
