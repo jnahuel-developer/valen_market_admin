@@ -28,7 +28,11 @@ class _WebFichasAgregarBuscarScreenState
   @override
   void initState() {
     super.initState();
-    ref.read(fichaEnCursoProvider.notifier).limpiarFicha();
+
+    // Espera a que termine el build inicial antes de modificar el provider
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(fichaEnCursoProvider.notifier).limpiarFicha();
+    });
   }
 
   Future<String?> _mostrarSelectorDeCriterio(BuildContext context) {

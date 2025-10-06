@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:valen_market_admin/constants/textos.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_bloque_con_titulo.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_campo_con_checkbox_dropdown.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_campo_con_checkbox_textfield.dart';
+import 'package:valen_market_admin/web_flow/widgets/custom_web_campo_fecha_con_checkbox.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_campo_sin_checkbox_textfield.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_dropdown_clientes.dart';
-import 'package:valen_market_admin/constants/app_colors.dart';
 import 'package:valen_market_admin/constants/zonas_disponibles.dart';
 import 'package:valen_market_admin/services/firebase/clientes_servicios_firebase.dart';
 
@@ -32,10 +33,12 @@ class CustomWebClienteSectionState
   final TextEditingController _apellidoController = TextEditingController();
   final TextEditingController _direccionController = TextEditingController();
   final TextEditingController _telefonoController = TextEditingController();
+  final TextEditingController _fechaController = TextEditingController();
 
   bool _nombreEditable = false;
   bool _apellidoEditable = false;
   bool _zonaEditable = false;
+  bool _usarHoy = true;
 
   List<Map<String, dynamic>> _clientes = [];
   List<Map<String, dynamic>> _clientesFiltrados = [];
@@ -221,6 +224,15 @@ class CustomWebClienteSectionState
           CustomWebCampoSinCheckboxTextField(
             label: 'Teléfono',
             controller: _telefonoController,
+          ),
+          const SizedBox(height: 20),
+          CustomWebCampoFechaConCheckbox(
+            label: TEXTO_ES__fichas_screen__campo__fecha_label,
+            controller: _fechaController,
+            usarHoy: _usarHoy,
+            onCheckboxChanged: (value) {
+              setState(() => _usarHoy = value);
+            },
           ),
         ],
       ),

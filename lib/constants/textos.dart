@@ -32,3 +32,8 @@ const String TEXTO_ES__agregar_clientes_screen__snackbar__datos_invalidos =
     'Datos inválidos o inseguros';
 const String TEXTO_ES__agregar_clientes_screen__snackbar__error_al_guardar =
     'Error al guardar';
+
+// Pantallas de fichas
+const String TEXTO_ES__fichas_screen__campo__fecha_label = '¿Hoy?';
+const String TEXTO_ES__fichas_screen__campo__fecha_placeholder =
+    'Selecciona una fecha anterior';
