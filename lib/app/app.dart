@@ -1,18 +1,18 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:valen_market_admin/Web_flow/features/catalogo/screens/web_agregar_producto_screen.dart';
-import 'package:valen_market_admin/Web_flow/features/catalogo/screens/web_catalogo_screen.dart';
-import 'package:valen_market_admin/Web_flow/features/catalogo/screens/web_ver_catalogo_screen.dart';
-import 'package:valen_market_admin/Web_flow/features/clientes/screens/web_agregar_cliente_screen.dart';
-import 'package:valen_market_admin/Web_flow/features/clientes/screens/web_clientes_screen.dart';
-import 'package:valen_market_admin/Web_flow/features/dropbox/screens/web_dropbox_auth_screen.dart';
-import 'package:valen_market_admin/Web_flow/features/dropbox/screens/web_dropbox_check_screen.dart';
-import 'package:valen_market_admin/Web_flow/features/fichas/screens/web_fichas_agregar_buscar_screen.dart';
-import 'package:valen_market_admin/Web_flow/features/fichas/screens/web_fichas_editar_eliminar_screen.dart';
-import 'package:valen_market_admin/Web_flow/features/login/screens/web_login_email_password_screen.dart';
-import 'package:valen_market_admin/Web_flow/features/login/screens/web_login_screen.dart';
-import 'package:valen_market_admin/Web_flow/features/login/screens/web_register_screen.dart';
-import 'package:valen_market_admin/Web_flow/features/login/screens/web_registration_waiting_screen.dart';
+import 'package:valen_market_admin/web_flow/features/catalogo/screens/web_agregar_producto_screen.dart';
+import 'package:valen_market_admin/web_flow/features/catalogo/screens/web_catalogo_screen.dart';
+import 'package:valen_market_admin/web_flow/features/catalogo/screens/web_ver_catalogo_screen.dart';
+import 'package:valen_market_admin/web_flow/features/clientes/screens/web_agregar_cliente_screen.dart';
+import 'package:valen_market_admin/web_flow/features/clientes/screens/web_clientes_screen.dart';
+import 'package:valen_market_admin/web_flow/features/dropbox/screens/web_dropbox_auth_screen.dart';
+import 'package:valen_market_admin/web_flow/features/dropbox/screens/web_dropbox_check_screen.dart';
+import 'package:valen_market_admin/web_flow/features/fichas/screens/web_fichas_agregar_buscar_screen.dart';
+import 'package:valen_market_admin/web_flow/features/fichas/screens/web_fichas_editar_eliminar_screen.dart';
+import 'package:valen_market_admin/web_flow/features/login/screens/web_login_email_password_screen.dart';
+import 'package:valen_market_admin/web_flow/features/login/screens/web_login_screen.dart';
+import 'package:valen_market_admin/web_flow/features/login/screens/web_register_screen.dart';
+import 'package:valen_market_admin/web_flow/features/login/screens/web_registration_waiting_screen.dart';
 import '../Android_flow/features/home/screens/home_screen.dart';
 import '../Android_flow/features/catalogo/screens/catalogo_screen.dart';
 import '../Android_flow/features/clientes/screens/clientes_screen.dart';
@@ -21,7 +21,8 @@ import '../Android_flow/features/clientes/screens/buscar_cliente_screen.dart';
 import '../Android_flow/features/fichas/screens/fichas_screen.dart';
 import '../Android_flow/features/recorrido/screens/recorrido_screen.dart';
 import 'package:valen_market_admin/constants/pantallas.dart';
-import '../Web_flow/features/home/screens/web_home_screen.dart';
+import '../web_flow/features/home/screens/web_home_screen.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -30,6 +31,19 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Valen Market Admin',
+
+      debugShowCheckedModeBanner: false,
+      // Configuración de localización global
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('es', ''), // Español
+      ],
+      locale: const Locale('es', ''), // Fuerza idioma español
+
       home: kIsWeb ? const WebLoginScreen() : const HomeScreen(),
       routes: {
         PANTALLA__Home: (_) => const HomeScreen(),

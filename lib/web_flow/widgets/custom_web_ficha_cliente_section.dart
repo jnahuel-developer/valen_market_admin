@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:valen_market_admin/Web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
-import 'package:valen_market_admin/Web_flow/widgets/custom_web_campo_con_checkbox_dropdown.dart';
-import 'package:valen_market_admin/Web_flow/widgets/custom_web_campo_con_checkbox_textfield.dart';
-import 'package:valen_market_admin/Web_flow/widgets/custom_web_campo_sin_checkbox_textfield.dart';
-import 'package:valen_market_admin/Web_flow/widgets/custom_web_dropdown_clientes.dart';
-import 'package:valen_market_admin/constants/app_colors.dart';
+import 'package:valen_market_admin/web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
+import 'package:valen_market_admin/web_flow/widgets/custom_web_bloque_con_titulo.dart';
+import 'package:valen_market_admin/web_flow/widgets/custom_web_campo_con_checkbox_dropdown.dart';
+import 'package:valen_market_admin/web_flow/widgets/custom_web_campo_con_checkbox_textfield.dart';
+import 'package:valen_market_admin/web_flow/widgets/custom_web_campo_sin_checkbox_textfield.dart';
+import 'package:valen_market_admin/web_flow/widgets/custom_web_dropdown_clientes.dart';
 import 'package:valen_market_admin/constants/zonas_disponibles.dart';
 import 'package:valen_market_admin/services/firebase/clientes_servicios_firebase.dart';
 
@@ -43,6 +43,11 @@ class CustomWebClienteSectionState
   void initState() {
     super.initState();
     _cargarClientes();
+    _inicializarDesdeProvider();
+  }
+
+  void _inicializarDesdeProvider() {
+    ref.read(fichaEnCursoProvider);
   }
 
   Future<void> _cargarClientes() async {
@@ -54,13 +59,10 @@ class CustomWebClienteSectionState
         _aplicarFiltros();
       });
 
-      // Si se recibió un cliente cargado al construir el widget, cargarlo ahora
       if (widget.clienteCargado != null) {
         _cargarCliente(widget.clienteCargado!);
       }
-    } catch (e) {
-      // Manejo de error opcional
-    }
+    } catch (_) {}
   }
 
   void _seleccionarCliente(String? value) async {
@@ -73,8 +75,6 @@ class CustomWebClienteSectionState
 
     if (cliente.isNotEmpty) {
       _cargarCliente(cliente);
-
-      // Actualizamos el provider con todos los datos directamente
       ref.read(fichaEnCursoProvider.notifier).actualizarDatosCliente(
             uidCliente: cliente['id'] ?? '',
             nombre: cliente['Nombre'] ?? '',
@@ -99,7 +99,6 @@ class CustomWebClienteSectionState
 
   void _aplicarFiltros() {
     var filtrados = _clientes;
-
     if (_nombreEditable && _nombreController.text.isNotEmpty) {
       filtrados = filtrados
           .where((c) =>
@@ -107,7 +106,6 @@ class CustomWebClienteSectionState
               _nombreController.text.toLowerCase())
           .toList();
     }
-
     if (_apellidoEditable && _apellidoController.text.isNotEmpty) {
       filtrados = filtrados
           .where((c) =>
@@ -115,7 +113,6 @@ class CustomWebClienteSectionState
               _apellidoController.text.toLowerCase())
           .toList();
     }
-
     if (_zonaEditable && _zonaSeleccionada != null) {
       filtrados = filtrados
           .where((c) =>
@@ -123,10 +120,7 @@ class CustomWebClienteSectionState
               _zonaSeleccionada!.toLowerCase())
           .toList();
     }
-
-    setState(() {
-      _clientesFiltrados = filtrados;
-    });
+    setState(() => _clientesFiltrados = filtrados);
   }
 
   String _formatNombreCompleto(Map<String, dynamic> cliente) {
@@ -135,39 +129,28 @@ class CustomWebClienteSectionState
     return '${_capitalizar(nombre)} ${_capitalizar(apellido)}';
   }
 
-  String _capitalizar(String texto) {
-    if (texto.isEmpty) return texto;
-    return texto[0].toUpperCase() + texto.substring(1);
-  }
+  String _capitalizar(String texto) =>
+      texto.isEmpty ? texto : texto[0].toUpperCase() + texto.substring(1);
 
   void resetear() {
     setState(() {
       _clienteSeleccionado = null;
       _zonaSeleccionada = null;
-
       _nombreController.clear();
       _apellidoController.clear();
       _direccionController.clear();
       _telefonoController.clear();
-
       _nombreEditable = false;
       _apellidoEditable = false;
       _zonaEditable = false;
-
       _clientesFiltrados = _clientes;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(15),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: WebColors.blanco,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: WebColors.bordeRosa, width: 2),
-      ),
+    return CustomWebBloqueConTitulo(
+      titulo: 'Datos del cliente',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -181,8 +164,8 @@ class CustomWebClienteSectionState
             label: 'Nombre',
             controller: _nombreController,
             isEditable: _nombreEditable,
-            onCheckboxChanged: (value) {
-              setState(() => _nombreEditable = value);
+            onCheckboxChanged: (v) {
+              setState(() => _nombreEditable = v);
               _aplicarFiltros();
             },
             onTextChanged: (_) {
@@ -194,8 +177,8 @@ class CustomWebClienteSectionState
             label: 'Apellido',
             controller: _apellidoController,
             isEditable: _apellidoEditable,
-            onCheckboxChanged: (value) {
-              setState(() => _apellidoEditable = value);
+            onCheckboxChanged: (v) {
+              setState(() => _apellidoEditable = v);
               _aplicarFiltros();
             },
             onTextChanged: (_) {
@@ -208,12 +191,12 @@ class CustomWebClienteSectionState
             options: zonasDisponibles,
             selectedOption: _zonaSeleccionada,
             isEditable: _zonaEditable,
-            onCheckboxChanged: (value) {
-              setState(() => _zonaEditable = value);
+            onCheckboxChanged: (v) {
+              setState(() => _zonaEditable = v);
               _aplicarFiltros();
             },
-            onChanged: (value) {
-              setState(() => _zonaSeleccionada = value);
+            onChanged: (v) {
+              setState(() => _zonaSeleccionada = v);
               if (_zonaEditable) _aplicarFiltros();
             },
           ),

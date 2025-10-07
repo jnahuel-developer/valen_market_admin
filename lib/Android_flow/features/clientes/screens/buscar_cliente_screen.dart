@@ -6,6 +6,7 @@ import 'package:valen_market_admin/Android_flow/widgets/custom_bottom_navbar.dar
 import 'package:valen_market_admin/Android_flow/widgets/custom_info_card.dart';
 import 'package:valen_market_admin/Android_flow/widgets/custom_simple_information.dart';
 import 'package:valen_market_admin/Android_flow/widgets/custom_top_bar.dart';
+import 'package:valen_market_admin/constants/values.dart';
 import 'package:valen_market_admin/services/firebase/clientes_servicios_firebase.dart';
 
 class BuscarClienteScreen extends StatefulWidget {
@@ -265,7 +266,8 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
       height: 50,
       decoration: BoxDecoration(
         color: AppColors.negroSuave,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(
+            VALUE__general_widget__campo__big_border_radius),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: DropdownButtonHideUnderline(

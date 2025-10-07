@@ -75,17 +75,24 @@ valen_market_admin/
 │   │── utils/
 │   │   └── validador_texto.dart
 │   │
-│   │── Web_flow/
+│   │── web_flow/
 │   │   │── features/
 │   │   │   │── catalogo/
 │   │   │   │   └── screens/
-│   │   │   │       └── web_catalogo_screen.dart
+│   │   │   │       │── web_agregar_producto_screen.dart
+│   │   │   │       │── web_catalogo_screen.dart
+│   │   │   │       │── web_editar_producto_screen.dart
+│   │   │   │       └── web_ver_catalogo_screen.dart
 │   │   │   │
 │   │   │   │── clientes/
 │   │   │   │   └── screens/
 │   │   │   │       │── web_agregar_cliente_screen.dart
-│   │   │   │       │── web_buscar_cliente_screen.dart
 │   │   │   │       └── web_clientes_screen.dart
+│   │   │   │
+│   │   │   │── dropbox/
+│   │   │   │   └── screens/
+│   │   │   │       │── web_dropbox_auth_screen.dart
+│   │   │   │       └── web_dropbox_check_screen.dart
 │   │   │   │
 │   │   │   │── fichas/
 │   │   │   │   │── Models/
@@ -93,7 +100,8 @@ valen_market_admin/
 │   │   │   │   │── Provider/
 │   │   │   │   │   └── ficha_en_curso_provider.dart
 │   │   │   │   └── screens/
-│   │   │   │       └── web_fichas_screen.dart
+│   │   │   │       │── web_fichas_agregar_buscar_screen.dart
+│   │   │   │       └── web_fichas_editar_eliminar_screen.dart
 │   │   │   │
 │   │   │   │── home/
 │   │   │   │   └── screens/
@@ -105,10 +113,15 @@ valen_market_admin/
 │   │   │   │
 │   │   │   └── login/
 │   │   │       └── screens/
-│   │   │           └── web_login.dart
+│   │   │           │── web_login_email_password_screen.dart
+│   │   │           │── web_login_screen.dart
+│   │   │           │── web_register_screen.dart
+│   │   │           └── web_registration_waiting_screen.dart
 │   │   │
 │   │   └── widgets/
-│   │       │── custom_web_button_styles
+│   │       │── custom_web_agregar_producto_bloque.dart
+│   │       │── custom_web_bloque_con_titulo.dart
+│   │       │── custom_web_button_styles.dart
 │   │       │── custom_web_campo_con_checkbox_dropdown.dart
 │   │       │── custom_web_campo_con_checkbox_textfield.dart
 │   │       │── custom_web_campo_sin_checkbox_textfield.dart
@@ -117,6 +130,8 @@ valen_market_admin/
 │   │       │── custom_web_ficha_productos_section.dart
 │   │       │── custom_web_ficha_shop_item.dart
 │   │       │── custom_web_gradient_button.dart
+│   │       │── custom_web_popup_resultados_busqueda.dart
+│   │       │── custom_web_popup_selector_criterio_busqueda.dart
 │   │       │── custom_web_shop_item_description.dart
 │   │       │── custom_web_text_field.dart
 │   │       └── custom_web_top_bar.dart

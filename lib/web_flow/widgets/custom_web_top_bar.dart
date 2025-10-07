@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:valen_market_admin/constants/values.dart';
 import 'package:valen_market_admin/services/dropbox/dropbox_servicios_web.dart';
 import 'package:valen_market_admin/services/firebase/auth_servicios_firebase_web.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
@@ -133,7 +134,8 @@ class CustomWebTopBar extends StatelessWidget {
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(
+                      VALUE__general_widget__campo__big_border_radius),
                   side: const BorderSide(
                     color: WebColors.bordeRosa,
                     width: 1.5,

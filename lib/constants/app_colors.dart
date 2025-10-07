@@ -27,7 +27,7 @@ class WebColors {
 
   static const blancoTraslucido = Color.fromRGBO(255, 255, 255, 0.5);
 
-// Degradado plata
+  // Degradado plata
   static const Color plataClara = Color(0xFFEEEEEE);
   static const Color plataOscura = Color(0xFFD0D0D0);
 
@@ -38,5 +38,19 @@ class WebColors {
   static const bordeGrisClaro = grisClaro;
   static const blanco = Colors.white;
 
-  static const checkboxMorado = Color(0xFF8E24AA); // Morado
+  // Morado
+  static const morado = Color(0xFF8E24AA);
+
+  // Rosa muy claro
+  static const Color fondoEtiquetaBloque = Color(0xFFFDF2F6);
+
+  // Bordes de controles que cambian su activación
+  static const bordeControlHabilitado = negro;
+  static const bordeControlDeshabilitado = grisClaro;
+
+  // Color de los controles deshabilitados
+  static const checkboxHabilitado = morado;
+  static const radioButtonHabilitado = morado;
+  static const iconHabilitado = morado;
+  static const controlDeshabilitado = grisClaro;
 }

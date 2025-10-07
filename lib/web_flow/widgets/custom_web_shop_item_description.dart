@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:valen_market_admin/Web_flow/features/catalogo/screens/web_editar_producto_screen.dart';
+import 'package:valen_market_admin/constants/values.dart';
+import 'package:valen_market_admin/web_flow/features/catalogo/screens/web_editar_producto_screen.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
 import 'package:valen_market_admin/services/firebase/catalogo_servicios_firebase.dart';
 
@@ -93,7 +94,8 @@ class CustomShopItemDescription extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border.all(color: WebColors.bordeRosa, width: 2),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(
+            VALUE__general_widget__campo__big_border_radius),
         boxShadow: const [
           BoxShadow(
             color: Colors.black12,

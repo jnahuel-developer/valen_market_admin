@@ -1,0 +1,303 @@
+# Proyecto "valen_market_admin"
+
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+
+## Objetivo:
+
+Desarrollar e implementar un sistema que gestione los clientes, los productos y las ventas de un vendedor minorista.
+El sistema tiene que ser multiplataforma, ya que deberá contar con una implementación para Android, para IOS y para Web.
+Deberá contar con una base de datos online de clientes, productos y ventas. La base de ventas será relacional a las otras 2.
+
+Desde cualquier interfaz se deberá contar con un menú para gestionar:
+ - El alta, baja, modificación y consulta de los clientes;
+ - El alta, baja, modificación y consulta de los productos del catálogo;
+ - El alta, baja, modificación y consulta de las fichas de ventas;
+ - Las promociones de los productos;
+
+Desde la implementación de Android se deberá contar además con un menú para gestionar:
+ - Los recorridos a realizar por el cobrador según las fichas;
+
+
+Desde la implementación de IOS y Web se deberá contar además con un menú para gestionar:
+ - El volcado de las bases de datos hacia planillas online de Excel;
+
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+
+## Implementación tecnológica:
+
+Será diseñado utilizando la tecnología Flutter, implementando un Kernel común y un flujo independiente para las interfaces.
+Se contará con colecciones en Firestore para almacenar los datos:
+ - /BDD_Admins -> Se almacenarán los datos de los Admins que pueda acceder al sistema;
+ - /BDD_Catalogo -> Se almacenaran todos los datos de los productos;
+ - /BDD_Clientes -> Se almacenaran todos los datos de los clientes;
+ - /BDD_Fichas -> Se almacenaran todos los datos de las fichas de ventas. Cada entrada tendrá una referencia a la tabla de clientes y catálogo;
+ - /config -> Contendrá todos los datos importantes de configuración y control de la aplicación;
+
+Los admins deberán crearse una cuenta en el sistema con un mail de GMail, ya que se usa el sistema de Authenticator de Google para validarlos.
+Una vez que se registren, se creará un documento en BDD_Admins con el UID del usuario generado por Google.
+Esto permitirá enlazar los registros con el Authenticator, para poder revocar permisos fácilmente ante una falla o ingreso indebido.
+
+Se contará con la API de Dropbox para manejar todas las imágenes de los productos desde allí.
+Cuando se agregue un producto a la base de datos, se cargará la imagen en una carpeta especial dentro de Dropbox.
+Mediante las APIs, se obtendrá un enlace directo al recurso, y se guardará en la entrada del producto en la colección BDD_Catalogo.
+Los widgets que expondrán los productos accederán a las imágenes de los mismos mediante los links en la entrada de cada producto.
+
+El Kernel o los recursos en común entre las diferentes implementaciones deberán acceder mediante una capa de abstracción.
+No se deben generar accesos dependientes de la plataforma directamente desde las pantallas o los widgets.
+
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+
+## Normas de diseño:
+
+La aplicación tiene 2 entornos de trabajo en uso:
+ - Dev  -> Entorno para las pruebas de desarrollo y datos dummies;
+ - Prod -> Entorno productivo y real;
+
+En el punto de ingreso se define qué entornó se utilizar en la ejecución.
+Esto permite validar todas las modificaciones en el entorno de desarrollo antes de llevarlas a producción.
+
+Se implementan distintos tipos de testeos, desde los CRUDs a la base de datos hasta los de Integración en Android.
+
+Se definen las reglas obligatorias de diseño en el archivo "Design_Rules.md".
+
+La rama principal será la rama "master". Esta integrará todos los desarrollos en estado productivo.
+La rama de trabajo para la implementación de la Web será "developWeb". Ésta contendrá todos los desarrollos para la plataforma Web.
+La rama de trabajo para la implementación de Android será "developAndroid". Ésta contendrá todos los desarrollos para la plataforma Android.
+La rama de trabajo en desarrollo será "modxxxx", independientemente de la plataforma en uso.
+
+Sólo existirán 2 admins que tendrán los mismos niveles de privilegios.
+Un admin accederá sólo desde la aplicación en Android desde su celular personal, con el cual hará los recorridos.
+El otro admin sólo accederá a la versión Web, ya sea desde su computadora personal o desde su teléfono personal.
+Por lo que la implementación Web debe ser adaptada tanto para Desktop como para Mobile. Sólo cambia la interfaz gráfica, no el funcionamiento.
+La dirección web no será compartida a nadie más que a los admins, con lo que no habrá accesos externos.
+El admin Web sólo usará su comptadora personal, que no comparte con nadie más. No hay posibilidades de que ingrese alguien ajeno con su cuenta.
+Llegado el caso de que haya un acceso no aturoizado, se eliminará el registro de la base de datos de admins y ya no tednrá más permisos de acceso.
+
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+
+## Flujo de trabajo:
+
+------------------------------------------------------------------------------------------
+
+### Logueo y creación de usuarios:
+
+En primer instancia, independientemente de la plataforma, el usuario debe crearse una cuenta nueva en el sistema.
+Luego, deberá validar su mail.
+Una vez dado de alta, el sistema lo enlazará con su UID.
+Este dato debe ser almacenado en memoria persistente (esto dependerá de la plataforma, por eso la capa de abstracción intermedia).
+El objetivo es que en los siguientes logueos sucesivos, si ya se encuentra registrado, no tenga que volver a pasar por todo el proceso de nuevo.
+
+En el caso de la versión Web, luego de loguearse con la cuenta del sistema, deberá otorgar permisos para utilizar los servicios de GMail.
+Esta autorización es necesaria para poder acceder a las hojas de cálculo online.
+
+Posteriormente a esto, desde cualquier plataforma se requerirá abrir un enlace a Dropbox, para permitir el uso de la cuenta.
+Esto otogará los permisos correctos para usar las APIs, y devolverá un refresh_token.
+
+En resumen, el proceso de logueo será:
+ - Introducir el mail y contraseña con que se haya dado de alta en el sistema;
+ - (Sólo en la versión Web) Permitir el acceso a la cuenta de GMail;
+ - Permitir el acceso a la cuenta de Dropbox;
+
+El sistema debe almacenar los datos necesarios en memoria permanente, para validar el estado de logueo en los siguientes ingresos.
+Si el usuario ya se encuentra logueado, y los datos siguen siendo válidos, debe pasar directamente al menú principal.
+Si el permiso a la cuenta de GMail expiró, debe volver a solicitarlo.
+Si el acceso a Dropbox expiró, debe intentar regenerarlo con el refresh_token. De no poder, debe volver a solicitarle el permiso al usuario.
+En el documento "/config/dropbox", se encuentran alojadas las Keys para acceder a la API.
+Durante el uso de la aplicación, si algún acceso falla por expiración, debe indicarle al usuario que se cerrará la sesión, y enviarlo al menú de logueo inicial.
+
+------------------------------------------------------------------------------------------
+
+### Menú principal
+
+Deberá listar las opciones disponibles para manejarse por la app.
+Independientemente de la plataforma, deberá mostrar las opciones para acceder al menú de clientes, de productos y de fichas.
+En la versión Web, deberá además mostrar las opciones para acceder al menú de volcado de fichas.
+En la versión de Android, deberá además mostrar las opciones para acceder al menú de recorrido.
+
+------------------------------------------------------------------------------------------
+
+### Menú de clientes
+
+Deberá mostrar las opciones de "Agregar", "Buscar", "Modificar" y "Eliminar", que funcionarán según:
+ - Agregar  ->  Presentará los controles necesarios para ingresar todos los datos de un nuevo cliente.
+                Deberá hacer uso de validaciones para cada campo.
+ - Buscar   ->  Presentará los controles de "Nombre", "Apellido", "Zona" y "Teléfono" para usar de filtrados.
+                Deberá mostrar un listado con todos los resultados de la búsqueda.
+                Luego presentará una pantalla de información con los datos del cliente seleccionado.
+                Esta pantalla deberá mostrar los mismos datos que la pantalla de "Agregar".
+                Deberá mostrar botones para "Editar" y para "Eliminar" el registro seleccionado.
+                Si se ingresó desde el menú de "Editar", deberá mostrar sólo el botón de "Editar".
+                Si se ingresó desde el menú de "Eliminar", deberá mostrar sólo el botón de "Eliminar".
+ - Editar   ->  Deberá mostrar el menú de la opción de "Buscar".
+                Cuando se seleccione un registro, deberá mostrar sólo el botón de "Editar".
+ - Eliminar ->  Deberá mostrar el menú de la opción de "Buscar".
+                Cuando se seleccione un registro, deberá mostrar sólo el botón de "Eliminar".
+
+En la versión Web, deberá además contar con los botones de "Cargar" y "Guardar", que funcionarán según:
+ - Cargar   ->  Deberá abrir un cuadro de búsqueda de archivos para que el usuario cargue un Excel con registros de clientes.
+                Validará el formato de los ingresos, y los agregará a la colección de clientes.
+ - Guardar  ->  Deberá volcar todos los registros de la colección de clientes a una hoja de Excel online.
+                El nombre del archivo será la combinación de un Header, más la fecha y hora de creación.
+
+------------------------------------------------------------------------------------------
+
+### Menú de productos
+
+Deberá mostrar las opciones de "Ver catálogo", "Buscar", "Modificar" y "Eliminar", que funcionarán según:
+ - Ver catálogo  ->  Mostrará todos los productos disponibles en la colección del catálogo.
+ - Agregar  ->  Presentará los controles necesarios para ingresar todos los datos de un nuevo producto.
+                Deberá hacer uso de validaciones para cada campo.
+ - Buscar   ->  Presentará los controles de "Nombre", "Descripción corta", "Precio" y "Stock" para usar de filtrados.
+                Deberá mostrar un listado con todos los resultados de la búsqueda.
+                Luego presentará una pantalla de información con los datos del producto seleccionado.
+                Esta pantalla deberá mostrar los mismos datos que la pantalla de "Agregar".
+                Deberá mostrar botones para "Editar" y para "Eliminar" el registro seleccionado.
+                Si se ingresó desde el menú de "Editar", deberá mostrar sólo el botón de "Editar".
+                Si se ingresó desde el menú de "Eliminar", deberá mostrar sólo el botón de "Eliminar".
+ - Editar   ->  Deberá mostrar el menú de la opción de "Buscar".
+                Cuando se seleccione un registro, deberá mostrar sólo el botón de "Editar".
+ - Eliminar ->  Deberá mostrar el menú de la opción de "Buscar".
+                Cuando se seleccione un registro, deberá mostrar sólo el botón de "Eliminar".
+
+En la versión Web, deberá además contar con los botones de "Cargar" y "Guardar", que funcionarán según:
+ - Cargar   ->  Deberá abrir un cuadro de búsqueda de archivos para que el usuario cargue un Excel con registros de clientes.
+                Validará el formato de los ingresos, y los agregará a la colección de clientes.
+ - Guardar  ->  Deberá volcar todos los registros de la colección de clientes a una hoja de Excel online.
+                El nombre del archivo será la combinación de un Header, más la fecha y hora de creación.
+
+A su vez, cada producto será mostrado en un Widget que contendrá 3 botones especiales:
+ - Promoción    ->  A futuro permitirá enviar notificaciones de promociones sobre ese producto a los clientes.
+ - Editar       ->  Deberá mostrar la pantalla de edición con los datos del producto seleccionado.
+ - Eliminar     ->  Deberá eliminar de la base el producto seleccionado.
+
+------------------------------------------------------------------------------------------
+
+### Menú de fichas
+
+Deberá mostrar una pantalla que tendrá 2 secciones:
+ - A izquierda, un panel para controlar el registro de clientes.
+ - A derecha, un panel para controlar el registro de productos.
+
+En el panel izquierdo de control de los clientes, se tendrá una lista desplegable con toda la colección de clientes.
+Los ingresos en la lista se mostrarán con el formato "Nombre Apellido".
+Una vez seleccionado un registro, se cargarán todos los controls debajo con los datos de ese registro.
+Los controles de "Nombre", "Apellido" y "Zona" tendrán un checkbox a su izquierda.
+De activarse el checkbox, ese parámetro será usado como filtro a la lista de clientes presentada en el desplegable.
+Los filtros son independientes y pueden ser acumulativos.
+Para realizar un filtrado correctamente ingresando manualmente el dato, se debe dar Enter luego de ingresarlo.
+En el caso de que sólo quede 1 registro en la lista que coincida con los filtros, deberá seleccionarse automáticamente.
+En el caso de no quedar registros luego del filtrado, deberá mostrase "Sin clientes" en la lista desplegable.
+
+En el panel derecho de control de clientes, se listarán todos los productos del catálogo con un contador de unidades a sumar a la ficha.
+La vista es una versión reducida, que sólo mostrará la foto, el nombre, el precio y el stock actual de cada producto.
+El usuario deberá usar los controles de + y - para modificar las unidades que quiera sumar a la ficha en cuestión.
+En la parte superior de este panel se contará con un bloque de filtrado, que permitirá encontrar fácilmente los productos.
+
+Para agregar una ficha a la base, será necesario seleccionar algún cliente de la lista desplegable, y marcar al menos una unidad de algún producto.
+El resgitro en la colección de las fichas tendrá un campo con el UID del cliente y otro con el UID del producto (o una colección).
+De esta forma, cada ficha quedará referenciada a un cliente y a un producto (o más de uno) de manera dinámica.
+Si se impactan cambios sobre los clientes o sobre los productos, no será necesario impactarlos sobre las fichas para que estén actualizadas.
+
+Para buscar una ficha, se deberán cargar algunos datos del cliente, que será tomado como punto de partida.
+El sistema acepta 5 formas de búsqueda:
+ - Cliente exacto   ->  Se tomará el UID del cliente seleccionado de la lista desplegable.
+                        Se mostrará una pantalla con todas las fichas registradas para dicho cliente.
+                        El usuario deberá seleccionar una de las opciones disponibles para avanzar.
+ - Por nombre       ->  Se deberá cargar un nombre en el control de "Nombre".
+                        Se mostrará una pantalla con todas las fichas registradas para dicho nombre.
+                        Esto puede traer fichas de distintos clientes, siempre que compartan el nombre buscado.
+                        El usuario deberá seleccionar una de las opciones disponibles para avanzar.
+ - Por apellido     ->  Se deberá cargar un apellido en el control de "Apellido".
+                        Se mostrará una pantalla con todas las fichas registradas para dicho apellido.
+                        Esto puede traer fichas de distintos clientes, siempre que compartan el apellido buscado.
+                        El usuario deberá seleccionar una de las opciones disponibles para avanzar.
+ - Por zona         ->  Se deberá seleccionar una zona del menú desplegable de zonas disponibles.
+                        Se mostrará una pantalla con todas las fichas registradas para dicha zona.
+                        Esto puede traer fichas de distintos clientes, siempre que compartan la zona buscada.
+                        El usuario deberá seleccionar una de las opciones disponibles para avanzar.
+ - Por fecha        ->  Se deberá seleccionar una fecha en el control de "Fecha".
+                        Se mostrará una pantalla con todas las fichas registradas para dicha fecha.
+                        Esto puede traer fichas de distintos clientes, siempre que compartan la fecha buscada.
+                        El usuario deberá seleccionar una de las opciones disponibles para avanzar.
+Seleccionada una ficha, se pasará a una pantalla similar donde se mostrarán los mismos paneles, pero con los datos de la ficha buscada.
+
+Para editar la ficha seleccionada, se pueden modificar tanto los datos del cliente como de los productos.
+En el caso de los clientes, mediante los controles se puede filtrar la lista y seleccionar otra persona para que figure en la ficha.
+En el caso de los productos, se listarán sólo los productos que contenga la ficha y se podrán modificar las cantidades.
+A futuro, se agregarán controles para poder adicionar productos a la ficha registrada.
+
+Para eliminar la ficha seleccionada, simplemente se debe confirmar la acción mediante el botón.
+
+------------------------------------------------------------------------------------------
+
+### Menú de promociones
+
+Por implementar. No estará disponible en la primer versión productiva;
+
+------------------------------------------------------------------------------------------
+
+### Menú de recorrido;
+
+Por implementar. No estará disponible en la primer versión productiva;
+
+
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+
+## Estado actual del proyecto (mod0014)
+
+Ya se cuenta con las colecciones en Firebase generadas y utilizadas correctamente.
+Se permite la creación de cuentas y el logueo correctamente.
+Se permite otorgar los permisos de GMail y de Dropbox para los servicios extras.
+Se cuenta con los menúes de logueo, clientes, productos y fichas funcionales.
+
+En el menú de clientes:
+ - Se permite agregar nuevos clientes;
+ - Se permite volcar la colección de clientes a una planilla de Excel online;
+ - Resta implementar la búsqueda de clientes;
+ - Resta implementar la edición de clientes;
+ - Resta implementar la eliminación de clientes;
+
+En el menú de productos:
+ - Se permite ver el catálogo completo;
+ - Se permite acceder a la pantalla de edición o eliminación de un producto en particular desde su presentación;
+ - Se permite agregar nuevos productos;
+ - Resta implementar la zona de filtros para la búsqueda de productos;
+ - Resta enlazar el botón de "Editar" a la búsqueda y edición de un producto;
+ - Resta enlazar el botón de "Eliminar" a la búsqueda y eliminación de un producto;
+
+En el menú de fichas:
+ - Se permite acceder al listado de clientes y filtrarlo;
+ - Se permite acceder al catálogo completo de productos;
+ - Se permite crear una nueva ficha;
+ - Se permite buscar las fichas según varios criterios de búsqueda;
+ - Se permite efitar una ficha;
+ - Se permite eliminar una ficha;
+ - Resta agregar el filtrado de productos en el panel de productos;
+ - Resta poder agregar nuevos productos en la edición de las fichas;
+ - Resta agregar el control de la fecha de venta de la ficha
+
+Los entornos de desarrollo (Dev) y producción (Prod) ya se encuentran correctamente configurados y en funcionamiento.
+
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+
+Última revisión     ->  06/10/2025
+Rama en desarrollo  ->  mod0015
+Feature en proceso  ->  Agregado del control de la fecha de venta de la ficha

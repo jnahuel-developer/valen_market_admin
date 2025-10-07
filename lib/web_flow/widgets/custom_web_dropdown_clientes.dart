@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
+import 'package:valen_market_admin/constants/values.dart';
 
 class CustomWebDropdownClientes extends StatelessWidget {
   final List<String> clientes;
@@ -16,7 +17,7 @@ class CustomWebDropdownClientes extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<String>(
-      value: clienteSeleccionado,
+      initialValue: clienteSeleccionado,
       isExpanded: true,
       decoration: InputDecoration(
         hintText: 'Seleccionar cliente',
@@ -26,11 +27,25 @@ class CustomWebDropdownClientes extends StatelessWidget {
             const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
-          borderSide: BorderSide(color: WebColors.bordeGrisClaro, width: 1.5),
+          borderSide: BorderSide(
+              color: WebColors.bordeControlDeshabilitado, width: 1.5),
         ),
+        // Se definen los bordes cuando esté habilitado
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: BorderSide(color: WebColors.bordeGrisClaro, width: 1.5),
+          borderRadius: BorderRadius.circular(
+              VALUE__general_widget__campo__big_border_radius),
+          borderSide: BorderSide(color: WebColors.bordeControlHabilitado),
+        ),
+        // Se definen los bordes cuando esté deshabilitado
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(
+              VALUE__general_widget__campo__big_border_radius),
+          borderSide: BorderSide(color: WebColors.bordeControlDeshabilitado),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(
+              VALUE__general_widget__campo__big_border_radius),
+          borderSide: BorderSide(color: WebColors.negro, width: 1.5),
         ),
       ),
       items: clientes

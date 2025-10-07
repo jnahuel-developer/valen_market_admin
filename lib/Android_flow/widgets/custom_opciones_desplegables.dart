@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
+import 'package:valen_market_admin/constants/values.dart';
 
 class CustomOpcionesDesplegables extends StatelessWidget {
   final List<String> opciones;
@@ -20,7 +21,8 @@ class CustomOpcionesDesplegables extends StatelessWidget {
       height: 50,
       decoration: BoxDecoration(
         color: AppColors.sombra,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(
+            VALUE__general_widget__campo__big_border_radius),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: DropdownButtonHideUnderline(
@@ -33,7 +35,8 @@ class CustomOpcionesDesplegables extends StatelessWidget {
           dropdownColor: Colors.black87,
           style: const TextStyle(color: Colors.yellow, fontSize: 16),
           isExpanded: true,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(
+              VALUE__general_widget__campo__big_border_radius),
           items: opciones.map((String valor) {
             return DropdownMenuItem<String>(
               value: valor,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:valen_market_admin/constants/values.dart';
 
 class CustomSimpleInformation extends StatelessWidget {
   final String label;
@@ -38,7 +39,8 @@ class CustomSimpleInformation extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white,
               border: Border.all(color: Colors.black, width: 2),
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(
+                  VALUE__general_widget__campo__big_border_radius),
             ),
             alignment: Alignment.center,
             child: TextField(
