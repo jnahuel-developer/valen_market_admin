@@ -88,6 +88,11 @@ class FichasServiciosFirebase {
         fichaData['zona'] = clienteData['Zona'] ?? '';
         fichaData['direccion'] = clienteData['Direccion'] ?? '';
         fichaData['telefono'] = clienteData['Telefono'] ?? '';
+
+        fichaData['Fecha_de_Venta'] = (fichaData['Fecha_de_Venta'] is Timestamp)
+            ? (fichaData['Fecha_de_Venta'] as Timestamp).toDate()
+            : null;
+
         fichaData['Nro_de_cuotas_pagadas'] =
             fichaData['Nro_de_cuotas_pagadas'] ?? 0;
         fichaData['Restante'] = fichaData['Restante'] ?? 0;
@@ -193,6 +198,12 @@ class FichasServiciosFirebase {
       if (docSnapshot.exists) {
         final data = docSnapshot.data() as Map<String, dynamic>;
         data['id'] = docSnapshot.id;
+
+        if (data['Fecha_de_Venta'] is Timestamp) {
+          data['Fecha_de_Venta'] =
+              (data['Fecha_de_Venta'] as Timestamp).toDate();
+        }
+
         return data;
       } else {
         return null;
@@ -212,6 +223,11 @@ class FichasServiciosFirebase {
     required Map<String, dynamic> nuevosDatos,
   }) async {
     try {
+      // Se convierte la fecha si viene como DateTime
+      if (nuevosDatos['Fecha_de_Venta'] is DateTime) {
+        nuevosDatos['Fecha_de_Venta'] =
+            Timestamp.fromDate(nuevosDatos['Fecha_de_Venta']);
+      }
       await _fichasCollection.doc(fichaId).update(nuevosDatos);
     } catch (e) {
       throw Exception('Error al actualizar la ficha: $e');

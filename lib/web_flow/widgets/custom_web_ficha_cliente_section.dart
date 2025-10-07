@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:valen_market_admin/constants/textos.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_bloque_con_titulo.dart';
@@ -26,6 +27,8 @@ class CustomWebClienteSection extends ConsumerStatefulWidget {
 
 class CustomWebClienteSectionState
     extends ConsumerState<CustomWebClienteSection> {
+  final DateFormat _formatter = DateFormat('dd/MM/yyyy');
+
   String? _clienteSeleccionado;
   String? _zonaSeleccionada;
 
@@ -47,6 +50,19 @@ class CustomWebClienteSectionState
   void initState() {
     super.initState();
     _cargarClientes();
+    _inicializarDesdeProvider();
+  }
+
+  void _inicializarDesdeProvider() {
+    final ficha = ref.read(fichaEnCursoProvider);
+
+    if (ficha.fechaDeVenta != null) {
+      _fechaController.text = _formatter.format(ficha.fechaDeVenta!);
+      _usarHoy = false;
+    } else {
+      _fechaController.text = _formatter.format(DateTime.now());
+      _usarHoy = true;
+    }
   }
 
   Future<void> _cargarClientes() async {
@@ -58,13 +74,10 @@ class CustomWebClienteSectionState
         _aplicarFiltros();
       });
 
-      // Si se recibió un cliente cargado al construir el widget, cargarlo ahora
       if (widget.clienteCargado != null) {
         _cargarCliente(widget.clienteCargado!);
       }
-    } catch (e) {
-      // Manejo de error opcional
-    }
+    } catch (_) {}
   }
 
   void _seleccionarCliente(String? value) async {
@@ -77,8 +90,6 @@ class CustomWebClienteSectionState
 
     if (cliente.isNotEmpty) {
       _cargarCliente(cliente);
-
-      // Actualizamos el provider con todos los datos directamente
       ref.read(fichaEnCursoProvider.notifier).actualizarDatosCliente(
             uidCliente: cliente['id'] ?? '',
             nombre: cliente['Nombre'] ?? '',
@@ -103,7 +114,6 @@ class CustomWebClienteSectionState
 
   void _aplicarFiltros() {
     var filtrados = _clientes;
-
     if (_nombreEditable && _nombreController.text.isNotEmpty) {
       filtrados = filtrados
           .where((c) =>
@@ -111,7 +121,6 @@ class CustomWebClienteSectionState
               _nombreController.text.toLowerCase())
           .toList();
     }
-
     if (_apellidoEditable && _apellidoController.text.isNotEmpty) {
       filtrados = filtrados
           .where((c) =>
@@ -119,7 +128,6 @@ class CustomWebClienteSectionState
               _apellidoController.text.toLowerCase())
           .toList();
     }
-
     if (_zonaEditable && _zonaSeleccionada != null) {
       filtrados = filtrados
           .where((c) =>
@@ -127,10 +135,7 @@ class CustomWebClienteSectionState
               _zonaSeleccionada!.toLowerCase())
           .toList();
     }
-
-    setState(() {
-      _clientesFiltrados = filtrados;
-    });
+    setState(() => _clientesFiltrados = filtrados);
   }
 
   String _formatNombreCompleto(Map<String, dynamic> cliente) {
@@ -139,25 +144,20 @@ class CustomWebClienteSectionState
     return '${_capitalizar(nombre)} ${_capitalizar(apellido)}';
   }
 
-  String _capitalizar(String texto) {
-    if (texto.isEmpty) return texto;
-    return texto[0].toUpperCase() + texto.substring(1);
-  }
+  String _capitalizar(String texto) =>
+      texto.isEmpty ? texto : texto[0].toUpperCase() + texto.substring(1);
 
   void resetear() {
     setState(() {
       _clienteSeleccionado = null;
       _zonaSeleccionada = null;
-
       _nombreController.clear();
       _apellidoController.clear();
       _direccionController.clear();
       _telefonoController.clear();
-
       _nombreEditable = false;
       _apellidoEditable = false;
       _zonaEditable = false;
-
       _clientesFiltrados = _clientes;
     });
   }
@@ -179,8 +179,8 @@ class CustomWebClienteSectionState
             label: 'Nombre',
             controller: _nombreController,
             isEditable: _nombreEditable,
-            onCheckboxChanged: (value) {
-              setState(() => _nombreEditable = value);
+            onCheckboxChanged: (v) {
+              setState(() => _nombreEditable = v);
               _aplicarFiltros();
             },
             onTextChanged: (_) {
@@ -192,8 +192,8 @@ class CustomWebClienteSectionState
             label: 'Apellido',
             controller: _apellidoController,
             isEditable: _apellidoEditable,
-            onCheckboxChanged: (value) {
-              setState(() => _apellidoEditable = value);
+            onCheckboxChanged: (v) {
+              setState(() => _apellidoEditable = v);
               _aplicarFiltros();
             },
             onTextChanged: (_) {
@@ -206,12 +206,12 @@ class CustomWebClienteSectionState
             options: zonasDisponibles,
             selectedOption: _zonaSeleccionada,
             isEditable: _zonaEditable,
-            onCheckboxChanged: (value) {
-              setState(() => _zonaEditable = value);
+            onCheckboxChanged: (v) {
+              setState(() => _zonaEditable = v);
               _aplicarFiltros();
             },
-            onChanged: (value) {
-              setState(() => _zonaSeleccionada = value);
+            onChanged: (v) {
+              setState(() => _zonaSeleccionada = v);
               if (_zonaEditable) _aplicarFiltros();
             },
           ),
@@ -230,8 +230,32 @@ class CustomWebClienteSectionState
             label: TEXTO_ES__fichas_screen__campo__fecha_label,
             controller: _fechaController,
             usarHoy: _usarHoy,
-            onCheckboxChanged: (value) {
-              setState(() => _usarHoy = value);
+            onCheckboxChanged: (v) {
+              setState(() => _usarHoy = v);
+
+              if (!v) {
+                // Si el usuario activa el modo manual, no hacemos nada aún.
+                // La fecha se actualizará cuando confirme el popup.
+                debugPrint(
+                    '📅 Modo manual activado, esperando selección de fecha.');
+              } else {
+                // Si marca usar hoy, tomamos la fecha actual y la guardamos en provider
+                final hoy = DateTime.now();
+                _fechaController.text = _formatter.format(hoy);
+                debugPrint('📅 Usando fecha de hoy: $hoy');
+
+                ref
+                    .read(fichaEnCursoProvider.notifier)
+                    .actualizarFechaDeVenta(hoy);
+              }
+            },
+            onDateSelected: (fechaSeleccionada) {
+              // ✅ Solo acá actualizamos la fecha en el provider
+              debugPrint('🗓 Fecha confirmada desde popup: $fechaSeleccionada');
+
+              ref
+                  .read(fichaEnCursoProvider.notifier)
+                  .actualizarFechaDeVenta(fechaSeleccionada);
             },
           ),
         ],

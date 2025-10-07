@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/model/ficha_en_curso_model.dart';
 import 'package:valen_market_admin/services/firebase/clientes_servicios_firebase.dart';
@@ -15,9 +16,7 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
       final cliente =
           await ClientesServiciosFirebase.obtenerClientePorId(uidCliente);
 
-      if (cliente == null) {
-        return;
-      }
+      if (cliente == null) return;
 
       state = state.copyWith(
         uidCliente: uidCliente,
@@ -27,9 +26,7 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
         direccionCliente: cliente['Dirección'] ?? '',
         telefonoCliente: cliente['Teléfono'] ?? '',
       );
-    } catch (e) {
-      // Nada por ahora
-    }
+    } catch (_) {}
   }
 
   void agregarProducto(ProductoEnFicha producto) {
@@ -80,6 +77,12 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
     state = FichaEnCurso();
   }
 
+  // Permite actualizar o limpiar la fecha de venta desde el widget
+  void actualizarFechaDeVenta(DateTime? fecha) {
+    state = state.copyWith(fechaDeVenta: fecha);
+    debugPrint('📦 Estado actual del provider: ${state.toString()}');
+  }
+
   void cargarFichaDesdeMapa(Map<String, dynamic> ficha,
       {required String fichaId}) {
     final uidCliente = ficha['UID_Cliente'] as String?;
@@ -88,6 +91,14 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
     final zonaCliente = ficha['Zona'] as String?;
     final direccionCliente = ficha['Dirección'] as String?;
     final telefonoCliente = ficha['Teléfono'] as String?;
+    final String? fechaIso = ficha['Fecha_de_venta'];
+
+    DateTime? fechaDeVenta;
+    if (fechaIso != null) {
+      try {
+        fechaDeVenta = DateTime.parse(fechaIso);
+      } catch (_) {}
+    }
 
     final int cantidadProductos = ficha['Cantidad_de_Productos'] ?? 0;
     List<ProductoEnFicha> productos = [];
@@ -116,6 +127,7 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
       direccionCliente: direccionCliente,
       telefonoCliente: telefonoCliente,
       productos: productos,
+      fechaDeVenta: fechaDeVenta,
     );
   }
 
@@ -157,10 +169,18 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
       );
     }
 
+    final String? fechaIso = ficha['Fecha_de_venta'];
+    DateTime? fechaDeVenta;
+    if (fechaIso != null) {
+      try {
+        fechaDeVenta = DateTime.parse(fechaIso);
+      } catch (_) {}
+    }
+
     state = state.copyWith(
       id: fichaId,
       productos: productos,
-      // No tocamos ningún dato del cliente
+      fechaDeVenta: fechaDeVenta,
     );
   }
 }

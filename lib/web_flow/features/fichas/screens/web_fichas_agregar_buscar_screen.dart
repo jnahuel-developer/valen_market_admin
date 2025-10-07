@@ -83,7 +83,7 @@ class _WebFichasAgregarBuscarScreenState
         apellidoCliente: fichaEnCurso.apellidoCliente ?? '',
         zonaCliente: fichaEnCurso.zonaCliente ?? '',
         productos: fichaEnCurso.productos.map((p) => p.toMap()).toList(),
-        fechaDeVenta: DateTime.now(),
+        fechaDeVenta: fichaEnCurso.fechaDeVenta ?? DateTime.now(),
         frecuenciaDeAviso: 'mensual',
         proximoAviso: DateTime.now().add(const Duration(days: 30)),
       );

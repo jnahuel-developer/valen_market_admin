@@ -201,14 +201,16 @@ class _PopupResultadosBusquedaState
           return DataRow(
             cells: [
               DataCell(
-                Radio<String>(
-                  value: ficha['id'],
+                RadioGroup<String>(
                   groupValue: _fichaSeleccionadaId,
                   onChanged: (value) {
                     setState(() {
                       _fichaSeleccionadaId = value;
                     });
                   },
+                  child: Radio<String>(
+                    value: ficha['id'],
+                  ),
                 ),
               ),
               DataCell(Text(ficha['Nombre'] ?? '')),
@@ -229,9 +231,21 @@ class _PopupResultadosBusquedaState
   String _formatearFecha(dynamic fecha) {
     if (fecha == null) return '';
 
-    if (fecha is Timestamp) {
-      final dt = fecha.toDate();
-      return '${dt.day}/${dt.month}/${dt.year}';
+    try {
+      if (fecha is Timestamp) {
+        final dt = fecha.toDate();
+        return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+      } else if (fecha is DateTime) {
+        return '${fecha.day.toString().padLeft(2, '0')}/${fecha.month.toString().padLeft(2, '0')}/${fecha.year}';
+      } else if (fecha is String) {
+        // Si por algún motivo viene como string (ej: ISO8601), intentamos parsearlo
+        final dt = DateTime.tryParse(fecha);
+        if (dt != null) {
+          return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+        }
+      }
+    } catch (e) {
+      debugPrint('Error formateando fecha: $e');
     }
 
     return '';
