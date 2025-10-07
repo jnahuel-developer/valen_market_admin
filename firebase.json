@@ -1,24 +1,4 @@
 {
-  "flutter": {
-    "platforms": {
-      "android": {
-        "default": {
-          "projectId": "valen-market-admin-dev",
-          "appId": "1:1089321285838:android:31b196cef630300426389f",
-          "fileOutput": "android/app/google-services.json"
-        }
-      },
-      "dart": {
-        "lib/firebase_options.dart": {
-          "projectId": "valen-market-admin-dev",
-          "configurations": {
-            "android": "1:1089321285838:android:31b196cef630300426389f",
-            "web": "1:1089321285838:web:e22ce681d5e0e8bc26389f"
-          }
-        }
-      }
-    }
-  },
   "hosting": {
     "site": "valen-market-admin-dev",
     "public": "build/web",
