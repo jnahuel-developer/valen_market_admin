@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:valen_market_admin/constants/assets.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
 import 'package:valen_market_admin/constants/pantallas.dart';
+import 'package:valen_market_admin/constants/values.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
   const CustomBottomNavBar({super.key});
@@ -14,7 +15,8 @@ class CustomBottomNavBar extends StatelessWidget {
       margin: const EdgeInsets.all(0),
       decoration: BoxDecoration(
         color: AppColors.amarillo,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(
+            VALUE__general_widget__campo__big_border_radius),
         border: Border.all(color: AppColors.azul, width: 5),
       ),
       child: Row(

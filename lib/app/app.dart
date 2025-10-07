@@ -22,6 +22,7 @@ import '../Android_flow/features/fichas/screens/fichas_screen.dart';
 import '../Android_flow/features/recorrido/screens/recorrido_screen.dart';
 import 'package:valen_market_admin/constants/pantallas.dart';
 import '../web_flow/features/home/screens/web_home_screen.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -30,6 +31,19 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Valen Market Admin',
+
+      debugShowCheckedModeBanner: false,
+      // Configuración de localización global
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('es', ''), // Español
+      ],
+      locale: const Locale('es', ''), // Fuerza idioma español
+
       home: kIsWeb ? const WebLoginScreen() : const HomeScreen(),
       routes: {
         PANTALLA__Home: (_) => const HomeScreen(),

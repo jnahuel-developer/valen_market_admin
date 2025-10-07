@@ -2,20 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
 import 'package:valen_market_admin/constants/textos.dart';
+import 'package:valen_market_admin/constants/values.dart';
 
 class CustomWebCampoFechaConCheckbox extends StatefulWidget {
   final String label;
   final TextEditingController controller;
-  final bool usarHoy;
+  final bool useToday;
   final ValueChanged<bool> onCheckboxChanged;
-  final ValueChanged<DateTime>? onDateSelected; // 🆕 Nuevo callback
+  final ValueChanged<DateTime>? onDateSelected;
 
   const CustomWebCampoFechaConCheckbox({
     required this.label,
     required this.controller,
-    required this.usarHoy,
+    required this.useToday,
     required this.onCheckboxChanged,
-    this.onDateSelected, // 🆕
+    this.onDateSelected,
     super.key,
   });
 
@@ -39,65 +40,15 @@ class _CustomWebCampoFechaConCheckboxState
   }
 
   Future<void> _mostrarSelectorDeFecha(BuildContext context) async {
-    final DateTime hoy = DateTime.now();
-    DateTime fechaActual = hoy;
+    final DateTime today = DateTime.now();
+    final DateTime limiteInferior =
+        DateTime(today.year - 2, today.month, today.day);
 
-    final DateTime? seleccion = await showDialog<DateTime>(
+    final DateTime? seleccion = await showDatePicker(
       context: context,
-      builder: (context) {
-        int dia = fechaActual.day;
-        int mes = fechaActual.month;
-        int anio = fechaActual.year;
-
-        return AlertDialog(
-          title: const Text('Seleccionar fecha'),
-          content: StatefulBuilder(
-            builder: (context, setStateDialog) {
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  DropdownButton<int>(
-                    value: dia,
-                    items: List.generate(31, (i) => i + 1)
-                        .map((d) =>
-                            DropdownMenuItem(value: d, child: Text('$d')))
-                        .toList(),
-                    onChanged: (v) => setStateDialog(() => dia = v ?? dia),
-                  ),
-                  DropdownButton<int>(
-                    value: mes,
-                    items: List.generate(12, (i) => i + 1)
-                        .map((m) =>
-                            DropdownMenuItem(value: m, child: Text('$m')))
-                        .toList(),
-                    onChanged: (v) => setStateDialog(() => mes = v ?? mes),
-                  ),
-                  DropdownButton<int>(
-                    value: anio,
-                    items: List.generate(25, (i) => hoy.year - i)
-                        .map((a) =>
-                            DropdownMenuItem(value: a, child: Text('$a')))
-                        .toList(),
-                    onChanged: (v) => setStateDialog(() => anio = v ?? anio),
-                  ),
-                ],
-              );
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, null),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context, DateTime(anio, mes, dia));
-              },
-              child: const Text('Aceptar'),
-            ),
-          ],
-        );
-      },
+      initialDate: today,
+      firstDate: limiteInferior,
+      lastDate: today,
     );
 
     if (seleccion != null) {
@@ -106,10 +57,10 @@ class _CustomWebCampoFechaConCheckboxState
       // Se notifica al padre que se seleccionó una nueva fecha
       widget.onDateSelected?.call(seleccion);
     } else {
-      widget.controller.text = _formatter.format(hoy);
+      widget.controller.text = _formatter.format(today);
 
       // Si cancela, también se notifica que se usa hoy
-      widget.onDateSelected?.call(hoy);
+      widget.onDateSelected?.call(today);
     }
   }
 
@@ -120,7 +71,7 @@ class _CustomWebCampoFechaConCheckboxState
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Checkbox(
-          value: widget.usarHoy,
+          value: widget.useToday,
           onChanged: (value) {
             if (value != null) {
               widget.onCheckboxChanged(value);
@@ -131,7 +82,8 @@ class _CustomWebCampoFechaConCheckboxState
               setState(() {});
             }
           },
-          activeColor: WebColors.checkboxMorado,
+          // Se define el color para cuando el Checkbox esté habilitado
+          activeColor: WebColors.checkboxHabilitado,
         ),
         SizedBox(
           width: 120,
@@ -153,19 +105,30 @@ class _CustomWebCampoFechaConCheckboxState
                 child: TextField(
                   controller: widget.controller,
                   readOnly: true,
-                  enabled: !widget.usarHoy,
+                  enabled: !widget.useToday,
                   decoration: InputDecoration(
                     hintText: TEXTO_ES__fichas_screen__campo__fecha_placeholder,
                     contentPadding: const EdgeInsets.symmetric(
                         horizontal: 15, vertical: 12),
+                    // Se definen los bordes cuando esté habilitado
                     enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      borderSide: BorderSide(color: WebColors.grisClaro),
+                      borderRadius: BorderRadius.circular(
+                          VALUE__general_widget__campo__big_border_radius),
+                      borderSide:
+                          BorderSide(color: WebColors.bordeControlHabilitado),
+                    ),
+                    // Se definen los bordes cuando esté deshabilitado
+                    disabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(
+                          VALUE__general_widget__campo__big_border_radius),
+                      borderSide: BorderSide(
+                          color: WebColors.bordeControlDeshabilitado),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(
+                          VALUE__general_widget__campo__big_border_radius),
                       borderSide:
-                          const BorderSide(color: WebColors.negro, width: 1.5),
+                          BorderSide(color: WebColors.negro, width: 1.5),
                     ),
                   ),
                 ),
@@ -173,10 +136,10 @@ class _CustomWebCampoFechaConCheckboxState
               const SizedBox(width: 10),
               IconButton(
                 icon: const Icon(Icons.calendar_month),
-                color: !widget.usarHoy
-                    ? WebColors.checkboxMorado
-                    : WebColors.grisClaro,
-                onPressed: !widget.usarHoy
+                color: !widget.useToday
+                    ? WebColors.iconHabilitado
+                    : WebColors.controlDeshabilitado,
+                onPressed: !widget.useToday
                     ? () => _mostrarSelectorDeFecha(context)
                     : null,
                 tooltip: 'Seleccionar fecha',

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
+import 'package:valen_market_admin/constants/values.dart';
 
 class CustomInfoCard extends StatelessWidget {
   final String title;
@@ -26,7 +27,8 @@ class CustomInfoCard extends StatelessWidget {
           height: height,
           decoration: BoxDecoration(
             color: AppColors.blancoTraslucido,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(
+                VALUE__general_widget__campo__big_border_radius),
             border: Border.all(color: Colors.black, width: 2),
           ),
           padding: const EdgeInsets.only(top: 30),
@@ -49,7 +51,8 @@ class CustomInfoCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.white,
                 border: Border.all(color: Colors.black, width: 2),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(
+                    VALUE__general_widget__campo__big_border_radius),
               ),
               child: Text(
                 title.toUpperCase(),

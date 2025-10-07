@@ -37,3 +37,15 @@ const String TEXTO_ES__agregar_clientes_screen__snackbar__error_al_guardar =
 const String TEXTO_ES__fichas_screen__campo__fecha_label = '¿Hoy?';
 const String TEXTO_ES__fichas_screen__campo__fecha_placeholder =
     'Selecciona una fecha anterior';
+
+// Widgets de fichas
+const String TEXTO_ES__frecuencia_aviso_widget__campo__titulo =
+    'Próximo aviso en:';
+const String TEXTO_ES__frecuencia_aviso_widget__campo__opcion_1 = '7 días';
+const String TEXTO_ES__frecuencia_aviso_widget__campo__opcion_2 = '2 semanas';
+const String TEXTO_ES__frecuencia_aviso_widget__campo__opcion_3 = '1 mes';
+const String TEXTO_ES__frecuencia_aviso_widget__campo__opcion_4 = 'Libre';
+
+const String TEXTO_ES__fichas_fechas_widget__campo__titulo =
+    'Fechas de control';
+const String TEXTO_ES__fichas_fechas_widget__campo__label = '¿Vendida Hoy?';

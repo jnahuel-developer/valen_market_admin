@@ -151,7 +151,7 @@ class CustomWebProductosSectionState
             margin: const EdgeInsets.only(bottom: 20),
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: WebColors.grisClaro,
+              color: WebColors.controlDeshabilitado,
               borderRadius: BorderRadius.circular(15),
             ),
             child: const Text('Zona de Filtros (próximamente)'),

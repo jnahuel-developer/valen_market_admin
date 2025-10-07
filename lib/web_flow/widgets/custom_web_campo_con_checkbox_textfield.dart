@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
+import 'package:valen_market_admin/constants/values.dart';
 
 class CustomWebCampoConCheckboxTextField extends StatelessWidget {
   final String label;
@@ -27,7 +28,8 @@ class CustomWebCampoConCheckboxTextField extends StatelessWidget {
           onChanged: (value) {
             if (value != null) onCheckboxChanged(value);
           },
-          activeColor: WebColors.checkboxMorado,
+          // Se define el color para cuando el Checkbox esté habilitado
+          activeColor: WebColors.checkboxHabilitado,
         ),
         SizedBox(
           width: 90,
@@ -54,16 +56,23 @@ class CustomWebCampoConCheckboxTextField extends StatelessWidget {
               decoration: InputDecoration(
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+                // Se definen los bordes cuando esté habilitado
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide(color: WebColors.negro),
+                  borderRadius: BorderRadius.circular(
+                      VALUE__general_widget__campo__big_border_radius),
+                  borderSide:
+                      BorderSide(color: WebColors.bordeControlHabilitado),
                 ),
+                // Se definen los bordes cuando esté deshabilitado
                 disabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide(color: WebColors.grisClaro),
+                  borderRadius: BorderRadius.circular(
+                      VALUE__general_widget__campo__big_border_radius),
+                  borderSide:
+                      BorderSide(color: WebColors.bordeControlDeshabilitado),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(
+                      VALUE__general_widget__campo__big_border_radius),
                   borderSide: BorderSide(color: WebColors.negro, width: 1.5),
                 ),
               ),

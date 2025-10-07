@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class ProductoEnFicha {
   final String uidProducto;
   final int unidades;
@@ -40,6 +42,8 @@ class FichaEnCurso {
   final String? telefonoCliente;
   final List<ProductoEnFicha> productos;
   final DateTime? fechaDeVenta;
+  final String? frecuenciaDeAviso;
+  final DateTime? proximoAviso;
 
   FichaEnCurso({
     this.id,
@@ -51,6 +55,8 @@ class FichaEnCurso {
     this.telefonoCliente,
     this.productos = const [],
     this.fechaDeVenta,
+    this.frecuenciaDeAviso,
+    this.proximoAviso,
   });
 
   FichaEnCurso copyWith({
@@ -63,6 +69,8 @@ class FichaEnCurso {
     String? telefonoCliente,
     List<ProductoEnFicha>? productos,
     DateTime? fechaDeVenta,
+    String? frecuenciaDeAviso,
+    DateTime? proximoAviso,
   }) {
     return FichaEnCurso(
       id: id ?? this.id,
@@ -74,6 +82,8 @@ class FichaEnCurso {
       telefonoCliente: telefonoCliente ?? this.telefonoCliente,
       productos: productos ?? this.productos,
       fechaDeVenta: fechaDeVenta ?? this.fechaDeVenta,
+      frecuenciaDeAviso: frecuenciaDeAviso ?? this.frecuenciaDeAviso,
+      proximoAviso: proximoAviso ?? this.proximoAviso,
     );
   }
 
@@ -88,7 +98,11 @@ class FichaEnCurso {
       'Dirección': direccionCliente,
       'Teléfono': telefonoCliente,
       'Cantidad_de_Productos': productos.length,
-      'Fecha_de_venta': fechaDeVenta?.toIso8601String(),
+      if (fechaDeVenta != null)
+        'Fecha_de_venta': Timestamp.fromDate(fechaDeVenta!),
+      'Frecuencia_de_aviso': frecuenciaDeAviso,
+      if (proximoAviso != null)
+        'Proximo_aviso': Timestamp.fromDate(proximoAviso!),
       ..._productosToMap(),
     };
   }
@@ -121,6 +135,8 @@ FichaEnCurso:
   Dirección: $direccionCliente
   Teléfono: $telefonoCliente
   Fecha de venta: ${fechaDeVenta != null ? fechaDeVenta.toString() : 'No definida'}
+  Frecuencia de aviso: $frecuenciaDeAviso
+  Próximo aviso: ${proximoAviso != null ? proximoAviso.toString() : 'No definido'}
   Productos: ${productos.length}
 ''';
   }

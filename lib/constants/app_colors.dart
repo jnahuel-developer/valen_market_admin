@@ -38,7 +38,19 @@ class WebColors {
   static const bordeGrisClaro = grisClaro;
   static const blanco = Colors.white;
 
-  static const checkboxMorado = Color(0xFF8E24AA); // Morado
+  // Morado
+  static const morado = Color(0xFF8E24AA);
 
-  static const Color fondoEtiquetaBloque = Color(0xFFFDF2F6); // rosa muy claro
+  // Rosa muy claro
+  static const Color fondoEtiquetaBloque = Color(0xFFFDF2F6);
+
+  // Bordes de controles que cambian su activación
+  static const bordeControlHabilitado = negro;
+  static const bordeControlDeshabilitado = grisClaro;
+
+  // Color de los controles deshabilitados
+  static const checkboxHabilitado = morado;
+  static const radioButtonHabilitado = morado;
+  static const iconHabilitado = morado;
+  static const controlDeshabilitado = grisClaro;
 }

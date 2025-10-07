@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:valen_market_admin/constants/app_colors.dart';
+import 'package:valen_market_admin/constants/values.dart';
 
 class CustomTextField extends StatelessWidget {
   final String label;
@@ -47,13 +49,22 @@ class CustomTextField extends StatelessWidget {
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
         ),
+        // Se definen los bordes cuando esté habilitado
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: const BorderSide(color: Colors.grey),
+          borderRadius: BorderRadius.circular(
+              VALUE__general_widget__campo__big_border_radius),
+          borderSide: BorderSide(color: WebColors.bordeControlHabilitado),
+        ),
+        // Se definen los bordes cuando esté deshabilitado
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(
+              VALUE__general_widget__campo__big_border_radius),
+          borderSide: BorderSide(color: WebColors.bordeControlDeshabilitado),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: const BorderSide(color: Colors.blue),
+          borderRadius: BorderRadius.circular(
+              VALUE__general_widget__campo__big_border_radius),
+          borderSide: BorderSide(color: WebColors.negro, width: 1.5),
         ),
       ),
       validator: isRequired

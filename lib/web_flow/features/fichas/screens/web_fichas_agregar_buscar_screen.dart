@@ -86,7 +86,8 @@ class _WebFichasAgregarBuscarScreenState
         productos: fichaEnCurso.productos.map((p) => p.toMap()).toList(),
         fechaDeVenta: fichaEnCurso.fechaDeVenta ?? DateTime.now(),
         frecuenciaDeAviso: 'mensual',
-        proximoAviso: DateTime.now().add(const Duration(days: 30)),
+        proximoAviso: fichaEnCurso.proximoAviso ??
+            DateTime.now().add(const Duration(days: 30)),
       );
 
       ref.read(fichaEnCursoProvider.notifier).limpiarFicha();

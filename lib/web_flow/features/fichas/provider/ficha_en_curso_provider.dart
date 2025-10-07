@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/model/ficha_en_curso_model.dart';
@@ -77,10 +78,19 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
     state = FichaEnCurso();
   }
 
-  // Permite actualizar o limpiar la fecha de venta desde el widget
   void actualizarFechaDeVenta(DateTime? fecha) {
     state = state.copyWith(fechaDeVenta: fecha);
-    debugPrint('📦 Estado actual del provider: ${state.toString()}');
+    debugPrint('Fecha de venta actualizada: ${fecha?.toIso8601String()}');
+  }
+
+  void actualizarFrecuenciaDeAviso(String frecuencia) {
+    state = state.copyWith(frecuenciaDeAviso: frecuencia);
+    debugPrint('Frecuencia de aviso actualizada: $frecuencia');
+  }
+
+  void actualizarProximoAviso(DateTime fecha) {
+    state = state.copyWith(proximoAviso: fecha);
+    debugPrint('Próximo aviso actualizado: ${fecha.toIso8601String()}');
   }
 
   void cargarFichaDesdeMapa(Map<String, dynamic> ficha,
@@ -91,17 +101,40 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
     final zonaCliente = ficha['Zona'] as String?;
     final direccionCliente = ficha['Dirección'] as String?;
     final telefonoCliente = ficha['Teléfono'] as String?;
-    final String? fechaIso = ficha['Fecha_de_venta'];
 
     DateTime? fechaDeVenta;
-    if (fechaIso != null) {
-      try {
-        fechaDeVenta = DateTime.parse(fechaIso);
-      } catch (_) {}
+    DateTime? fechaDeAviso;
+
+    // Se maneja de forma flexible el tipo de dato recibido para evitar errores
+    final dynamic fechaVentaRaw = ficha['Fecha_de_venta'];
+    final dynamic proximoAvisoRaw = ficha['Proximo_aviso'];
+
+    if (fechaVentaRaw != null) {
+      if (fechaVentaRaw is String) {
+        try {
+          fechaDeVenta = DateTime.parse(fechaVentaRaw);
+        } catch (_) {}
+      } else if (fechaVentaRaw is DateTime) {
+        fechaDeVenta = fechaVentaRaw;
+      } else if (fechaVentaRaw is Timestamp) {
+        fechaDeVenta = fechaVentaRaw.toDate();
+      }
+    }
+
+    if (proximoAvisoRaw != null) {
+      if (proximoAvisoRaw is String) {
+        try {
+          fechaDeAviso = DateTime.parse(proximoAvisoRaw);
+        } catch (_) {}
+      } else if (proximoAvisoRaw is DateTime) {
+        fechaDeAviso = proximoAvisoRaw;
+      } else if (proximoAvisoRaw is Timestamp) {
+        fechaDeAviso = proximoAvisoRaw.toDate();
+      }
     }
 
     final int cantidadProductos = ficha['Cantidad_de_Productos'] ?? 0;
-    List<ProductoEnFicha> productos = [];
+    final List<ProductoEnFicha> productos = [];
 
     for (int i = 0; i < cantidadProductos; i++) {
       productos.add(
@@ -128,6 +161,8 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
       telefonoCliente: telefonoCliente,
       productos: productos,
       fechaDeVenta: fechaDeVenta,
+      frecuenciaDeAviso: ficha['Frecuencia_de_aviso'] as String?,
+      proximoAviso: fechaDeAviso,
     );
   }
 
@@ -169,18 +204,41 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
       );
     }
 
-    final String? fechaIso = ficha['Fecha_de_venta'];
+    final dynamic fechaVentaRaw = ficha['Fecha_de_venta'];
     DateTime? fechaDeVenta;
-    if (fechaIso != null) {
-      try {
-        fechaDeVenta = DateTime.parse(fechaIso);
-      } catch (_) {}
+
+    if (fechaVentaRaw != null) {
+      if (fechaVentaRaw is String) {
+        try {
+          fechaDeVenta = DateTime.parse(fechaVentaRaw);
+        } catch (_) {}
+      } else if (fechaVentaRaw is DateTime) {
+        fechaDeVenta = fechaVentaRaw;
+      } else if (fechaVentaRaw is Timestamp) {
+        fechaDeVenta = fechaVentaRaw.toDate();
+      }
+    }
+
+    final dynamic fechaAvisoRaw = ficha['Proximo_aviso'];
+    DateTime? fechaDeAviso;
+
+    if (fechaAvisoRaw != null) {
+      if (fechaAvisoRaw is String) {
+        try {
+          fechaDeAviso = DateTime.parse(fechaAvisoRaw);
+        } catch (_) {}
+      } else if (fechaAvisoRaw is DateTime) {
+        fechaDeAviso = fechaAvisoRaw;
+      } else if (fechaAvisoRaw is Timestamp) {
+        fechaDeAviso = fechaAvisoRaw.toDate();
+      }
     }
 
     state = state.copyWith(
       id: fichaId,
       productos: productos,
       fechaDeVenta: fechaDeVenta,
+      proximoAviso: fechaDeAviso,
     );
   }
 }

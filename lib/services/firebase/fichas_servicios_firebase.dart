@@ -44,7 +44,7 @@ class FichasServiciosFirebase {
         'Apellido': apellidoCliente,
         'Zona': zonaCliente,
         'Cantidad_de_Productos': productos.length,
-        'Fecha_de_Venta': Timestamp.fromDate(fechaDeVenta),
+        'Fecha_de_venta': Timestamp.fromDate(fechaDeVenta),
         'Frecuencia_de_aviso': frecuenciaDeAviso,
         'Proximo_aviso': Timestamp.fromDate(proximoAviso),
         ...productosMap,
@@ -89,8 +89,12 @@ class FichasServiciosFirebase {
         fichaData['direccion'] = clienteData['Direccion'] ?? '';
         fichaData['telefono'] = clienteData['Telefono'] ?? '';
 
-        fichaData['Fecha_de_Venta'] = (fichaData['Fecha_de_Venta'] is Timestamp)
-            ? (fichaData['Fecha_de_Venta'] as Timestamp).toDate()
+        fichaData['Fecha_de_venta'] = (fichaData['Fecha_de_venta'] is Timestamp)
+            ? (fichaData['Fecha_de_venta'] as Timestamp).toDate()
+            : null;
+
+        fichaData['Proximo_aviso'] = (fichaData['Proximo_aviso'] is Timestamp)
+            ? (fichaData['Proximo_aviso'] as Timestamp).toDate()
             : null;
 
         fichaData['Nro_de_cuotas_pagadas'] =
@@ -199,9 +203,13 @@ class FichasServiciosFirebase {
         final data = docSnapshot.data() as Map<String, dynamic>;
         data['id'] = docSnapshot.id;
 
-        if (data['Fecha_de_Venta'] is Timestamp) {
-          data['Fecha_de_Venta'] =
-              (data['Fecha_de_Venta'] as Timestamp).toDate();
+        if (data['Fecha_de_venta'] is Timestamp) {
+          data['Fecha_de_venta'] =
+              (data['Fecha_de_venta'] as Timestamp).toDate();
+        }
+
+        if (data['Proximo_aviso'] is Timestamp) {
+          data['Proximo_aviso'] = (data['Proximo_aviso'] as Timestamp).toDate();
         }
 
         return data;
@@ -223,11 +231,6 @@ class FichasServiciosFirebase {
     required Map<String, dynamic> nuevosDatos,
   }) async {
     try {
-      // Se convierte la fecha si viene como DateTime
-      if (nuevosDatos['Fecha_de_Venta'] is DateTime) {
-        nuevosDatos['Fecha_de_Venta'] =
-            Timestamp.fromDate(nuevosDatos['Fecha_de_Venta']);
-      }
       await _fichasCollection.doc(fichaId).update(nuevosDatos);
     } catch (e) {
       throw Exception('Error al actualizar la ficha: $e');

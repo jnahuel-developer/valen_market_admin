@@ -161,7 +161,7 @@ class _PopupResultadosBusquedaState
     return AlertDialog(
       title: Text('Fichas para: ${widget.criterio}'),
       content: SizedBox(
-        width: 1000,
+        width: 1200,
         height: 500,
         child: _cargando
             ? const Center(child: CircularProgressIndicator())
@@ -193,6 +193,7 @@ class _PopupResultadosBusquedaState
           DataColumn(label: Text('Zona')),
           DataColumn(label: Text('Ficha')),
           DataColumn(label: Text('Venta')),
+          DataColumn(label: Text('Aviso')),
           DataColumn(label: Text('Productos')),
           DataColumn(label: Text('Cuotas pagas')),
           DataColumn(label: Text('Restante')),
@@ -217,7 +218,8 @@ class _PopupResultadosBusquedaState
               DataCell(Text(ficha['Apellido'] ?? '')),
               DataCell(Text(ficha['Zona'] ?? '')),
               DataCell(Text(ficha['Nro_de_ficha']?.toString() ?? '')),
-              DataCell(Text(_formatearFecha(ficha['Fecha_de_Venta']))),
+              DataCell(Text(_formatearFecha(ficha['Fecha_de_venta']))),
+              DataCell(Text(_formatearFecha(ficha['Proximo_aviso']))),
               DataCell(Text(ficha['Cantidad_de_Productos']?.toString() ?? '')),
               DataCell(Text(ficha['Nro_de_cuotas_pagadas']?.toString() ?? '0')),
               DataCell(Text(ficha['Restante']?.toString() ?? '0')),

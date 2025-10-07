@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
+import 'package:valen_market_admin/constants/values.dart';
 
 class CustomWebCampoConCheckboxDropdown extends StatelessWidget {
   final String label;
@@ -28,7 +29,8 @@ class CustomWebCampoConCheckboxDropdown extends StatelessWidget {
           onChanged: (value) {
             if (value != null) onCheckboxChanged(value);
           },
-          activeColor: WebColors.checkboxMorado,
+          // Se define el color para cuando el Checkbox esté habilitado
+          activeColor: WebColors.checkboxHabilitado,
         ),
         SizedBox(
           width: 90,
@@ -44,17 +46,21 @@ class CustomWebCampoConCheckboxDropdown extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
               border: Border.all(
-                color: isEditable ? WebColors.negro : WebColors.grisClaro,
+                color: isEditable
+                    ? WebColors.negro
+                    : WebColors.bordeControlDeshabilitado,
               ),
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(
+                  VALUE__general_widget__campo__big_border_radius),
             ),
             child: DropdownButton<String>(
               isExpanded: true,
               value: selectedOption,
               onChanged: isEditable ? onChanged : null,
               underline: const SizedBox(),
-              iconEnabledColor:
-                  isEditable ? WebColors.negro : WebColors.grisClaro,
+              iconEnabledColor: isEditable
+                  ? WebColors.negro
+                  : WebColors.bordeControlDeshabilitado,
               style: TextStyle(
                 fontStyle: isEditable ? FontStyle.normal : FontStyle.italic,
                 color: WebColors.negro,
@@ -64,7 +70,7 @@ class CustomWebCampoConCheckboxDropdown extends StatelessWidget {
                 'Seleccionar zona',
                 style: TextStyle(
                   fontStyle: FontStyle.italic,
-                  color: WebColors.grisClaro,
+                  color: WebColors.bordeControlDeshabilitado,
                   fontSize: 16,
                 ),
               ),

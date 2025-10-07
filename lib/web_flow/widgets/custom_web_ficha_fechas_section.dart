@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:valen_market_admin/constants/textos.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_bloque_con_titulo.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_campo_fecha_con_checkbox.dart';
@@ -17,12 +18,8 @@ class CustomWebFichaFechasSection extends ConsumerStatefulWidget {
 class _CustomWebFichaFechasSectionState
     extends ConsumerState<CustomWebFichaFechasSection> {
   final DateFormat _formatter = DateFormat('dd/MM/yyyy');
-
-  final TextEditingController _fechaVentaController = TextEditingController();
-  final TextEditingController _fechaAvisoController = TextEditingController();
-
-  bool _usarHoy = true;
-  final String _frecuenciaSeleccionada = '7 días';
+  final TextEditingController _sellDateController = TextEditingController();
+  bool _useToday = true;
 
   @override
   void initState() {
@@ -32,97 +29,57 @@ class _CustomWebFichaFechasSectionState
 
   void _inicializarDesdeProvider() {
     final ficha = ref.read(fichaEnCursoProvider);
+    final today = DateTime.now();
 
-    // Fecha de venta
     if (ficha.fechaDeVenta != null) {
-      _fechaVentaController.text = _formatter.format(ficha.fechaDeVenta!);
-      _usarHoy = false;
+      final fechaVenta = ficha.fechaDeVenta!;
+      _sellDateController.text = _formatter.format(fechaVenta);
+
+      // Se compara con la fecha actual ignorando la hora
+      final bool mismaFecha = fechaVenta.year == today.year &&
+          fechaVenta.month == today.month &&
+          fechaVenta.day == today.day;
+
+      _useToday = mismaFecha;
     } else {
-      _fechaVentaController.text = _formatter.format(DateTime.now());
-      _usarHoy = true;
+      _sellDateController.text = _formatter.format(today);
+      _useToday = true;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(fichaEnCursoProvider.notifier).actualizarFechaDeVenta(today);
+      });
     }
-
-    // Fecha de aviso
-//    if (ficha.proximoAviso != null) {
-//      _fechaAvisoController.text = _formatter.format(ficha.proximoAviso!);
-//    } else {
-    final hoy = DateTime.now();
-    final aviso = hoy.add(const Duration(days: 7));
-    _fechaAvisoController.text = _formatter.format(aviso);
-//      ref.read(fichaEnCursoProvider.notifier).actualizarProximoAviso(aviso);
-//    }
-  }
-
-  void _actualizarFechaAvisoSegunFrecuencia() {
-    final hoy = DateTime.now();
-    DateTime nuevaFecha;
-
-    switch (_frecuenciaSeleccionada) {
-      case '7 días':
-        nuevaFecha = hoy.add(const Duration(days: 7));
-        break;
-      case '2 semanas':
-        nuevaFecha = hoy.add(const Duration(days: 14));
-        break;
-      case '1 mes':
-        nuevaFecha = DateTime(hoy.year, hoy.month + 1, hoy.day);
-        break;
-      case 'Libre':
-        // Si es libre, el usuario elige manualmente — no se modifica acá.
-        return;
-      default:
-        nuevaFecha = hoy.add(const Duration(days: 7));
-    }
-
-    _fechaAvisoController.text = _formatter.format(nuevaFecha);
-//    ref.read(fichaEnCursoProvider.notifier).actualizarProximoAviso(nuevaFecha);
   }
 
   @override
   Widget build(BuildContext context) {
     return CustomWebBloqueConTitulo(
-      titulo: 'Fechas de control',
+      titulo: TEXTO_ES__fichas_fechas_widget__campo__titulo,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Fecha de venta (movida desde sección cliente)
           CustomWebCampoFechaConCheckbox(
-            label: '¿Vendida hoy?',
-            controller: _fechaVentaController,
-            usarHoy: _usarHoy,
+            label: TEXTO_ES__fichas_fechas_widget__campo__label,
+            controller: _sellDateController,
+            useToday: _useToday,
             onCheckboxChanged: (v) {
-              setState(() => _usarHoy = v);
-
-              if (!v) {
-                debugPrint('Modo manual activado, esperando selección.');
-              } else {
-                final hoy = DateTime.now();
-                _fechaVentaController.text = _formatter.format(hoy);
-                debugPrint('Usando fecha de hoy: $hoy');
-
+              setState(() => _useToday = v);
+              final date = v ? DateTime.now() : null;
+              if (date != null) {
+                _sellDateController.text = _formatter.format(date);
                 ref
                     .read(fichaEnCursoProvider.notifier)
-                    .actualizarFechaDeVenta(hoy);
+                    .actualizarFechaDeVenta(date);
               }
             },
-            onDateSelected: (fechaSeleccionada) {
-              debugPrint('Fecha de venta seleccionada: $fechaSeleccionada');
+            onDateSelected: (selectedDate) {
               ref
                   .read(fichaEnCursoProvider.notifier)
-                  .actualizarFechaDeVenta(fechaSeleccionada);
+                  .actualizarFechaDeVenta(selectedDate);
             },
           ),
           const SizedBox(height: 20),
-
-          // Frecuencia de aviso
-          CustomWebCampoFrecuenciaAviso(
-            fechaBase: DateTime.now(),
-            onFechaCalculada: (nuevaFecha) {
-//              ref
-//                  .read(fichaEnCursoProvider.notifier)
-//                  .actualizarProximoAviso(nuevaFecha);
-            },
-          ),
+          CustomWebCampoFrecuenciaAviso(),
         ],
       ),
     );
