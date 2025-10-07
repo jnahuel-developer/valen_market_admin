@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
+import 'package:valen_market_admin/constants/values.dart';
 
 class CustomWebBloqueConTitulo extends StatelessWidget {
   final String titulo;
@@ -22,7 +23,8 @@ class CustomWebBloqueConTitulo extends StatelessWidget {
               const EdgeInsets.only(top: 30, left: 20, right: 20, bottom: 20),
           decoration: BoxDecoration(
             color: WebColors.blanco,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(
+                VALUE__general_widget__campo__big_border_radius),
             border: Border.all(color: WebColors.bordeRosa, width: 2),
           ),
           child: child,

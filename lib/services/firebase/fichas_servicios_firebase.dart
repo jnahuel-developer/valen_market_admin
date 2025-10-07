@@ -44,7 +44,7 @@ class FichasServiciosFirebase {
         'Apellido': apellidoCliente,
         'Zona': zonaCliente,
         'Cantidad_de_Productos': productos.length,
-        'Fecha_de_Venta': Timestamp.fromDate(fechaDeVenta),
+        'Fecha_de_venta': Timestamp.fromDate(fechaDeVenta),
         'Frecuencia_de_aviso': frecuenciaDeAviso,
         'Proximo_aviso': Timestamp.fromDate(proximoAviso),
         ...productosMap,
@@ -88,6 +88,15 @@ class FichasServiciosFirebase {
         fichaData['zona'] = clienteData['Zona'] ?? '';
         fichaData['direccion'] = clienteData['Direccion'] ?? '';
         fichaData['telefono'] = clienteData['Telefono'] ?? '';
+
+        fichaData['Fecha_de_venta'] = (fichaData['Fecha_de_venta'] is Timestamp)
+            ? (fichaData['Fecha_de_venta'] as Timestamp).toDate()
+            : null;
+
+        fichaData['Proximo_aviso'] = (fichaData['Proximo_aviso'] is Timestamp)
+            ? (fichaData['Proximo_aviso'] as Timestamp).toDate()
+            : null;
+
         fichaData['Nro_de_cuotas_pagadas'] =
             fichaData['Nro_de_cuotas_pagadas'] ?? 0;
         fichaData['Restante'] = fichaData['Restante'] ?? 0;
@@ -193,6 +202,16 @@ class FichasServiciosFirebase {
       if (docSnapshot.exists) {
         final data = docSnapshot.data() as Map<String, dynamic>;
         data['id'] = docSnapshot.id;
+
+        if (data['Fecha_de_venta'] is Timestamp) {
+          data['Fecha_de_venta'] =
+              (data['Fecha_de_venta'] as Timestamp).toDate();
+        }
+
+        if (data['Proximo_aviso'] is Timestamp) {
+          data['Proximo_aviso'] = (data['Proximo_aviso'] as Timestamp).toDate();
+        }
+
         return data;
       } else {
         return null;

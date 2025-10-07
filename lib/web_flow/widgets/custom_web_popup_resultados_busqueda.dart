@@ -161,7 +161,7 @@ class _PopupResultadosBusquedaState
     return AlertDialog(
       title: Text('Fichas para: ${widget.criterio}'),
       content: SizedBox(
-        width: 1000,
+        width: 1200,
         height: 500,
         child: _cargando
             ? const Center(child: CircularProgressIndicator())
@@ -193,6 +193,7 @@ class _PopupResultadosBusquedaState
           DataColumn(label: Text('Zona')),
           DataColumn(label: Text('Ficha')),
           DataColumn(label: Text('Venta')),
+          DataColumn(label: Text('Aviso')),
           DataColumn(label: Text('Productos')),
           DataColumn(label: Text('Cuotas pagas')),
           DataColumn(label: Text('Restante')),
@@ -201,21 +202,24 @@ class _PopupResultadosBusquedaState
           return DataRow(
             cells: [
               DataCell(
-                Radio<String>(
-                  value: ficha['id'],
+                RadioGroup<String>(
                   groupValue: _fichaSeleccionadaId,
                   onChanged: (value) {
                     setState(() {
                       _fichaSeleccionadaId = value;
                     });
                   },
+                  child: Radio<String>(
+                    value: ficha['id'],
+                  ),
                 ),
               ),
               DataCell(Text(ficha['Nombre'] ?? '')),
               DataCell(Text(ficha['Apellido'] ?? '')),
               DataCell(Text(ficha['Zona'] ?? '')),
               DataCell(Text(ficha['Nro_de_ficha']?.toString() ?? '')),
-              DataCell(Text(_formatearFecha(ficha['Fecha_de_Venta']))),
+              DataCell(Text(_formatearFecha(ficha['Fecha_de_venta']))),
+              DataCell(Text(_formatearFecha(ficha['Proximo_aviso']))),
               DataCell(Text(ficha['Cantidad_de_Productos']?.toString() ?? '')),
               DataCell(Text(ficha['Nro_de_cuotas_pagadas']?.toString() ?? '0')),
               DataCell(Text(ficha['Restante']?.toString() ?? '0')),
@@ -229,9 +233,21 @@ class _PopupResultadosBusquedaState
   String _formatearFecha(dynamic fecha) {
     if (fecha == null) return '';
 
-    if (fecha is Timestamp) {
-      final dt = fecha.toDate();
-      return '${dt.day}/${dt.month}/${dt.year}';
+    try {
+      if (fecha is Timestamp) {
+        final dt = fecha.toDate();
+        return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+      } else if (fecha is DateTime) {
+        return '${fecha.day.toString().padLeft(2, '0')}/${fecha.month.toString().padLeft(2, '0')}/${fecha.year}';
+      } else if (fecha is String) {
+        // Si por algún motivo viene como string (ej: ISO8601), intentamos parsearlo
+        final dt = DateTime.tryParse(fecha);
+        if (dt != null) {
+          return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+        }
+      }
+    } catch (e) {
+      debugPrint('Error formateando fecha: $e');
     }
 
     return '';

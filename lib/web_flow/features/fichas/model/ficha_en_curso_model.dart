@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class ProductoEnFicha {
   final String uidProducto;
   final int unidades;
@@ -31,7 +33,7 @@ class ProductoEnFicha {
 }
 
 class FichaEnCurso {
-  final String? id; // Nuevo: ID de la ficha
+  final String? id;
   final String? uidCliente;
   final String? nombreCliente;
   final String? apellidoCliente;
@@ -39,6 +41,9 @@ class FichaEnCurso {
   final String? direccionCliente;
   final String? telefonoCliente;
   final List<ProductoEnFicha> productos;
+  final DateTime? fechaDeVenta;
+  final String? frecuenciaDeAviso;
+  final DateTime? proximoAviso;
 
   FichaEnCurso({
     this.id,
@@ -49,6 +54,9 @@ class FichaEnCurso {
     this.direccionCliente,
     this.telefonoCliente,
     this.productos = const [],
+    this.fechaDeVenta,
+    this.frecuenciaDeAviso,
+    this.proximoAviso,
   });
 
   FichaEnCurso copyWith({
@@ -60,6 +68,9 @@ class FichaEnCurso {
     String? direccionCliente,
     String? telefonoCliente,
     List<ProductoEnFicha>? productos,
+    DateTime? fechaDeVenta,
+    String? frecuenciaDeAviso,
+    DateTime? proximoAviso,
   }) {
     return FichaEnCurso(
       id: id ?? this.id,
@@ -70,6 +81,9 @@ class FichaEnCurso {
       direccionCliente: direccionCliente ?? this.direccionCliente,
       telefonoCliente: telefonoCliente ?? this.telefonoCliente,
       productos: productos ?? this.productos,
+      fechaDeVenta: fechaDeVenta ?? this.fechaDeVenta,
+      frecuenciaDeAviso: frecuenciaDeAviso ?? this.frecuenciaDeAviso,
+      proximoAviso: proximoAviso ?? this.proximoAviso,
     );
   }
 
@@ -84,13 +98,17 @@ class FichaEnCurso {
       'Dirección': direccionCliente,
       'Teléfono': telefonoCliente,
       'Cantidad_de_Productos': productos.length,
+      if (fechaDeVenta != null)
+        'Fecha_de_venta': Timestamp.fromDate(fechaDeVenta!),
+      'Frecuencia_de_aviso': frecuenciaDeAviso,
+      if (proximoAviso != null)
+        'Proximo_aviso': Timestamp.fromDate(proximoAviso!),
       ..._productosToMap(),
     };
   }
 
   Map<String, dynamic> _productosToMap() {
     final Map<String, dynamic> productosMap = {};
-
     for (int i = 0; i < productos.length; i++) {
       final producto = productos[i];
       productosMap.addAll({
@@ -103,12 +121,9 @@ class FichaEnCurso {
         'Restante_Producto_$i': producto.restante,
       });
     }
-
     return productosMap;
   }
 
-  /// -------------------------
-  /// NUEVO: para debug del cliente
   @override
   String toString() {
     return '''
@@ -119,6 +134,9 @@ FichaEnCurso:
   Zona: $zonaCliente
   Dirección: $direccionCliente
   Teléfono: $telefonoCliente
+  Fecha de venta: ${fechaDeVenta != null ? fechaDeVenta.toString() : 'No definida'}
+  Frecuencia de aviso: $frecuenciaDeAviso
+  Próximo aviso: ${proximoAviso != null ? proximoAviso.toString() : 'No definido'}
   Productos: ${productos.length}
 ''';
   }

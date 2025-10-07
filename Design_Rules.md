@@ -1,10 +1,10 @@
-# 📌 Reglas de diseño y desarrollo de la app ValenMarket Admin
+#  Reglas de diseño y desarrollo de la app ValenMarket Admin
 
 Este documento resume todas las directrices acordadas durante el desarrollo, para mantener coherencia en el código, consistencia en la experiencia de usuario y facilitar el mantenimiento futuro.
 
 ------------------------------------------------------------------------------------------
 
-## 🔐 Seguridad y estructura de Firebase
+## Seguridad y estructura de Firebase
 
 - Todos los métodos de lectura deben validar la existencia del campo antes de acceder a él.
 - Se debe asumir que un documento puede estar incompleto o tener claves mal formateadas.
@@ -14,7 +14,7 @@ Este documento resume todas las directrices acordadas durante el desarrollo, par
 
 ------------------------------------------------------------------------------------------
 
-## 🎨 Manejo de colores
+## Manejo de colores
 
 - Prohibido el uso de `.withOpacity()` o manipulaciones inline de colores.
 - Todos los colores deben definirse en `app_colors.dart` y referenciarse por nombres legibles como:
@@ -22,7 +22,7 @@ Este documento resume todas las directrices acordadas durante el desarrollo, par
 
 ------------------------------------------------------------------------------------------
 
-## 🧱 Estructura del código y reutilización
+## Estructura del código y reutilización
 
 - Widgets reutilizables deben:
   - Estar bien nombrados según su función (ej: `CustomSimpleInformation`, `CustomInfoCard`).
@@ -33,21 +33,21 @@ Este documento resume todas las directrices acordadas durante el desarrollo, par
 
 ------------------------------------------------------------------------------------------
 
-## 🧪 Validaciones de entrada
+## Validaciones de entrada
 
 - Toda entrada que el usuario complete y que se use en Firebase debe validarse con `ValidadorTexto.esEntradaSegura`.
 - En caso de datos inseguros, debe notificarse al usuario mediante un `SnackBar` claro y legible.
 
 ------------------------------------------------------------------------------------------
 
-## 🧭 Navegación y comportamiento
+## Navegación y comportamiento
 
 - Menús superior e inferior deben ser widgets reutilizables con comportamiento uniforme en toda la app.
 - Se debe evitar que una pantalla se pueda re-llamar a sí misma desde el menú inferior (se recomienda comprobar la ruta actual).
 
 ------------------------------------------------------------------------------------------
 
-## 🔡 Formato de texto en Firebase
+## Formato de texto en Firebase
 
 - **Al guardar cualquier texto (String)** en Firestore → convertirlo a minúsculas con `toLowerCase()`.
 - **Al mostrar cualquier texto** → formatear con la primera letra en mayúscula usando una función centralizada (por ejemplo, `capitalize()`).
@@ -55,7 +55,7 @@ Este documento resume todas las directrices acordadas durante el desarrollo, par
 
 ------------------------------------------------------------------------------------------
 
-## 📝 Textos
+## Textos
 
 - Prohibido usar textos hardcodeados directamente en widgets.
 - Todos los textos visibles para el usuario deben definirse en un archivo de constantes, por ejemplo: `constants/textos.dart`.
@@ -71,7 +71,7 @@ Text(TEXTO_ES__clientes_screen__boton__agregar_cliente)
 
 ------------------------------------------------------------------------------------------
 
-## 🗺️ Rutas y nombres de pantallas
+## Rutas y nombres de pantallas
 
 - Prohibido el uso de rutas o nombres de pantallas hardcodeados en la navegación.
 - Todas las rutas deben definirse en un archivo centralizado, siguiendo el formato: PANTALLA__NombreDeLaPantalla
@@ -86,7 +86,7 @@ Navigator.pushNamed(context, PANTALLA__AgregarCliente);
 
 ------------------------------------------------------------------------------------------
 
-## 🔑 Claves (Keys) de widgets
+## Claves (Keys) de widgets
 
 - Todos los widgets interactivos o relevantes deben tener una `Key`.
 - Las claves deben seguir el formato: KEY__nombre_de_la_pantalla__tipo_de_widget__funcion
@@ -97,7 +97,7 @@ Key('KEY__clientes_screen__boton__agregar_cliente')
 
 ------------------------------------------------------------------------------------------
 
-## ✅ Flujo de tests de CRUD con clientes
+## Flujo de tests de CRUD con clientes
 
 Se debe testear de extremo a extremo:
 1. Eliminar todos los clientes.
@@ -108,6 +108,55 @@ Se debe testear de extremo a extremo:
 6. Leer el registro actualizado y verificar los nuevos valores.
 7. Eliminar el registro por ID.
 8. Leer todos los clientes y verificar que esté vacío nuevamente.
+
+------------------------------------------------------------------------------------------
+
+## Todos los TextEdit (salvo indicación explícita) deben respetar el siguiente formato
+
+// Se definen los bordes cuando esté habilitado
+enabledBorder: OutlineInputBorder(
+  borderRadius: BorderRadius.circular(
+      VALUE__general_widget__campo__big_border_radius),
+  borderSide:
+      BorderSide(color: WebColors.bordeControlHabilitado),
+),
+// Se definen los bordes cuando esté deshabilitado
+disabledBorder: OutlineInputBorder(
+  borderRadius: BorderRadius.circular(
+      VALUE__general_widget__campo__big_border_radius),
+  borderSide: BorderSide(
+      color: WebColors.bordeControlDeshabilitado),
+),
+focusedBorder: OutlineInputBorder(
+  borderRadius: BorderRadius.circular(
+      VALUE__general_widget__campo__big_border_radius),
+  borderSide:
+      BorderSide(color: WebColors.negro, width: 1.5),
+),
+
+------------------------------------------------------------------------------------------
+
+## Todos los Icons deben respetar estos colores según su habilitación
+
+// Si está seleccionada la opción libre, se muestra con el color general de habilitación
+WebColors.iconHabilitado
+:
+// Caso contrario, se marca como inhabilitado
+WebColors.controlDeshabilitado,
+
+------------------------------------------------------------------------------------------
+
+## Todos los Checkboxes deben respetar este color
+
+// Se define el color para cuando el Checkbox esté habilitado
+activeColor: WebColors.checkboxHabilitado,
+
+------------------------------------------------------------------------------------------
+
+## Todos los RadioButtons deben respetar este color
+
+// Se define el color para cuando el RadioButton esté habilitado
+activeColor: WebColors.radioButtonHabilitado,
 
 ------------------------------------------------------------------------------------------
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
+import 'package:valen_market_admin/constants/values.dart';
 
 class CustomWebCampoSinCheckboxTextField extends StatelessWidget {
   final String label;
@@ -39,8 +40,10 @@ class CustomWebCampoSinCheckboxTextField extends StatelessWidget {
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
                 disabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide(color: WebColors.grisClaro),
+                  borderRadius: BorderRadius.circular(
+                      VALUE__general_widget__campo__big_border_radius),
+                  borderSide:
+                      BorderSide(color: WebColors.bordeControlDeshabilitado),
                 ),
               ),
             ),

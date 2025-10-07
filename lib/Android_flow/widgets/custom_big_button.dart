@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
+import 'package:valen_market_admin/constants/values.dart';
 
 class CustomBigButton extends StatelessWidget {
   final String text;
@@ -27,7 +28,8 @@ class CustomBigButton extends StatelessWidget {
         // Recuadro azul con bordes amarillos
         decoration: BoxDecoration(
           color: AppColors.azul,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(
+              VALUE__general_widget__campo__big_border_radius),
           border: Border.all(color: AppColors.amarillo, width: 5),
         ),
         alignment: Alignment.center,

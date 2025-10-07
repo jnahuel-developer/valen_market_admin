@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_ficha_cliente_section.dart';
+import 'package:valen_market_admin/web_flow/widgets/custom_web_ficha_fechas_section.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_ficha_productos_section.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_gradient_button.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_popup_resultados_busqueda.dart';
@@ -28,7 +29,11 @@ class _WebFichasAgregarBuscarScreenState
   @override
   void initState() {
     super.initState();
-    ref.read(fichaEnCursoProvider.notifier).limpiarFicha();
+
+    // Espera a que termine el build inicial antes de modificar el provider
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(fichaEnCursoProvider.notifier).limpiarFicha();
+    });
   }
 
   Future<String?> _mostrarSelectorDeCriterio(BuildContext context) {
@@ -79,9 +84,10 @@ class _WebFichasAgregarBuscarScreenState
         apellidoCliente: fichaEnCurso.apellidoCliente ?? '',
         zonaCliente: fichaEnCurso.zonaCliente ?? '',
         productos: fichaEnCurso.productos.map((p) => p.toMap()).toList(),
-        fechaDeVenta: DateTime.now(),
+        fechaDeVenta: fichaEnCurso.fechaDeVenta ?? DateTime.now(),
         frecuenciaDeAviso: 'mensual',
-        proximoAviso: DateTime.now().add(const Duration(days: 30)),
+        proximoAviso: fichaEnCurso.proximoAviso ??
+            DateTime.now().add(const Duration(days: 30)),
       );
 
       ref.read(fichaEnCursoProvider.notifier).limpiarFicha();
@@ -118,19 +124,30 @@ class _WebFichasAgregarBuscarScreenState
           Expanded(
             child: Row(
               children: [
-                // Lado izquierdo - Cliente
+                // Lado izquierdo - Cliente + Fechas
                 Expanded(
                   flex: 1,
                   child: Padding(
                     padding: const EdgeInsets.all(20),
                     child: Column(
                       children: [
+                        // Datos del cliente
                         Expanded(
+                          flex: 2,
                           child: CustomWebClienteSection(
                             key: _clienteKey,
                           ),
                         ),
-                        const SizedBox(height: 15),
+                        const SizedBox(height: 20),
+
+                        // Fechas de control (nuevo bloque)
+                        Expanded(
+                          flex: 1,
+                          child: CustomWebFichaFechasSection(),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Botón para agregar ficha
                         SizedBox(
                           width: double.infinity,
                           child: CustomGradientButton(
@@ -142,6 +159,7 @@ class _WebFichasAgregarBuscarScreenState
                     ),
                   ),
                 ),
+
                 // Lado derecho - Productos
                 Expanded(
                   flex: 1,
