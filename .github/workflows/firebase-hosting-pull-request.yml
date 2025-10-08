@@ -1,7 +1,7 @@
 name: Deploy Flutter Web (Dev / Prod)
 
 on:
-  push:
+  pull_request:
     branches:
       - developWeb
       - master
