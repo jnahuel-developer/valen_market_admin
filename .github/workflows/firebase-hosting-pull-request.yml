@@ -1,4 +1,4 @@
-name: Deploy Flutter Web to Firebase Hosting on PR
+name: Deploy Flutter Web (Dev / Prod)
 
 on:
   pull_request:
@@ -6,15 +6,13 @@ on:
       - developWeb
       - master
 
-permissions:
-  checks: write
-  contents: read
-  pull-requests: write
-
 jobs:
-  build_and_preview:
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+  build_and_deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      deployments: write
 
     steps:
       - name: Checkout repository
@@ -23,17 +21,26 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.3'  # Última versión estable en octubre 2025
+          flutter-version: '3.24.3'
 
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Build Flutter Web (Production)
-        run: flutter build web --release -t lib/main_prod.dart
+      - name: Build Flutter Web
+        run: |
+          if [[ "${GITHUB_REF##*/}" == "master" ]]; then
+            echo "Building PRODUCTION build..."
+            flutter build web --release -t lib/main_prod.dart
+          else
+            echo "Building DEVELOPMENT build..."
+            flutter build web --release -t lib/main_dev.dart
+          fi
 
-      - name: Deploy to Firebase Hosting (Preview Channel)
+      - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_VALEN_MARKET_ADMIN_DEV }}
-          projectId: valen-market-admin-dev
+          firebaseServiceAccount: ${{ github.ref == 'refs/heads/master' && secrets.FIREBASE_SERVICE_ACCOUNT_VALEN_MARKET_ADMIN_PROD || secrets.FIREBASE_SERVICE_ACCOUNT_VALEN_MARKET_ADMIN_DEV }}
+          projectId: ${{ github.ref == 'refs/heads/master' && 'valen-market-admin-prod' || 'valen-market-admin-dev' }}
+          target: ${{ github.ref == 'refs/heads/master' && 'prod' || 'dev' }}
+          channelId: live
