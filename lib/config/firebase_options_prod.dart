@@ -17,10 +17,7 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -59,4 +56,15 @@ class DefaultFirebaseOptions {
     projectId: 'valen-market-admin-prod',
     storageBucket: 'valen-market-admin-prod.firebasestorage.app',
   );
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyClE4lsoYVEhmO19MK57rGWD3uNRc2IWuI',
+    appId: '1:952141122398:web:f04f0ebf4e24022d3c5dcf',
+    messagingSenderId: '952141122398',
+    projectId: 'valen-market-admin-prod',
+    authDomain: 'valen-market-admin-prod.firebaseapp.com',
+    storageBucket: 'valen-market-admin-prod.firebasestorage.app',
+    measurementId: 'G-NCEX9M13DW',
+  );
+
 }
