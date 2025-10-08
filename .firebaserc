@@ -2,5 +2,22 @@
   "projects": {
     "dev": "valen-market-admin-dev",
     "prod": "valen-market-admin-prod"
-  }
+  },
+  "targets": {
+    "valen-market-admin-dev": {
+      "hosting": {
+        "dev": [
+          "valen-market-admin-dev"
+        ]
+      }
+    },
+    "valen-market-admin-prod": {
+      "hosting": {
+        "prod": [
+          "valen-market-admin-prod"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }

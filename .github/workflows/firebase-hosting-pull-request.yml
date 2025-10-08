@@ -9,6 +9,10 @@ on:
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      deployments: write
 
     steps:
       - name: Checkout repository
@@ -22,7 +26,6 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      # 🔹 Build según rama
       - name: Build Flutter Web
         run: |
           if [[ "${GITHUB_REF##*/}" == "master" ]]; then
@@ -33,11 +36,11 @@ jobs:
             flutter build web --release -t lib/main_dev.dart
           fi
 
-      # 🔹 Deploy a Firebase Hosting (usando acción oficial)
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ github.ref == 'refs/heads/master' && secrets.FIREBASE_SERVICE_ACCOUNT_VALEN_MARKET_ADMIN_PROD || secrets.FIREBASE_SERVICE_ACCOUNT_VALEN_MARKET_ADMIN_DEV }}
           projectId: ${{ github.ref == 'refs/heads/master' && 'valen-market-admin-prod' || 'valen-market-admin-dev' }}
-          channelId: live
           target: ${{ github.ref == 'refs/heads/master' && 'prod' || 'dev' }}
+          channelId: live
