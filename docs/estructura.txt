@@ -124,9 +124,12 @@ valen_market_admin/
 │   │       │── custom_web_button_styles.dart
 │   │       │── custom_web_campo_con_checkbox_dropdown.dart
 │   │       │── custom_web_campo_con_checkbox_textfield.dart
+│   │       │── custom_web_campo_fecha_con_checkbox.dart
+│   │       │── custom_web_campo_frecuencia_aviso.dart
 │   │       │── custom_web_campo_sin_checkbox_textfield.dart
 │   │       │── custom_web_dropdown_clientes.dart
 │   │       │── custom_web_ficha_cliente_section.dart
+│   │       │── custom_web_ficha_fechas_section.dart
 │   │       │── custom_web_ficha_productos_section.dart
 │   │       │── custom_web_ficha_shop_item.dart
 │   │       │── custom_web_gradient_button.dart
