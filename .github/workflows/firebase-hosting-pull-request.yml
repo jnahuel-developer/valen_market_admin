@@ -37,7 +37,6 @@ jobs:
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ github.ref == 'refs/heads/master' && secrets.FIREBASE_SERVICE_ACCOUNT_VALEN_MARKET_ADMIN_PROD || secrets.FIREBASE_SERVICE_ACCOUNT_VALEN_MARKET_ADMIN_DEV }}
           projectId: ${{ github.ref == 'refs/heads/master' && 'valen-market-admin-prod' || 'valen-market-admin-dev' }}
           channelId: live
