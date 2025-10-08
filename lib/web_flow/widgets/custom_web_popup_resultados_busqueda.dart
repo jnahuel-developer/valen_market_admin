@@ -242,9 +242,7 @@ class _PopupResultadosBusquedaState
           return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
         }
       }
-    } catch (e) {
-      debugPrint('Error formateando fecha: $e');
-    }
+    } catch (e) {}
 
     return '';
   }
