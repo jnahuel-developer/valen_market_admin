@@ -23,13 +23,13 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.54.0'
+          flutter-version: '3.24.3'  # Última versión estable en octubre 2025
 
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Build Flutter Web
-        run: flutter build web --release
+      - name: Build Flutter Web (Production)
+        run: flutter build web --release -t lib/main_prod.dart
 
       - name: Deploy to Firebase Hosting (Preview Channel)
         uses: FirebaseExtended/action-hosting-deploy@v0
