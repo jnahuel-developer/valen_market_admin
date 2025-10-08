@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "valen-market-admin-dev"
+    "dev": "valen-market-admin-dev",
+    "prod": "valen-market-admin-prod"
   }
 }

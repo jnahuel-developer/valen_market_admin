@@ -1,19 +1,13 @@
 name: Deploy Flutter Web (Dev / Prod)
 
 on:
-  pull_request:
+  push:
     branches:
       - developWeb
       - master
 
-permissions:
-  checks: write
-  contents: read
-  pull-requests: write
-
 jobs:
-  build_and_preview:
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+  build_and_deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,22 +17,40 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.3'  # Última versión estable en octubre 2025
+          flutter-version: '3.24.3'
 
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Build Flutter Web (Production)
+      # 🔹 Build específico según la rama
+      - name: Build Flutter Web
         run: |
           if [[ "${GITHUB_REF##*/}" == "master" ]]; then
+            echo "Building PRODUCTION build..."
             flutter build web --release -t lib/main_prod.dart
           else
+            echo "Building DEVELOPMENT build..."
             flutter build web --release -t lib/main_dev.dart
           fi
 
-      - name: Deploy to Firebase Hosting (Preview Channel)
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_VALEN_MARKET_ADMIN_PROD }}
-          projectId: ${{ github.ref == 'refs/heads/master' && 'valen-market-admin-prod' || 'valen-market-admin-dev' }}
+      # 🔹 Configurar Firebase CLI
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      # 🔹 Despliegue Condicional según la rama
+      - name: Deploy to Firebase Hosting
+        env:
+          FIREBASE_SERVICE_ACCOUNT_DEV: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_VALEN_MARKET_ADMIN_DEV }}
+          FIREBASE_SERVICE_ACCOUNT_PROD: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_VALEN_MARKET_ADMIN_PROD }}
+        run: |
+          if [[ "${GITHUB_REF##*/}" == "master" ]]; then
+            echo "Deploying to PRODUCTION..."
+            echo "$FIREBASE_SERVICE_ACCOUNT_PROD" > ${HOME}/firebase-key.json
+            firebase use valen-market-admin-prod --add
+            firebase deploy --only hosting:valen-market-admin-prod --token "$(firebase login:ci --no-localhost)" --project valen-market-admin-prod --non-interactive
+          else
+            echo "Deploying to DEVELOPMENT..."
+            echo "$FIREBASE_SERVICE_ACCOUNT_DEV" > ${HOME}/firebase-key.json
+            firebase use valen-market-admin-dev --add
+            firebase deploy --only hosting:valen-market-admin-dev --token "$(firebase login:ci --no-localhost)" --project valen-market-admin-dev --non-interactive
+          fi
