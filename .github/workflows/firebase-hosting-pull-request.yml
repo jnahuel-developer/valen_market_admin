@@ -36,9 +36,10 @@ jobs:
             flutter build web --release -t lib/main_dev.dart
           fi
 
-      - name: Deploy to Firebase Hosting
+      - name: Deploy to Firebase Hosting (Preview Channel)
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ 
             github.ref == 'refs/heads/master' && 
             secrets.FIREBASE_SERVICE_ACCOUNT_VALEN_MARKET_ADMIN_PROD || 
