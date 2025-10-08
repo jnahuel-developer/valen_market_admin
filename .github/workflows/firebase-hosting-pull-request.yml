@@ -1,13 +1,19 @@
 name: Deploy Flutter Web (Dev / Prod)
 
 on:
-  push:
+  pull_request:
     branches:
       - developWeb
       - master
 
+permissions:
+  checks: write
+  contents: read
+  pull-requests: write
+
 jobs:
-  build_and_deploy:
+  build_and_preview:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
 
     steps:
@@ -17,13 +23,12 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          # Última versión estable en octubre 2025
-          flutter-version: '3.24.3'
+          flutter-version: '3.24.3'  # Última versión estable en octubre 2025
 
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Build Flutter Web
+      - name: Build Flutter Web (Production)
         run: |
           if [[ "${GITHUB_REF##*/}" == "master" ]]; then
             flutter build web --release -t lib/main_prod.dart
@@ -34,7 +39,6 @@ jobs:
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ 
             github.ref == 'refs/heads/master' && 
             secrets.FIREBASE_SERVICE_ACCOUNT_VALEN_MARKET_ADMIN_PROD || 
