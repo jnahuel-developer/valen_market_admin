@@ -17,7 +17,8 @@ class CustomWebDropdownClientes extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<String>(
-      initialValue: clienteSeleccionado,
+      // ignore: deprecated_member_use
+      value: clienteSeleccionado,
       isExpanded: true,
       decoration: InputDecoration(
         hintText: 'Seleccionar cliente',
