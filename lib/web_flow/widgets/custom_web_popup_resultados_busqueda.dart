@@ -201,19 +201,15 @@ class _PopupResultadosBusquedaState
         rows: _resultados.map((ficha) {
           return DataRow(
             cells: [
-              DataCell(
-                RadioGroup<String>(
-                  groupValue: _fichaSeleccionadaId,
-                  onChanged: (value) {
-                    setState(() {
-                      _fichaSeleccionadaId = value;
-                    });
-                  },
-                  child: Radio<String>(
-                    value: ficha['id'],
-                  ),
-                ),
-              ),
+              DataCell(Radio<String>(
+                value: ficha['id'],
+                groupValue: _fichaSeleccionadaId,
+                onChanged: (value) {
+                  setState(() {
+                    _fichaSeleccionadaId = value;
+                  });
+                },
+              )),
               DataCell(Text(ficha['Nombre'] ?? '')),
               DataCell(Text(ficha['Apellido'] ?? '')),
               DataCell(Text(ficha['Zona'] ?? '')),
