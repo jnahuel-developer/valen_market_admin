@@ -4,6 +4,7 @@ import 'package:valen_market_admin/web_flow/features/fichas/model/ficha_en_curso
 import 'package:valen_market_admin/web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_bloque_con_titulo.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_ficha_shop_item.dart';
+import 'package:valen_market_admin/web_flow/widgets/custom_web_popup_editar_producto.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
 import 'package:valen_market_admin/services/firebase/catalogo_servicios_firebase.dart';
 
@@ -46,8 +47,7 @@ class CustomWebProductosSectionState
       setState(() => _cargando = false);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al cargar productos: $e')),
-      );
+          SnackBar(content: Text('Error al cargar productos: $e')));
     }
   }
 
@@ -60,7 +60,7 @@ class CustomWebProductosSectionState
   }
 
   Future<void> _cargarProductosDesdeFicha() async {
-    final productos = <Map<String, dynamic>>{};
+    final productos = <Map<String, dynamic>>[];
 
     for (final productoEnFicha in widget.productosDeFicha!) {
       final producto = await _catalogoService
@@ -87,7 +87,13 @@ class CustomWebProductosSectionState
       cantidades[productoId] = nuevaCantidad;
     });
 
-    _agregarOActualizarEnProvider(producto, nuevaCantidad);
+    if (cantidadActual == 0) {
+      // Nuevo producto -> Cargar todos los datos desde el catálogo
+      _agregarProductoNuevo(producto, nuevaCantidad);
+    } else {
+      // Producto existente -> Solo se actualiza la cantidad
+      _actualizarCantidadDeProducto(productoId, nuevaCantidad);
+    }
   }
 
   void _decrementarProducto(Map<String, dynamic> producto) {
@@ -101,31 +107,51 @@ class CustomWebProductosSectionState
       cantidades[productoId] = nuevaCantidad;
     });
 
-    _agregarOActualizarEnProvider(producto, nuevaCantidad);
-  }
-
-  void _agregarOActualizarEnProvider(
-      Map<String, dynamic> producto, int cantidadSeleccionada) {
-    final productoId = producto['id'];
-
-    if (cantidadSeleccionada == 0) {
+    if (nuevaCantidad == 0) {
       ref
           .read(fichaEnCursoProvider.notifier)
           .eliminarProductoPorUID(productoId);
-      return;
+    } else {
+      _actualizarCantidadDeProducto(productoId, nuevaCantidad);
     }
+  }
+
+  void _agregarProductoNuevo(Map<String, dynamic> producto, int cantidad) {
+    final productoId = producto['id'];
 
     final productoEnFicha = ProductoEnFicha(
       uidProducto: productoId,
-      unidades: cantidadSeleccionada,
-      precioUnitario: producto['Precio']?.toDouble() ?? 0.0,
+      unidades: cantidad,
+      precioUnitario: (producto['Precio'] ?? 0).toDouble(),
       cantidadDeCuotas: producto['CantidadDeCuotas'] ?? 1,
-      precioDeLasCuotas: 0.0,
+      precioDeLasCuotas: (producto['Precio'] ?? 0).toDouble() /
+          (producto['CantidadDeCuotas'] ?? 1),
       saldado: false,
       restante: 0.0,
     );
 
     ref.read(fichaEnCursoProvider.notifier).agregarProducto(productoEnFicha);
+  }
+
+  void _actualizarCantidadDeProducto(String productoId, int nuevaCantidad) {
+    final fichaNotifier = ref.read(fichaEnCursoProvider.notifier);
+    final fichaActual = ref.read(fichaEnCursoProvider);
+
+    final productoExistente = fichaActual.productos.firstWhere(
+      (p) => p.uidProducto == productoId,
+    );
+
+    final actualizado = ProductoEnFicha(
+      uidProducto: productoExistente.uidProducto,
+      unidades: nuevaCantidad,
+      precioUnitario: productoExistente.precioUnitario,
+      cantidadDeCuotas: productoExistente.cantidadDeCuotas,
+      precioDeLasCuotas: productoExistente.precioDeLasCuotas,
+      saldado: productoExistente.saldado,
+      restante: nuevaCantidad * productoExistente.precioDeLasCuotas,
+    );
+
+    fichaNotifier.agregarProducto(actualizado);
   }
 
   // Método público para resetear los productos y cantidades
@@ -139,8 +165,55 @@ class CustomWebProductosSectionState
     await _cargarCatalogoCompleto();
   }
 
+  Future<void> _mostrarDialogEditarProducto(
+      Map<String, dynamic> producto, int cantidadSeleccionada) async {
+    final productoId =
+        producto['id'] ?? producto['UID'] ?? producto['uid'] ?? '';
+
+    // intentar obtener la entrada del producto dentro de la ficha (si existe)
+    ProductoEnFicha? productoEnFicha;
+    try {
+      productoEnFicha = ref
+          .read(fichaEnCursoProvider)
+          .productos
+          .firstWhere((p) => p.uidProducto == productoId);
+    } catch (_) {
+      productoEnFicha = null;
+    }
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => CustomWebPopupEditarProducto(
+        productoCatalogo: producto,
+        productoEnFicha: productoEnFicha,
+        cantidadSeleccionada: cantidadSeleccionada,
+        onAceptar:
+            (double nuevoPrecio, int nuevasCuotas, double nuevoPrecioCuotas) {
+          // Llamamos al provider para actualizar los valores del producto dentro de la ficha
+          ref.read(fichaEnCursoProvider.notifier).actualizarValoresDelProducto(
+                uidProducto: productoId,
+                precioUnitario: nuevoPrecio,
+                cantidadDeCuotas: nuevasCuotas,
+                precioDeLasCuotas: nuevoPrecioCuotas,
+              );
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Producto actualizado en la ficha')),
+            );
+          }
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Se enlaza el provider para refrescar automáticamente la UI cuando se actualice una ficha
+    final fichaActual = ref.watch(fichaEnCursoProvider);
+    final productosEnFicha = fichaActual.productos;
+
     return CustomWebBloqueConTitulo(
       titulo: 'Datos de los productos',
       child: Column(
@@ -172,14 +245,46 @@ class CustomWebProductosSectionState
                     itemCount: _productos.length,
                     itemBuilder: (context, index) {
                       final producto = _productos[index];
-                      final productoId = producto['id'];
+                      final productoId = producto['id'] ??
+                          producto['UID'] ??
+                          producto['uid'] ??
+                          '';
                       final cantidad = cantidades[productoId] ?? 0;
+
+                      // Se busca si este producto está en la ficha
+                      ProductoEnFicha? productoEnFicha;
+                      try {
+                        productoEnFicha = productosEnFicha
+                            .firstWhere((p) => p.uidProducto == productoId);
+                      } catch (_) {
+                        productoEnFicha = null;
+                      }
+
+                      // Se toman valores de la ficha si existen (ediciones incluidas)
+                      final double precioMostrado =
+                          productoEnFicha?.precioUnitario.toDouble() ??
+                              (producto['Precio'] ?? 0).toDouble();
+                      final double precioCuotaMostrado =
+                          productoEnFicha?.precioDeLasCuotas.toDouble() ??
+                              ((producto['Precio'] ?? 0).toDouble() /
+                                  (producto['CantidadDeCuotas'] ?? 1));
+                      final int cuotasMostradas =
+                          productoEnFicha?.cantidadDeCuotas ??
+                              (producto['CantidadDeCuotas'] ?? 1);
 
                       return CustomWebFichaShopItem(
                         producto: producto,
                         cantidadSeleccionada: cantidad,
                         onIncrement: () => _incrementarProducto(producto),
                         onDecrement: () => _decrementarProducto(producto),
+                        onEdit: cantidad > 0
+                            ? () =>
+                                _mostrarDialogEditarProducto(producto, cantidad)
+                            : null,
+                        // Se usan los valores editados
+                        precioPorFicha: precioMostrado,
+                        precioDeCuotaPorFicha: precioCuotaMostrado,
+                        cantidadDeCuotas: cuotasMostradas,
                       );
                     },
                   ),

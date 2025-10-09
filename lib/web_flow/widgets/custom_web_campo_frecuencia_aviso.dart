@@ -36,8 +36,6 @@ class _CustomWebCampoFrecuenciaAvisoState
         final DateTime aviso = ficha.proximoAviso!;
         final int diffDays = aviso.difference(today).inDays + 1;
 
-        debugPrint('Diferencia en dias: ${diffDays.toString()}');
-
         // Se evalúan las diferencias predefinidas para determinar el RadioButton
         if (diffDays == VALUE__frecuencia_aviso_widget__campo__opcion_1) {
           _textSelectedRadioButton =
