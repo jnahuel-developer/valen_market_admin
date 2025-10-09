@@ -298,6 +298,6 @@ Los entornos de desarrollo (Dev) y producción (Prod) ya se encuentran correctam
 ------------------------------------------------------------------------------------------
 
 
-Última revisión     ->  06/10/2025
-Rama en desarrollo  ->  mod0015
-Feature en proceso  ->  Agregado del control de la fecha de venta de la ficha
+Última revisión     ->  08/10/2025
+Rama en desarrollo  ->  mod0017
+Feature en proceso  ->  Agregado de opción para modificar los datos del producto al agregar o editar una ficha

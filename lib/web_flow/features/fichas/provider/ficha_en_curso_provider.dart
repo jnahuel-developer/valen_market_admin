@@ -59,13 +59,44 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
         precioUnitario: producto.precioUnitario,
         cantidadDeCuotas: producto.cantidadDeCuotas,
         precioDeLasCuotas: producto.precioDeLasCuotas,
-        saldado: false,
+        saldado: producto.saldado,
         restante: producto.unidades * producto.precioDeLasCuotas,
       );
 
       state =
           state.copyWith(productos: [...state.productos, productoConRestante]);
     }
+  }
+
+  void actualizarValoresDelProducto({
+    required String uidProducto,
+    required double precioUnitario,
+    required int cantidadDeCuotas,
+    required double precioDeLasCuotas,
+  }) {
+    final index =
+        state.productos.indexWhere((p) => p.uidProducto == uidProducto);
+    if (index == -1) {
+      // Si por alguna razón no existe, no hacemos nada (la UI impide editar si cantidad == 0)
+      return;
+    }
+
+    final existente = state.productos[index];
+
+    final actualizado = ProductoEnFicha(
+      uidProducto: existente.uidProducto,
+      unidades: existente.unidades,
+      precioUnitario: precioUnitario,
+      cantidadDeCuotas: cantidadDeCuotas,
+      precioDeLasCuotas: precioDeLasCuotas,
+      saldado: existente.saldado,
+      restante: existente.unidades * precioDeLasCuotas,
+    );
+
+    final productosActualizados = [...state.productos];
+    productosActualizados[index] = actualizado;
+
+    state = state.copyWith(productos: productosActualizados);
   }
 
   void eliminarProductoPorUID(String uidProducto) {
@@ -80,17 +111,14 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
 
   void actualizarFechaDeVenta(DateTime? fecha) {
     state = state.copyWith(fechaDeVenta: fecha);
-    debugPrint('Fecha de venta actualizada: ${fecha?.toIso8601String()}');
   }
 
   void actualizarFrecuenciaDeAviso(String frecuencia) {
     state = state.copyWith(frecuenciaDeAviso: frecuencia);
-    debugPrint('Frecuencia de aviso actualizada: $frecuencia');
   }
 
   void actualizarProximoAviso(DateTime fecha) {
     state = state.copyWith(proximoAviso: fecha);
-    debugPrint('Próximo aviso actualizado: ${fecha.toIso8601String()}');
   }
 
   void cargarFichaDesdeMapa(Map<String, dynamic> ficha,
