@@ -12,6 +12,7 @@ class CustomTextField extends StatelessWidget {
   final int maxLines;
   final bool isPassword;
   final bool isMoney;
+  final void Function(String)? onFieldSubmitted;
 
   const CustomTextField({
     super.key,
@@ -22,6 +23,7 @@ class CustomTextField extends StatelessWidget {
     this.maxLines = 1,
     this.isPassword = false,
     this.isMoney = false,
+    this.onFieldSubmitted,
   });
 
   @override
@@ -38,6 +40,7 @@ class CustomTextField extends StatelessWidget {
       inputFormatters: isMoney
           ? [FilteringTextInputFormatter.digitsOnly, _MoneyInputFormatter()]
           : null,
+      onFieldSubmitted: onFieldSubmitted,
       decoration: InputDecoration(
         prefixText: isMoney ? '\$ ' : null,
         labelText: label,

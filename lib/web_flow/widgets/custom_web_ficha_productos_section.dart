@@ -87,7 +87,13 @@ class CustomWebProductosSectionState
       cantidades[productoId] = nuevaCantidad;
     });
 
-    _agregarOActualizarEnProvider(producto, nuevaCantidad);
+    if (cantidadActual == 0) {
+      // Nuevo producto -> Cargar todos los datos desde el catálogo
+      _agregarProductoNuevo(producto, nuevaCantidad);
+    } else {
+      // Producto existente -> Solo se actualiza la cantidad
+      _actualizarCantidadDeProducto(productoId, nuevaCantidad);
+    }
   }
 
   void _decrementarProducto(Map<String, dynamic> producto) {
@@ -101,23 +107,21 @@ class CustomWebProductosSectionState
       cantidades[productoId] = nuevaCantidad;
     });
 
-    _agregarOActualizarEnProvider(producto, nuevaCantidad);
-  }
-
-  void _agregarOActualizarEnProvider(
-      Map<String, dynamic> producto, int cantidadSeleccionada) {
-    final productoId = producto['id'];
-
-    if (cantidadSeleccionada == 0) {
+    if (nuevaCantidad == 0) {
       ref
           .read(fichaEnCursoProvider.notifier)
           .eliminarProductoPorUID(productoId);
-      return;
+    } else {
+      _actualizarCantidadDeProducto(productoId, nuevaCantidad);
     }
+  }
+
+  void _agregarProductoNuevo(Map<String, dynamic> producto, int cantidad) {
+    final productoId = producto['id'];
 
     final productoEnFicha = ProductoEnFicha(
       uidProducto: productoId,
-      unidades: cantidadSeleccionada,
+      unidades: cantidad,
       precioUnitario: (producto['Precio'] ?? 0).toDouble(),
       cantidadDeCuotas: producto['CantidadDeCuotas'] ?? 1,
       precioDeLasCuotas: (producto['Precio'] ?? 0).toDouble() /
@@ -127,6 +131,27 @@ class CustomWebProductosSectionState
     );
 
     ref.read(fichaEnCursoProvider.notifier).agregarProducto(productoEnFicha);
+  }
+
+  void _actualizarCantidadDeProducto(String productoId, int nuevaCantidad) {
+    final fichaNotifier = ref.read(fichaEnCursoProvider.notifier);
+    final fichaActual = ref.read(fichaEnCursoProvider);
+
+    final productoExistente = fichaActual.productos.firstWhere(
+      (p) => p.uidProducto == productoId,
+    );
+
+    final actualizado = ProductoEnFicha(
+      uidProducto: productoExistente.uidProducto,
+      unidades: nuevaCantidad,
+      precioUnitario: productoExistente.precioUnitario,
+      cantidadDeCuotas: productoExistente.cantidadDeCuotas,
+      precioDeLasCuotas: productoExistente.precioDeLasCuotas,
+      saldado: productoExistente.saldado,
+      restante: nuevaCantidad * productoExistente.precioDeLasCuotas,
+    );
+
+    fichaNotifier.agregarProducto(actualizado);
   }
 
   // Método público para resetear los productos y cantidades

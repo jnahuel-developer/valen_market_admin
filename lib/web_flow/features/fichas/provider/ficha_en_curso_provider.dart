@@ -43,10 +43,8 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
         unidades: nuevaCantidad,
         precioUnitario: producto.precioUnitario,
         cantidadDeCuotas: producto.cantidadDeCuotas,
-        // corregido: conservar precioDeLasCuotas provisto en 'producto'
         precioDeLasCuotas: producto.precioDeLasCuotas,
         saldado: productoExistente.saldado,
-        // restante recalculado con el precioDeLasCuotas actualizado
         restante: nuevaCantidad * producto.precioDeLasCuotas,
       );
 

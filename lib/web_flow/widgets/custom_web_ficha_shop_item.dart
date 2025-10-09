@@ -10,8 +10,8 @@ class CustomWebFichaShopItem extends StatelessWidget {
   final VoidCallback onDecrement;
   final VoidCallback? onEdit;
   final double? precioPorFicha;
-  final double? precioDeCuotaPorFicha; // nuevo: precio de cada cuota
-  final int? cantidadDeCuotas; // nuevo: cantidad de cuotas
+  final double? precioDeCuotaPorFicha;
+  final int? cantidadDeCuotas;
 
   const CustomWebFichaShopItem({
     super.key,
