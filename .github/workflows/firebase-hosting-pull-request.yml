@@ -22,6 +22,19 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.24.3'
+          channel: 'stable'
+          cache: true   # Se activa el cache del SDK de Flutter, para no reinstalar todas las veces
+
+      # Se activa también el cache de dependencias para optimizar las ejecuciones
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool
+          key: ${{ runner.os }}-flutter-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
 
       - name: Get dependencies
         run: flutter pub get
