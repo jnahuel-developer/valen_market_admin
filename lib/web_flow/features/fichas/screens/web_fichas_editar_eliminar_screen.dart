@@ -5,6 +5,7 @@ import 'package:valen_market_admin/web_flow/widgets/custom_web_ficha_cliente_sec
 import 'package:valen_market_admin/web_flow/widgets/custom_web_ficha_fechas_section.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_ficha_productos_section.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_gradient_button.dart';
+import 'package:valen_market_admin/web_flow/widgets/custom_web_popup_informar_pago.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_top_bar.dart';
 import 'package:valen_market_admin/constants/pantallas.dart';
 import 'package:valen_market_admin/services/firebase/fichas_servicios_firebase.dart';
@@ -90,9 +91,22 @@ class _WebFichasEditarEliminarScreenState
   }
 
   Future<void> _informarPago() async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-          content: Text('Funcionalidad de informar pago en desarrollo.')),
+    final ficha = ref.read(fichaEnCursoProvider);
+    showDialog(
+      context: context,
+      builder: (_) => CustomWebPopupInformarPago(
+        ficha: ficha,
+        onConfirmar: (monto, fecha) async {
+          await fichasService.registrarPagoFicha(
+            fichaId: ficha.id!,
+            monto: monto,
+            fechaPago: fecha,
+          );
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Pago registrado correctamente')),
+          );
+        },
+      ),
     );
   }
 

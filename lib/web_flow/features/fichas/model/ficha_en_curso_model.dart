@@ -2,32 +2,67 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ProductoEnFicha {
   final String uidProducto;
+  final String nombreProducto;
   final int unidades;
   final double precioUnitario;
   final int cantidadDeCuotas;
   final double precioDeLasCuotas;
   final bool saldado;
   final double restante;
+  final int cuotasPagas;
+  final double totalSaldado;
 
   ProductoEnFicha({
     required this.uidProducto,
+    required this.nombreProducto,
     required this.unidades,
     required this.precioUnitario,
     required this.cantidadDeCuotas,
     required this.precioDeLasCuotas,
     required this.saldado,
     required this.restante,
+    this.cuotasPagas = 0,
+    this.totalSaldado = 0.0,
   });
+
+  ProductoEnFicha copyWith({
+    String? uidProducto,
+    String? nombreProducto,
+    int? unidades,
+    double? precioUnitario,
+    int? cantidadDeCuotas,
+    double? precioDeLasCuotas,
+    bool? saldado,
+    double? restante,
+    int? cuotasPagas,
+    double? totalSaldado,
+  }) {
+    return ProductoEnFicha(
+      uidProducto: uidProducto ?? this.uidProducto,
+      nombreProducto: nombreProducto ?? this.nombreProducto,
+      unidades: unidades ?? this.unidades,
+      precioUnitario: precioUnitario ?? this.precioUnitario,
+      cantidadDeCuotas: cantidadDeCuotas ?? this.cantidadDeCuotas,
+      precioDeLasCuotas: precioDeLasCuotas ?? this.precioDeLasCuotas,
+      saldado: saldado ?? this.saldado,
+      restante: restante ?? this.restante,
+      cuotasPagas: cuotasPagas ?? this.cuotasPagas,
+      totalSaldado: totalSaldado ?? this.totalSaldado,
+    );
+  }
 
   Map<String, dynamic> toMap() {
     return {
       'uidProducto': uidProducto,
+      'nombreProducto': nombreProducto,
       'unidades': unidades,
       'precioUnitario': precioUnitario,
       'cantidadDeCuotas': cantidadDeCuotas,
       'precioDeLasCuotas': precioDeLasCuotas,
       'saldado': saldado,
       'restante': restante,
+      'cuotasPagas': cuotasPagas,
+      'totalSaldado': totalSaldado,
     };
   }
 }
@@ -44,6 +79,9 @@ class FichaEnCurso {
   final DateTime? fechaDeVenta;
   final String? frecuenciaDeAviso;
   final DateTime? proximoAviso;
+  final double totalFicha;
+  final double totalSaldadoFicha;
+  final int cuotasRestantesFicha;
 
   FichaEnCurso({
     this.id,
@@ -57,6 +95,9 @@ class FichaEnCurso {
     this.fechaDeVenta,
     this.frecuenciaDeAviso,
     this.proximoAviso,
+    this.totalFicha = 0.0,
+    this.totalSaldadoFicha = 0.0,
+    this.cuotasRestantesFicha = 0,
   });
 
   FichaEnCurso copyWith({
@@ -71,6 +112,9 @@ class FichaEnCurso {
     DateTime? fechaDeVenta,
     String? frecuenciaDeAviso,
     DateTime? proximoAviso,
+    double? totalFicha,
+    double? totalSaldadoFicha,
+    int? cuotasRestantesFicha,
   }) {
     return FichaEnCurso(
       id: id ?? this.id,
@@ -84,6 +128,9 @@ class FichaEnCurso {
       fechaDeVenta: fechaDeVenta ?? this.fechaDeVenta,
       frecuenciaDeAviso: frecuenciaDeAviso ?? this.frecuenciaDeAviso,
       proximoAviso: proximoAviso ?? this.proximoAviso,
+      totalFicha: totalFicha ?? this.totalFicha,
+      totalSaldadoFicha: totalSaldadoFicha ?? this.totalSaldadoFicha,
+      cuotasRestantesFicha: cuotasRestantesFicha ?? this.cuotasRestantesFicha,
     );
   }
 
@@ -98,6 +145,9 @@ class FichaEnCurso {
       'Dirección': direccionCliente,
       'Teléfono': telefonoCliente,
       'Cantidad_de_Productos': productos.length,
+      'Total_Ficha': totalFicha,
+      'Total_Saldado_Ficha': totalSaldadoFicha,
+      'Cuotas_Restantes_Ficha': cuotasRestantesFicha,
       if (fechaDeVenta != null)
         'Fecha_de_venta': Timestamp.fromDate(fechaDeVenta!),
       'Frecuencia_de_aviso': frecuenciaDeAviso,
@@ -113,12 +163,15 @@ class FichaEnCurso {
       final producto = productos[i];
       productosMap.addAll({
         'UID_Producto_$i': producto.uidProducto,
+        'nombreProducto_$i': producto.nombreProducto,
         'Unidades_Producto_$i': producto.unidades,
         'Precio_Producto_$i': producto.precioUnitario,
         'Cantidad_de_cuotas_Producto_$i': producto.cantidadDeCuotas,
         'Precio_de_las_cuotas_Producto_$i': producto.precioDeLasCuotas,
         'Saldado_Producto_$i': producto.saldado,
         'Restante_Producto_$i': producto.restante,
+        'Cuotas_Pagas_Producto_$i': producto.cuotasPagas,
+        'Total_Saldado_Producto_$i': producto.totalSaldado,
       });
     }
     return productosMap;
@@ -134,10 +187,13 @@ FichaEnCurso:
   Zona: $zonaCliente
   Dirección: $direccionCliente
   Teléfono: $telefonoCliente
-  Fecha de venta: ${fechaDeVenta != null ? fechaDeVenta.toString() : 'No definida'}
+  Fecha de venta: ${fechaDeVenta ?? 'No definida'}
   Frecuencia de aviso: $frecuenciaDeAviso
-  Próximo aviso: ${proximoAviso != null ? proximoAviso.toString() : 'No definido'}
+  Próximo aviso: ${proximoAviso ?? 'No definido'}
   Productos: ${productos.length}
+  Total ficha: $totalFicha
+  Total saldado ficha: $totalSaldadoFicha
+  Cuotas restantes: $cuotasRestantesFicha
 ''';
   }
 }

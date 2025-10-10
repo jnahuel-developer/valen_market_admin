@@ -249,4 +249,41 @@ class FichasServiciosFirebase {
       throw Exception('Error al eliminar la ficha: $e');
     }
   }
+
+  /* ---------------------------------------------------------------------------------------- */
+  //                            MÉTODOS PARA AGREGAR PAGOS                                    */
+  /* ---------------------------------------------------------------------------------------- */
+
+  Future<void> registrarPagoFicha({
+    required String fichaId,
+    required double monto,
+    required DateTime fechaPago,
+  }) async {
+    try {
+      final fichaRef = _fichasCollection.doc(fichaId);
+      final ficha = await fichaRef.get();
+      if (!ficha.exists) throw Exception('Ficha no encontrada');
+
+      final data = ficha.data() as Map<String, dynamic>;
+      final pagosPrevios = List<Map<String, dynamic>>.from(data['Pagos'] ?? []);
+      pagosPrevios.add({
+        'FechaPago': Timestamp.fromDate(fechaPago),
+        'Monto': monto,
+      });
+
+      final double nuevoTotalSaldado = (data['TotalSaldado'] ?? 0) + monto;
+      final double nuevoRestante =
+          ((data['TotalFicha'] ?? 0) - nuevoTotalSaldado)
+              .clamp(0, double.infinity);
+
+      await fichaRef.update({
+        'Pagos': pagosPrevios,
+        'TotalSaldado': nuevoTotalSaldado,
+        'Restante': nuevoRestante,
+        'UltimoPago': Timestamp.fromDate(fechaPago),
+      });
+    } catch (e) {
+      throw Exception('Error al registrar el pago: $e');
+    }
+  }
 }

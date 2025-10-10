@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/model/ficha_en_curso_model.dart';
 import 'package:valen_market_admin/services/firebase/clientes_servicios_firebase.dart';
@@ -12,6 +11,7 @@ final fichaEnCursoProvider =
 class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
   FichaEnCursoNotifier() : super(FichaEnCurso());
 
+  // --- CLIENTE ---
   Future<void> seleccionarClientePorUID(String uidCliente) async {
     try {
       final cliente =
@@ -30,6 +30,7 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
     } catch (_) {}
   }
 
+  // --- PRODUCTOS ---
   void agregarProducto(ProductoEnFicha producto) {
     final indexExistente = state.productos
         .indexWhere((p) => p.uidProducto == producto.uidProducto);
@@ -40,6 +41,7 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
 
       final productoActualizado = ProductoEnFicha(
         uidProducto: producto.uidProducto,
+        nombreProducto: producto.nombreProducto,
         unidades: nuevaCantidad,
         precioUnitario: producto.precioUnitario,
         cantidadDeCuotas: producto.cantidadDeCuotas,
@@ -55,6 +57,7 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
     } else {
       final productoConRestante = ProductoEnFicha(
         uidProducto: producto.uidProducto,
+        nombreProducto: producto.nombreProducto,
         unidades: producto.unidades,
         precioUnitario: producto.precioUnitario,
         cantidadDeCuotas: producto.cantidadDeCuotas,
@@ -85,6 +88,7 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
 
     final actualizado = ProductoEnFicha(
       uidProducto: existente.uidProducto,
+      nombreProducto: existente.nombreProducto,
       unidades: existente.unidades,
       precioUnitario: precioUnitario,
       cantidadDeCuotas: cantidadDeCuotas,
@@ -103,6 +107,57 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
     final nuevosProductos =
         state.productos.where((p) => p.uidProducto != uidProducto).toList();
     state = state.copyWith(productos: nuevosProductos);
+  }
+
+  // --- INFORMAR PAGO ---
+  void registrarPago(double montoPagado, DateTime fechaPago) {
+    if (state.productos.isEmpty) return;
+
+    double totalCuotas =
+        state.productos.fold(0, (sum, p) => sum + p.precioDeLasCuotas);
+
+    if (totalCuotas <= 0) return;
+
+    List<ProductoEnFicha> productosActualizados = [];
+    double totalSaldadoFicha = 0.0;
+    double totalFicha = 0.0;
+    int maxCuotasRestantes = 0;
+
+    for (final p in state.productos) {
+      final proporcion = p.precioDeLasCuotas / totalCuotas;
+      final montoAsignado = montoPagado * proporcion;
+
+      final nuevoTotalSaldado = (p.totalSaldado + montoAsignado)
+          .clamp(0, p.cantidadDeCuotas * p.precioDeLasCuotas);
+      final nuevoRestante =
+          (p.cantidadDeCuotas * p.precioDeLasCuotas) - nuevoTotalSaldado;
+      final nuevasCuotasPagas =
+          (nuevoTotalSaldado / p.precioDeLasCuotas).floor();
+
+      final actualizado = p.copyWith(
+        totalSaldado: 0,
+        restante: nuevoRestante,
+        cuotasPagas: nuevasCuotasPagas,
+        saldado: nuevasCuotasPagas >= p.cantidadDeCuotas,
+      );
+
+      productosActualizados.add(actualizado);
+
+      totalFicha += p.cantidadDeCuotas * p.precioDeLasCuotas;
+      totalSaldadoFicha += nuevoTotalSaldado;
+      final restantes = p.cantidadDeCuotas - nuevasCuotasPagas;
+      if (restantes > maxCuotasRestantes) {
+        maxCuotasRestantes = restantes;
+      }
+    }
+
+    state = state.copyWith(
+      productos: productosActualizados,
+      totalFicha: totalFicha,
+      totalSaldadoFicha: totalSaldadoFicha,
+      cuotasRestantesFicha: maxCuotasRestantes,
+      proximoAviso: fechaPago,
+    );
   }
 
   void limpiarFicha() {
@@ -168,6 +223,7 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
       productos.add(
         ProductoEnFicha(
           uidProducto: ficha['UID_Producto_$i'] ?? '',
+          nombreProducto: ficha['nombreProducto_$i'] ?? '',
           unidades: ficha['Unidades_Producto_$i'] ?? 0,
           precioUnitario: (ficha['Precio_Producto_$i'] ?? 0).toDouble(),
           cantidadDeCuotas: ficha['Cantidad_de_cuotas_Producto_$i'] ?? 0,
@@ -221,6 +277,7 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
       productos.add(
         ProductoEnFicha(
           uidProducto: ficha['UID_Producto_$i'] ?? '',
+          nombreProducto: ficha['nombreProducto_$i'] ?? '',
           unidades: ficha['Unidades_Producto_$i'] ?? 0,
           precioUnitario: (ficha['Precio_Producto_$i'] ?? 0).toDouble(),
           cantidadDeCuotas: ficha['Cantidad_de_cuotas_Producto_$i'] ?? 0,

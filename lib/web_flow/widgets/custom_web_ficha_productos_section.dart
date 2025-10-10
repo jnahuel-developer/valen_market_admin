@@ -121,6 +121,7 @@ class CustomWebProductosSectionState
 
     final productoEnFicha = ProductoEnFicha(
       uidProducto: productoId,
+      nombreProducto: producto['nombreProducto'] ?? '',
       unidades: cantidad,
       precioUnitario: (producto['Precio'] ?? 0).toDouble(),
       cantidadDeCuotas: producto['CantidadDeCuotas'] ?? 1,
@@ -143,6 +144,7 @@ class CustomWebProductosSectionState
 
     final actualizado = ProductoEnFicha(
       uidProducto: productoExistente.uidProducto,
+      nombreProducto: productoExistente.nombreProducto,
       unidades: nuevaCantidad,
       precioUnitario: productoExistente.precioUnitario,
       cantidadDeCuotas: productoExistente.cantidadDeCuotas,
