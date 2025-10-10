@@ -48,7 +48,7 @@ class _WebVerCatalogoScreenState extends State<WebVerCatalogoScreen> {
         children: [
           const CustomWebTopBar(
             titulo: 'Catálogo completo',
-            pantallaPadreRouteName: PANTALLA_WEB__Catalogo,
+            pantallaPadreRouteName: PANTALLA_WEB__Home,
           ),
           const SizedBox(height: 60),
           Expanded(

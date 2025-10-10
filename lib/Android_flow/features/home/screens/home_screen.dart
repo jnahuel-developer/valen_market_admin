@@ -37,7 +37,7 @@ class HomeScreen extends StatelessWidget {
                   CustomHomeButton(
                     iconPath: AppAssets.iconUser,
                     fieldKey: KEY__home_screen__boton__clientes,
-                    text: TEXTO_ES__home_screen__boton__clientes,
+                    text: TEXTO_ES__home_screen__bloque__clientes,
                     onTap: () =>
                         Navigator.pushNamed(context, PANTALLA__Clientes),
                   ),
@@ -45,7 +45,7 @@ class HomeScreen extends StatelessWidget {
                   CustomHomeButton(
                     iconPath: AppAssets.iconCart,
                     fieldKey: KEY__home_screen__boton__catalogo,
-                    text: TEXTO_ES__home_screen__boton__catalogo,
+                    text: TEXTO_ES__home_screen__bloque__catalogo,
                     onTap: () =>
                         Navigator.pushNamed(context, PANTALLA__Catalogo),
                   ),
@@ -53,14 +53,14 @@ class HomeScreen extends StatelessWidget {
                   CustomHomeButton(
                     iconPath: AppAssets.iconTicket,
                     fieldKey: KEY__home_screen__boton__fichas,
-                    text: TEXTO_ES__home_screen__boton__fichas,
+                    text: TEXTO_ES__home_screen__bloque__fichas,
                     onTap: () => Navigator.pushNamed(context, PANTALLA__Fichas),
                   ),
                   const SizedBox(height: 40),
                   CustomHomeButton(
                     iconPath: AppAssets.iconCar,
                     fieldKey: KEY__home_screen__boton__recorrido,
-                    text: TEXTO_ES__home_screen__boton__recorrido,
+                    text: TEXTO_ES__home_screen__bloque__recorrido,
                     onTap: () =>
                         Navigator.pushNamed(context, PANTALLA__Recorrido),
                   ),
@@ -68,13 +68,13 @@ class HomeScreen extends StatelessWidget {
                   const CustomHomeButton(
                     iconPath: AppAssets.iconStatistic,
                     fieldKey: KEY__home_screen__boton__estadisticas,
-                    text: TEXTO_ES__home_screen__boton__estadisticas,
+                    text: TEXTO_ES__home_screen__bloque__estadisticas,
                   ),
                   const SizedBox(height: 40),
                   const CustomHomeButton(
                     iconPath: AppAssets.iconPromotion,
                     fieldKey: KEY__home_screen__boton__promociones,
-                    text: TEXTO_ES__home_screen__boton__promociones,
+                    text: TEXTO_ES__home_screen__bloque__promociones,
                   ),
                   const SizedBox(height: 100), // margen inferior
                 ],

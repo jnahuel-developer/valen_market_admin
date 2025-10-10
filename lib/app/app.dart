@@ -4,7 +4,6 @@ import 'package:valen_market_admin/web_flow/features/catalogo/screens/web_agrega
 import 'package:valen_market_admin/web_flow/features/catalogo/screens/web_catalogo_screen.dart';
 import 'package:valen_market_admin/web_flow/features/catalogo/screens/web_ver_catalogo_screen.dart';
 import 'package:valen_market_admin/web_flow/features/clientes/screens/web_agregar_cliente_screen.dart';
-import 'package:valen_market_admin/web_flow/features/clientes/screens/web_clientes_screen.dart';
 import 'package:valen_market_admin/web_flow/features/dropbox/screens/web_dropbox_auth_screen.dart';
 import 'package:valen_market_admin/web_flow/features/dropbox/screens/web_dropbox_check_screen.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/screens/web_fichas_agregar_buscar_screen.dart';
@@ -67,7 +66,6 @@ class MyApp extends StatelessWidget {
         PANTALLA_WEB__Home: (context) => const WebHomeScreen(),
 
         // Pantallas web de Clientes
-        PANTALLA_WEB__Clientes: (_) => const WebClientesScreen(),
         PANTALLA_WEB__Clientes__AgregarCliente: (_) =>
             const WebAgregarClienteScreen(),
 

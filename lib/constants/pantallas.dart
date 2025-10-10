@@ -17,7 +17,6 @@ const String PANTALLA_WEB__Login__Registro__EsperandoVerificacion =
 const String PANTALLA_WEB__Home = '/web_home_screen';
 
 // Pantallas web de Clientes
-const String PANTALLA_WEB__Clientes = '/web_clientes_screen';
 const String PANTALLA_WEB__Clientes__AgregarCliente =
     '/web_agregar_cliente_screen';
 const String PANTALLA_WEB__Clientes__BuscarCliente =

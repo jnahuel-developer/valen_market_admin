@@ -136,7 +136,7 @@ class _WebEditarProductoScreenState extends State<WebEditarProductoScreen> {
         children: [
           const CustomWebTopBar(
             titulo: 'Editar Producto',
-            pantallaPadreRouteName: PANTALLA_WEB__Catalogo,
+            pantallaPadreRouteName: PANTALLA_WEB__Home,
           ),
           const SizedBox(height: 60),
           Expanded(

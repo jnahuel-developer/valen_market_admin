@@ -123,7 +123,7 @@ class _WebAgregarProductoScreenState extends State<WebAgregarProductoScreen> {
         children: [
           const CustomWebTopBar(
             titulo: 'Agregar Producto',
-            pantallaPadreRouteName: PANTALLA_WEB__Catalogo,
+            pantallaPadreRouteName: PANTALLA_WEB__Home,
           ),
           const SizedBox(height: 35),
           Expanded(

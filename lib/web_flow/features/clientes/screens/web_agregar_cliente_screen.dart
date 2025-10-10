@@ -74,7 +74,7 @@ class _WebAgregarClienteScreenState extends State<WebAgregarClienteScreen> {
         children: [
           const CustomWebTopBar(
             titulo: 'Agregar Cliente',
-            pantallaPadreRouteName: PANTALLA_WEB__Clientes,
+            pantallaPadreRouteName: PANTALLA_WEB__Home,
           ),
           const SizedBox(height: 60),
           Expanded(
