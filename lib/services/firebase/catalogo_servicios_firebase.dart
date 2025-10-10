@@ -44,7 +44,7 @@ class CatalogoServiciosFirebase {
       final querySnapshot = await _catalogoCollection.get();
       return querySnapshot.docs.map((doc) {
         final data = doc.data() as Map<String, dynamic>;
-        data['id'] = doc.id; // Añadir el ID del documento al map
+        data['ID'] = doc.id; // Añadir el ID del documento al map
         return data;
       }).toList();
     } catch (e) {
@@ -60,7 +60,7 @@ class CatalogoServiciosFirebase {
       final docSnapshot = await _catalogoCollection.doc(productoId).get();
       if (docSnapshot.exists) {
         final data = docSnapshot.data() as Map<String, dynamic>;
-        data['id'] = docSnapshot.id;
+        data['ID'] = docSnapshot.id;
         return data;
       } else {
         return null;

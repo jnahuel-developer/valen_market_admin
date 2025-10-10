@@ -109,13 +109,13 @@ class _PopupResultadosBusquedaState
     if (_fichaSeleccionadaId == null) return;
 
     final ficha = _resultados.firstWhere(
-      (f) => f['id'] == _fichaSeleccionadaId,
+      (f) => f['ID'] == _fichaSeleccionadaId,
     );
 
     if (widget.criterio == 'Cliente seleccionado') {
       ref.read(fichaEnCursoProvider.notifier).cargarSoloDatosDeFichaYProductos(
             ficha,
-            fichaId: ficha['id'],
+            fichaId: ficha['ID'],
           );
     } else {
       final String? uidCliente = ficha['UID_Cliente'];
@@ -132,7 +132,7 @@ class _PopupResultadosBusquedaState
 
           ref.read(fichaEnCursoProvider.notifier).cargarFichaDesdeMapa(
                 ficha,
-                fichaId: ficha['id'],
+                fichaId: ficha['ID'],
               );
         } else {
           if (mounted) {
@@ -202,7 +202,7 @@ class _PopupResultadosBusquedaState
           return DataRow(
             cells: [
               DataCell(Radio<String>(
-                value: ficha['id'],
+                value: ficha['ID'],
                 groupValue: _fichaSeleccionadaId,
                 onChanged: (value) {
                   setState(() {
@@ -213,9 +213,9 @@ class _PopupResultadosBusquedaState
               DataCell(Text(ficha['Nombre'] ?? '')),
               DataCell(Text(ficha['Apellido'] ?? '')),
               DataCell(Text(ficha['Zona'] ?? '')),
-              DataCell(Text(ficha['Nro_de_ficha']?.toString() ?? '')),
-              DataCell(Text(_formatearFecha(ficha['Fecha_de_venta']))),
-              DataCell(Text(_formatearFecha(ficha['Proximo_aviso']))),
+              DataCell(Text(ficha['NroDeFicha']?.toString() ?? '')),
+              DataCell(Text(_formatearFecha(ficha['FechaDeVenta']))),
+              DataCell(Text(_formatearFecha(ficha['ProximoAviso']))),
               DataCell(Text(ficha['Cantidad_de_Productos']?.toString() ?? '')),
               DataCell(Text(ficha['Nro_de_cuotas_pagadas']?.toString() ?? '0')),
               DataCell(Text(ficha['Restante']?.toString() ?? '0')),

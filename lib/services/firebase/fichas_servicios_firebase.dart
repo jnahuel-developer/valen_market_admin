@@ -22,7 +22,7 @@ class FichasServiciosFirebase {
   }) async {
     try {
       final nroFicha = await obtenerYSiguienteNumeroFicha();
-
+/*
       Map<String, dynamic> productosMap = {};
       for (int i = 0; i < productos.length; i++) {
         final producto = productos[i];
@@ -38,20 +38,57 @@ class FichasServiciosFirebase {
       }
 
       final fichaData = {
-        'Nro_de_ficha': nroFicha,
+        'NroDeFicha': nroFicha,
         'UID_Cliente': uidCliente,
         'Nombre': nombreCliente,
         'Apellido': apellidoCliente,
         'Zona': zonaCliente,
         'Cantidad_de_Productos': productos.length,
-        'Fecha_de_venta': Timestamp.fromDate(fechaDeVenta),
+        'FechaDeVenta': Timestamp.fromDate(fechaDeVenta),
         'Frecuencia_de_aviso': frecuenciaDeAviso,
-        'Proximo_aviso': Timestamp.fromDate(proximoAviso),
+        'ProximoAviso': Timestamp.fromDate(proximoAviso),
         ...productosMap,
         'FechaDeCreacion': FieldValue.serverTimestamp(),
       };
 
       await _fichasCollection.add(fichaData);
+*/
+      // --- Estructuramos los productos como una lista de mapas ---
+      final List<Map<String, dynamic>> productosList = productos.map((p) {
+        return {
+          'UID': p['uidProducto'],
+          'Nombre': p['nombreProducto'] ?? '',
+          'Unidades': p['unidades'],
+          'PrecioUnitario': p['precioUnitario'],
+          'CantidadDeCuotas': p['cantidadDeCuotas'],
+          'PrecioDeLasCuotas': p['precioDeLasCuotas'],
+          'Saldado': p['saldado'],
+          'Restante': p['restante'],
+          'CuotasPagas': p['cuotasPagas'] ?? 0,
+          'TotalSaldado': p['totalSaldado'] ?? 0.0,
+        };
+      }).toList();
+
+      // --- Documento estructurado en secciones ---
+      final fichaDataNuevoFormato = {
+        'NroDeFicha': nroFicha,
+        'Cliente': {
+          'UID': uidCliente,
+          'Nombre': nombreCliente,
+          'Apellido': apellidoCliente,
+          'Zona': zonaCliente,
+        },
+        'Fechas': {
+          'Venta': Timestamp.fromDate(fechaDeVenta),
+          'ProximoAviso': Timestamp.fromDate(proximoAviso),
+        },
+        'Productos': productosList,
+        'CantidadDeProductos': productosList.length,
+        'FrecuenciaDeAviso': frecuenciaDeAviso,
+        'FechaDeCreacion': FieldValue.serverTimestamp(),
+      };
+
+      await _fichasCollection.add(fichaDataNuevoFormato);
     } catch (e) {
       throw Exception('Error al agregar la ficha: $e');
     }
@@ -60,7 +97,7 @@ class FichasServiciosFirebase {
   /* ---------------------------------------------------------------------------------------- */
   //                                MÉTODOS PARA LEER FICHAS                                  */
   /* ---------------------------------------------------------------------------------------- */
-
+/*
   /// Busca fichas por el UID del cliente y devuelve cada ficha combinada con los datos del cliente.
   Future<List<Map<String, dynamic>>> buscarFichasPorClienteId(
       String uidCliente) async {
@@ -82,19 +119,19 @@ class FichasServiciosFirebase {
 
       final resultados = fichasSnapshot.docs.map((doc) {
         final fichaData = doc.data() as Map<String, dynamic>;
-        fichaData['id'] = doc.id;
-        fichaData['nombre'] = clienteData['Nombre'] ?? '';
-        fichaData['apellido'] = clienteData['Apellido'] ?? '';
-        fichaData['zona'] = clienteData['Zona'] ?? '';
+        fichaData['ID'] = doc.id;
+        fichaData['Nombre'] = clienteData['Nombre'] ?? '';
+        fichaData['Apellido'] = clienteData['Apellido'] ?? '';
+        fichaData['Zona'] = clienteData['Zona'] ?? '';
         fichaData['direccion'] = clienteData['Direccion'] ?? '';
         fichaData['telefono'] = clienteData['Telefono'] ?? '';
 
-        fichaData['Fecha_de_venta'] = (fichaData['Fecha_de_venta'] is Timestamp)
-            ? (fichaData['Fecha_de_venta'] as Timestamp).toDate()
+        fichaData['FechaDeVenta'] = (fichaData['FechaDeVenta'] is Timestamp)
+            ? (fichaData['FechaDeVenta'] as Timestamp).toDate()
             : null;
 
-        fichaData['Proximo_aviso'] = (fichaData['Proximo_aviso'] is Timestamp)
-            ? (fichaData['Proximo_aviso'] as Timestamp).toDate()
+        fichaData['ProximoAviso'] = (fichaData['ProximoAviso'] is Timestamp)
+            ? (fichaData['ProximoAviso'] as Timestamp).toDate()
             : null;
 
         fichaData['Nro_de_cuotas_pagadas'] =
@@ -118,7 +155,7 @@ class FichasServiciosFirebase {
 
       return snapshot.docs.map((doc) {
         final data = doc.data() as Map<String, dynamic>;
-        data['id'] = doc.id;
+        data['ID'] = doc.id;
         return data;
       }).toList();
     } catch (e) {
@@ -135,7 +172,7 @@ class FichasServiciosFirebase {
 
       return snapshot.docs.map((doc) {
         final data = doc.data() as Map<String, dynamic>;
-        data['id'] = doc.id;
+        data['ID'] = doc.id;
         return data;
       }).toList();
     } catch (e) {
@@ -150,7 +187,111 @@ class FichasServiciosFirebase {
 
       return snapshot.docs.map((doc) {
         final data = doc.data() as Map<String, dynamic>;
-        data['id'] = doc.id;
+        data['ID'] = doc.id;
+        return data;
+      }).toList();
+    } catch (e) {
+      throw Exception('Error al buscar fichas por zona: $e');
+    }
+  }
+*/
+
+  /// Se buscan fichas asociadas al UID de un cliente y se devuelven junto con los datos del cliente.
+  Future<List<Map<String, dynamic>>> buscarFichasPorClienteId(
+      String uidCliente) async {
+    try {
+      final fichasSnapshot = await _fichasCollection
+          .where('Cliente.UID', isEqualTo: uidCliente)
+          .get();
+
+      if (fichasSnapshot.docs.isEmpty) {
+        return [];
+      }
+
+      final clienteData =
+          await ClientesServiciosFirebase.obtenerClientePorId(uidCliente);
+
+      if (clienteData == null) {
+        throw Exception('No se encontró el cliente con UID: $uidCliente');
+      }
+
+      final resultados = fichasSnapshot.docs.map((doc) {
+        final fichaData = doc.data() as Map<String, dynamic>;
+        final cliente = fichaData['Cliente'] ?? {};
+        final fechas = fichaData['Fechas'] ?? {};
+
+        fichaData['ID'] = doc.id;
+        fichaData['Nombre'] = cliente['Nombre'] ?? clienteData['Nombre'] ?? '';
+        fichaData['Apellido'] =
+            cliente['Apellido'] ?? clienteData['Apellido'] ?? '';
+        fichaData['Zona'] = cliente['Zona'] ?? clienteData['Zona'] ?? '';
+
+        fichaData['FechaDeVenta'] = (fechas['Venta'] is Timestamp)
+            ? (fechas['Venta'] as Timestamp).toDate()
+            : null;
+
+        fichaData['ProximoAviso'] = (fechas['ProximoAviso'] is Timestamp)
+            ? (fechas['ProximoAviso'] as Timestamp).toDate()
+            : null;
+
+        fichaData['Nro_de_cuotas_pagadas'] =
+            fichaData['Nro_de_cuotas_pagadas'] ?? 0;
+        fichaData['Restante'] = fichaData['Restante'] ?? 0;
+
+        return fichaData;
+      }).toList();
+
+      return resultados;
+    } catch (e) {
+      throw Exception('Error al buscar fichas por cliente ID: $e');
+    }
+  }
+
+  /// Se buscan fichas en las que el nombre del cliente coincida con el valor indicado.
+  Future<List<Map<String, dynamic>>> buscarFichasPorNombre(
+      String nombre) async {
+    try {
+      final snapshot = await _fichasCollection
+          .where('Cliente.Nombre', isEqualTo: nombre)
+          .get();
+
+      return snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        data['ID'] = doc.id;
+        return data;
+      }).toList();
+    } catch (e) {
+      throw Exception('Error al buscar fichas por nombre: $e');
+    }
+  }
+
+  /// Se buscan fichas en las que el apellido del cliente coincida con el valor indicado.
+  Future<List<Map<String, dynamic>>> buscarFichasPorApellido(
+      String apellido) async {
+    try {
+      final snapshot = await _fichasCollection
+          .where('Cliente.Apellido', isEqualTo: apellido)
+          .get();
+
+      return snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        data['ID'] = doc.id;
+        return data;
+      }).toList();
+    } catch (e) {
+      throw Exception('Error al buscar fichas por apellido: $e');
+    }
+  }
+
+  /// Se buscan fichas en las que la zona del cliente coincida con el valor indicado.
+  Future<List<Map<String, dynamic>>> buscarFichasPorZona(String zona) async {
+    try {
+      final snapshot =
+          await _fichasCollection.where('Cliente.Zona', isEqualTo: zona).get();
+
+      return snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        data['ID'] = doc.id;
         return data;
       }).toList();
     } catch (e) {
@@ -168,12 +309,12 @@ class FichasServiciosFirebase {
       int ultimoNumero = 0;
 
       if (snapshot.exists) {
-        ultimoNumero = snapshot.data()?['Ultimo_Nro_de_ficha'] ?? 0;
+        ultimoNumero = snapshot.data()?['UltimoNroDeFicha'] ?? 0;
       }
 
       // Actualizamos en config
-      await configDoc.set(
-          {'Ultimo_Nro_de_ficha': ultimoNumero + 1}, SetOptions(merge: true));
+      await configDoc
+          .set({'UltimoNroDeFicha': ultimoNumero + 1}, SetOptions(merge: true));
 
       return ultimoNumero;
     } catch (e) {
@@ -187,35 +328,76 @@ class FichasServiciosFirebase {
       final querySnapshot = await _fichasCollection.get();
       return querySnapshot.docs.map((doc) {
         final data = doc.data() as Map<String, dynamic>;
-        data['id'] = doc.id;
+        data['ID'] = doc.id;
         return data;
       }).toList();
     } catch (e) {
       throw Exception('Error al obtener las fichas: $e');
     }
   }
-
+/*
   /// Obtiene una ficha específica por su ID
   Future<Map<String, dynamic>?> obtenerFichaPorId(String fichaId) async {
     try {
       final docSnapshot = await _fichasCollection.doc(fichaId).get();
       if (docSnapshot.exists) {
         final data = docSnapshot.data() as Map<String, dynamic>;
-        data['id'] = docSnapshot.id;
+        data['ID'] = docSnapshot.id;
 
-        if (data['Fecha_de_venta'] is Timestamp) {
-          data['Fecha_de_venta'] =
-              (data['Fecha_de_venta'] as Timestamp).toDate();
+        if (data['FechaDeVenta'] is Timestamp) {
+          data['FechaDeVenta'] = (data['FechaDeVenta'] as Timestamp).toDate();
         }
 
-        if (data['Proximo_aviso'] is Timestamp) {
-          data['Proximo_aviso'] = (data['Proximo_aviso'] as Timestamp).toDate();
+        if (data['ProximoAviso'] is Timestamp) {
+          data['ProximoAviso'] = (data['ProximoAviso'] as Timestamp).toDate();
         }
 
         return data;
       } else {
         return null;
       }
+    } catch (e) {
+      throw Exception('Error al obtener la ficha por ID: $e');
+    }
+  }
+*/
+
+  /// Se obtiene una ficha específica a partir de su ID.
+  Future<Map<String, dynamic>?> obtenerFichaPorId(String fichaId) async {
+    try {
+      final docSnapshot = await _fichasCollection.doc(fichaId).get();
+
+      if (!docSnapshot.exists) {
+        return null;
+      }
+
+      final data = docSnapshot.data() as Map<String, dynamic>;
+      data['ID'] = docSnapshot.id;
+
+      // Se extraen las secciones del documento
+      final cliente = data['Cliente'] ?? {};
+      final fechas = data['Fechas'] ?? {};
+      final productos = data['Productos'] ?? [];
+
+      // Se asignan los valores con nombres coherentes
+      data['UID_Cliente'] = cliente['UID'];
+      data['Nombre'] = cliente['Nombre'];
+      data['Apellido'] = cliente['Apellido'];
+      data['Zona'] = cliente['Zona'];
+
+      // Se convierten las fechas en objetos DateTime
+      data['FechaDeVenta'] = (fechas['Venta'] is Timestamp)
+          ? (fechas['Venta'] as Timestamp).toDate()
+          : null;
+
+      data['ProximoAviso'] = (fechas['ProximoAviso'] is Timestamp)
+          ? (fechas['ProximoAviso'] as Timestamp).toDate()
+          : null;
+
+      // Se garantiza que la lista de productos sea devuelta correctamente
+      data['Productos'] = List<Map<String, dynamic>>.from(productos);
+
+      return data;
     } catch (e) {
       throw Exception('Error al obtener la ficha por ID: $e');
     }

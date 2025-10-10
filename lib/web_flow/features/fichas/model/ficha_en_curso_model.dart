@@ -149,10 +149,10 @@ class FichaEnCurso {
       'Total_Saldado_Ficha': totalSaldadoFicha,
       'Cuotas_Restantes_Ficha': cuotasRestantesFicha,
       if (fechaDeVenta != null)
-        'Fecha_de_venta': Timestamp.fromDate(fechaDeVenta!),
+        'FechaDeVenta': Timestamp.fromDate(fechaDeVenta!),
       'Frecuencia_de_aviso': frecuenciaDeAviso,
       if (proximoAviso != null)
-        'Proximo_aviso': Timestamp.fromDate(proximoAviso!),
+        'ProximoAviso': Timestamp.fromDate(proximoAviso!),
       ..._productosToMap(),
     };
   }

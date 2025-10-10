@@ -79,7 +79,7 @@ class CustomWebProductosSectionState
   }
 
   void _incrementarProducto(Map<String, dynamic> producto) {
-    final productoId = producto['id'];
+    final productoId = producto['ID'];
     final cantidadActual = cantidades[productoId] ?? 0;
     final nuevaCantidad = cantidadActual + 1;
 
@@ -97,7 +97,7 @@ class CustomWebProductosSectionState
   }
 
   void _decrementarProducto(Map<String, dynamic> producto) {
-    final productoId = producto['id'];
+    final productoId = producto['ID'];
     final cantidadActual = cantidades[productoId] ?? 0;
     if (cantidadActual == 0) return;
 
@@ -117,7 +117,7 @@ class CustomWebProductosSectionState
   }
 
   void _agregarProductoNuevo(Map<String, dynamic> producto, int cantidad) {
-    final productoId = producto['id'];
+    final productoId = producto['ID'];
 
     final productoEnFicha = ProductoEnFicha(
       uidProducto: productoId,
@@ -170,7 +170,7 @@ class CustomWebProductosSectionState
   Future<void> _mostrarDialogEditarProducto(
       Map<String, dynamic> producto, int cantidadSeleccionada) async {
     final productoId =
-        producto['id'] ?? producto['UID'] ?? producto['uid'] ?? '';
+        producto['ID'] ?? producto['UID'] ?? producto['uid'] ?? '';
 
     // intentar obtener la entrada del producto dentro de la ficha (si existe)
     ProductoEnFicha? productoEnFicha;
@@ -247,7 +247,7 @@ class CustomWebProductosSectionState
                     itemCount: _productos.length,
                     itemBuilder: (context, index) {
                       final producto = _productos[index];
-                      final productoId = producto['id'] ??
+                      final productoId = producto['ID'] ??
                           producto['UID'] ??
                           producto['uid'] ??
                           '';

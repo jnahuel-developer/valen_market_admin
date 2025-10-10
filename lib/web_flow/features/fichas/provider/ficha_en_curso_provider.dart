@@ -189,8 +189,8 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
     DateTime? fechaDeAviso;
 
     // Se maneja de forma flexible el tipo de dato recibido para evitar errores
-    final dynamic fechaVentaRaw = ficha['Fecha_de_venta'];
-    final dynamic proximoAvisoRaw = ficha['Proximo_aviso'];
+    final dynamic fechaVentaRaw = ficha['FechaDeVenta'];
+    final dynamic proximoAvisoRaw = ficha['ProximoAviso'];
 
     if (fechaVentaRaw != null) {
       if (fechaVentaRaw is String) {
@@ -289,7 +289,7 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
       );
     }
 
-    final dynamic fechaVentaRaw = ficha['Fecha_de_venta'];
+    final dynamic fechaVentaRaw = ficha['FechaDeVenta'];
     DateTime? fechaDeVenta;
 
     if (fechaVentaRaw != null) {
@@ -304,7 +304,7 @@ class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
       }
     }
 
-    final dynamic fechaAvisoRaw = ficha['Proximo_aviso'];
+    final dynamic fechaAvisoRaw = ficha['ProximoAviso'];
     DateTime? fechaDeAviso;
 
     if (fechaAvisoRaw != null) {

@@ -156,7 +156,7 @@ class CustomWebFichaShopItem extends StatelessWidget {
               color: Colors.transparent,
               child: IconButton(
                 key: Key(
-                    'KEY__custom_web_ficha_shop_item__boton__editar__${producto['id'] ?? producto['UID'] ?? ''}'),
+                    'KEY__custom_web_ficha_shop_item__boton__editar__${producto['ID'] ?? producto['UID'] ?? ''}'),
                 icon: Icon(Icons.edit, size: 20, color: WebColors.textoRosa),
                 onPressed: onEdit,
                 tooltip: 'Editar producto en ficha',
