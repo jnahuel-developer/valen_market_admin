@@ -101,7 +101,7 @@ class _WebEditarProductoScreenState extends State<WebEditarProductoScreen> {
       }
 
       await _catalogoService.actualizarProducto(
-        productoId: widget.producto['id'],
+        productoId: widget.producto['ID'],
         nuevosDatos: {
           'NombreDelProducto': _nombreController.text.trim(),
           'DescripcionCorta': _descCortaController.text.trim(),

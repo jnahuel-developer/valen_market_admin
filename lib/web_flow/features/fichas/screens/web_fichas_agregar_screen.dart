@@ -11,16 +11,16 @@ import 'package:valen_market_admin/web_flow/widgets/custom_web_top_bar.dart';
 import 'package:valen_market_admin/constants/pantallas.dart';
 import 'package:valen_market_admin/services/firebase/fichas_servicios_firebase.dart';
 
-class WebFichasAgregarBuscarScreen extends ConsumerStatefulWidget {
-  const WebFichasAgregarBuscarScreen({super.key});
+class WebFichasAgregarScreen extends ConsumerStatefulWidget {
+  const WebFichasAgregarScreen({super.key});
 
   @override
-  ConsumerState<WebFichasAgregarBuscarScreen> createState() =>
-      _WebFichasAgregarBuscarScreenState();
+  ConsumerState<WebFichasAgregarScreen> createState() =>
+      _WebFichasAgregarScreenState();
 }
 
-class _WebFichasAgregarBuscarScreenState
-    extends ConsumerState<WebFichasAgregarBuscarScreen> {
+class _WebFichasAgregarScreenState
+    extends ConsumerState<WebFichasAgregarScreen> {
   final fichasService = FichasServiciosFirebase();
 
   final GlobalKey<CustomWebClienteSectionState> _clienteKey = GlobalKey();
@@ -118,7 +118,7 @@ class _WebFichasAgregarBuscarScreenState
       body: Column(
         children: [
           const CustomWebTopBar(
-            titulo: 'Agregar o buscar fichas',
+            titulo: 'Agregar ficha',
             pantallaPadreRouteName: PANTALLA_WEB__Home,
           ),
           Expanded(

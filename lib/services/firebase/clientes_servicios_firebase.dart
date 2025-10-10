@@ -39,7 +39,7 @@ class ClientesServiciosFirebase {
       final snapshot = await _clientesRef.get();
       return snapshot.docs.map((doc) {
         final data = doc.data() as Map<String, dynamic>;
-        data['id'] = doc.id; // Aseguramos incluir el ID de Firebase
+        data['ID'] = doc.id; // Aseguramos incluir el ID de Firebase
         return data;
       }).toList();
     } catch (e) {
@@ -65,7 +65,7 @@ class ClientesServiciosFirebase {
         final nombre = (data['Nombre'] as String).trim();
         final apellido = (data['Apellido'] as String).trim();
         return {
-          'id': doc.id,
+          'ID': doc.id,
           'nombreCompleto': '$nombre $apellido',
         };
       }).toList();

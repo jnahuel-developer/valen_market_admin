@@ -75,13 +75,13 @@ class WebHomeScreen extends StatelessWidget {
                           ], [
                             // Agregar ficha
                             () => Navigator.pushNamed(
-                                context, PANTALLA_WEB__Fichas__Agregar_Buscar),
+                                context, PANTALLA_WEB__Fichas__Agregar),
                             // Buscar ficha
                             () => Navigator.pushNamed(
-                                context, PANTALLA_WEB__Fichas__Agregar_Buscar),
+                                context, PANTALLA_WEB__Fichas__Buscar),
                             // Editar ficha (primero hay que buscarla)
                             () => Navigator.pushNamed(
-                                context, PANTALLA_WEB__Fichas__Agregar_Buscar),
+                                context, PANTALLA_WEB__Fichas__Buscar),
                           ]),
                         ],
                       ),

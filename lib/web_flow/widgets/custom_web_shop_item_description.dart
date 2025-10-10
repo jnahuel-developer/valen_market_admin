@@ -60,7 +60,7 @@ class CustomShopItemDescription extends StatelessWidget {
           break;
         case 'Editar':
           final producto = {
-            'id': id,
+            'ID': id,
             'NombreDelProducto': nombre,
             'DescripcionCorta': descripcionCorta,
             'DescripcionLarga': descripcionLarga,

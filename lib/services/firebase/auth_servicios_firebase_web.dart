@@ -160,8 +160,8 @@ class AuthServiciosFirebaseWeb {
     try {
       await FirebaseFirestore.instance.collection('BDD_Admins').doc(uid).set({
         'email': email,
-        'nombre': nombre,
-        'apellido': apellido,
+        'Nombre': nombre,
+        'Apellido': apellido,
       });
       log('✅ Documento creado en BDD_Admins para UID: $uid');
     } catch (e) {

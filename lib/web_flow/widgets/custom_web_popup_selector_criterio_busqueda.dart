@@ -23,6 +23,10 @@ class PopupSelectorCriterioBusqueda extends StatelessWidget {
           _buildCriterioButton(context, 'Apellido seleccionado'),
           const SizedBox(height: 12),
           _buildCriterioButton(context, 'Zona seleccionada'),
+          const SizedBox(height: 12),
+          _buildCriterioButton(context, 'Fecha de venta'),
+          const SizedBox(height: 12),
+          _buildCriterioButton(context, 'Fecha de aviso'),
         ],
       ),
       actions: [
@@ -41,8 +45,8 @@ class PopupSelectorCriterioBusqueda extends StatelessWidget {
         onCriterioSeleccionado(criterio);
         Navigator.of(context).pop(); // Cerrar el popup
       },
-      width: 280,
-      height: 50,
+      width: 400,
+      height: 70,
     );
   }
 }

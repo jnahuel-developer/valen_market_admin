@@ -6,7 +6,8 @@ import 'package:valen_market_admin/web_flow/features/catalogo/screens/web_ver_ca
 import 'package:valen_market_admin/web_flow/features/clientes/screens/web_agregar_cliente_screen.dart';
 import 'package:valen_market_admin/web_flow/features/dropbox/screens/web_dropbox_auth_screen.dart';
 import 'package:valen_market_admin/web_flow/features/dropbox/screens/web_dropbox_check_screen.dart';
-import 'package:valen_market_admin/web_flow/features/fichas/screens/web_fichas_agregar_buscar_screen.dart';
+import 'package:valen_market_admin/web_flow/features/fichas/screens/web_fichas_agregar_screen.dart';
+import 'package:valen_market_admin/web_flow/features/fichas/screens/web_fichas_buscar_screen.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/screens/web_fichas_editar_eliminar_screen.dart';
 import 'package:valen_market_admin/web_flow/features/login/screens/web_login_email_password_screen.dart';
 import 'package:valen_market_admin/web_flow/features/login/screens/web_login_screen.dart';
@@ -81,8 +82,8 @@ class MyApp extends StatelessWidget {
         PANTALLA_WEB__Dropbox__Check: (_) => const WebDropboxCheckScreen(),
 
         // Pantallas web de Fichas
-        PANTALLA_WEB__Fichas__Agregar_Buscar: (_) =>
-            const WebFichasAgregarBuscarScreen(),
+        PANTALLA_WEB__Fichas__Agregar: (_) => const WebFichasAgregarScreen(),
+        PANTALLA_WEB__Fichas__Buscar: (_) => const WebFichasBuscarScreen(),
         PANTALLA_WEB__Fichas__Editar_Eliminar: (_) =>
             const WebFichasEditarEliminarScreen(),
       },

@@ -89,7 +89,7 @@ class _WebVerCatalogoScreenState extends State<WebVerCatalogoScreen> {
                                 return SizedBox(
                                   width: itemWidth,
                                   child: CustomShopItemDescription(
-                                    id: producto['id'],
+                                    id: producto['ID'],
                                     nombre: producto['NombreDelProducto'] ?? '',
                                     descripcionCorta:
                                         producto['DescripcionCorta'] ?? '',

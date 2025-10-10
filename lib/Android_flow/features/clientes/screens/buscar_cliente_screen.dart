@@ -48,7 +48,7 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
       setState(() {
         clientes = data
             .map((e) => {
-                  'id': e['id'].toString(),
+                  'ID': e['ID'].toString(),
                   'nombreCompleto': e['nombreCompleto'].toString(),
                 })
             .toList();
@@ -287,7 +287,7 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
           },
           items: clientes.map((cliente) {
             return DropdownMenuItem<String>(
-              value: cliente['id'],
+              value: cliente['ID'],
               child: Center(
                 child: Text(
                   cliente['nombreCompleto']!.toUpperCase(),

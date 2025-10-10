@@ -76,7 +76,7 @@ class CustomWebClienteSectionState
     if (cliente.isNotEmpty) {
       _cargarCliente(cliente);
       ref.read(fichaEnCursoProvider.notifier).actualizarDatosCliente(
-            uidCliente: cliente['id'] ?? '',
+            uidCliente: cliente['ID'] ?? '',
             nombre: cliente['Nombre'] ?? '',
             apellido: cliente['Apellido'] ?? '',
             zona: cliente['Zona'] ?? '',
