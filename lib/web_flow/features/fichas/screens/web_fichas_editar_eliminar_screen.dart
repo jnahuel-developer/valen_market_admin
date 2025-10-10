@@ -44,9 +44,8 @@ class _WebFichasEditarEliminarScreenState
           const SnackBar(content: Text('Ficha actualizada correctamente')),
         );
 
-        // Después de editar volvemos a la pantalla de agregar/buscar
-        Navigator.pushReplacementNamed(
-            context, PANTALLA_WEB__Fichas__Agregar_Buscar);
+        // Después de editar la ficha se vuelve al menu inicial
+        Navigator.pushReplacementNamed(context, PANTALLA_WEB__Home);
       } catch (e) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -77,9 +76,8 @@ class _WebFichasEditarEliminarScreenState
           const SnackBar(content: Text('Ficha eliminada exitosamente')),
         );
 
-        // Después de eliminar volvemos a la pantalla de agregar/buscar
-        Navigator.pushReplacementNamed(
-            context, PANTALLA_WEB__Fichas__Agregar_Buscar);
+        // Después de eliminar la ficha se vuelve al menu inicial
+        Navigator.pushReplacementNamed(context, PANTALLA_WEB__Home);
       } catch (e) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -89,6 +87,13 @@ class _WebFichasEditarEliminarScreenState
         if (mounted) setState(() => _cargando = false);
       }
     }
+  }
+
+  Future<void> _informarPago() async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+          content: Text('Funcionalidad de informar pago en desarrollo.')),
+    );
   }
 
   Future<bool?> _mostrarPopupConfirmacion(String mensaje) {
@@ -130,8 +135,8 @@ class _WebFichasEditarEliminarScreenState
           Column(
             children: [
               const CustomWebTopBar(
-                titulo: 'Editar o eliminar ficha',
-                pantallaPadreRouteName: PANTALLA_WEB__Fichas__Agregar_Buscar,
+                titulo: 'Ficha seleccionada',
+                pantallaPadreRouteName: PANTALLA_WEB__Home,
               ),
               Expanded(
                 child: Row(
@@ -158,16 +163,6 @@ class _WebFichasEditarEliminarScreenState
                               flex: 1,
                               child: CustomWebFichaFechasSection(),
                             ),
-                            const SizedBox(height: 20),
-
-                            // Botón para editar ficha
-                            SizedBox(
-                              width: double.infinity,
-                              child: CustomGradientButton(
-                                text: 'Editar',
-                                onPressed: _confirmarActualizacionFicha,
-                              ),
-                            ),
                           ],
                         ),
                       ),
@@ -185,15 +180,41 @@ class _WebFichasEditarEliminarScreenState
                               ),
                             ),
                             const SizedBox(height: 15),
-                            SizedBox(
-                              width: double.infinity,
-                              child: CustomGradientButton(
-                                text: 'Eliminar',
-                                onPressed: _confirmarEliminacionFicha,
-                              ),
-                            ),
                           ],
                         ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Fila inferior con los tres botones de acción
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                child: Row(
+                  children: [
+                    // Botón Editar
+                    Expanded(
+                      child: CustomGradientButton(
+                        text: 'Editar',
+                        onPressed: _confirmarActualizacionFicha,
+                      ),
+                    ),
+                    const SizedBox(width: 15),
+
+                    // Botón Informar pago
+                    Expanded(
+                      child: CustomGradientButton(
+                        text: 'Informar pago',
+                        onPressed: _informarPago,
+                      ),
+                    ),
+                    const SizedBox(width: 15),
+
+                    // Botón Eliminar
+                    Expanded(
+                      child: CustomGradientButton(
+                        text: 'Eliminar',
+                        onPressed: _confirmarEliminacionFicha,
                       ),
                     ),
                   ],
