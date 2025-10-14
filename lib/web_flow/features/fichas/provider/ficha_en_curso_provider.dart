@@ -1,329 +1,336 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:valen_market_admin/web_flow/features/fichas/model/ficha_en_curso_model.dart';
-import 'package:valen_market_admin/services/firebase/clientes_servicios_firebase.dart';
+import 'package:valen_market_admin/constants/fieldNames.dart';
+import 'package:valen_market_admin/services/firebase/fichas_servicios_firebase.dart';
+import 'package:valen_market_admin/web_flow/features/fichas/model/fechas_ficha_model.dart';
+import 'package:valen_market_admin/web_flow/features/fichas/model/ficha_model.dart';
+import 'package:valen_market_admin/web_flow/features/fichas/model/producto_ficha_model.dart';
+import 'package:valen_market_admin/web_flow/features/fichas/model/pagos_ficha_model.dart';
+import 'package:valen_market_admin/web_flow/features/fichas/model/cliente_ficha_model.dart';
+import 'package:valen_market_admin/web_flow/features/fichas/provider/cliente_ficha_provider.dart';
+import 'package:valen_market_admin/web_flow/features/fichas/provider/fechas_ficha_provider.dart';
+import 'package:valen_market_admin/web_flow/features/fichas/provider/producto_ficha_provider.dart';
+import 'package:valen_market_admin/web_flow/features/fichas/provider/pagos_ficha_provider.dart';
 
-final fichaEnCursoProvider =
-    StateNotifierProvider<FichaEnCursoNotifier, FichaEnCurso>(
-  (ref) => FichaEnCursoNotifier(),
-);
+class FichaEnCursoProvider extends ChangeNotifier {
+  // Subproviders internos (no deben ser accedidos directamente fuera de este módulo)
+  final ClienteFichaProvider _clienteProvider = ClienteFichaProvider();
+  final FechasFichaProvider _fechasProvider = FechasFichaProvider();
+  final ProductoFichaProvider _productoProvider = ProductoFichaProvider();
+  final PagosFichaProvider _pagosProvider = PagosFichaProvider();
 
-class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
-  FichaEnCursoNotifier() : super(FichaEnCurso());
+  final FichasServiciosFirebase _firebaseService = FichasServiciosFirebase();
 
-  // --- CLIENTE ---
-  Future<void> seleccionarClientePorUID(String uidCliente) async {
-    try {
-      final cliente =
-          await ClientesServiciosFirebase.obtenerClientePorId(uidCliente);
+  String? _id; // ID del documento en Firestore
+  int _numeroDeFicha = 0;
 
-      if (cliente == null) return;
+  // Getters
+  String? get id => _id;
+  int get numeroDeFicha => _numeroDeFicha;
 
-      state = state.copyWith(
-        uidCliente: uidCliente,
-        nombreCliente: cliente['Nombre'] ?? '',
-        apellidoCliente: cliente['Apellido'] ?? '',
-        zonaCliente: cliente['Zona'] ?? '',
-        direccionCliente: cliente['Dirección'] ?? '',
-        telefonoCliente: cliente['Teléfono'] ?? '',
-      );
-    } catch (_) {}
+  // ------------------------------------------------------------------------------------
+  // MÉTODOS DE ACTUALIZACIÓN
+  // ------------------------------------------------------------------------------------
+
+  void actualizarCliente(Map<String, dynamic> clienteMap) {
+    _clienteProvider.setCliente(ClienteFichaModel.fromMap(clienteMap));
+    notifyListeners();
   }
 
-  // --- PRODUCTOS ---
-  void agregarProducto(ProductoEnFicha producto) {
-    final indexExistente = state.productos
-        .indexWhere((p) => p.uidProducto == producto.uidProducto);
+  void actualizarFechas(Map<String, dynamic> fechasMap) {
+    final fechas = FechasFichaModel.fromMap(fechasMap);
 
-    if (indexExistente != -1) {
-      final productoExistente = state.productos[indexExistente];
-      final nuevaCantidad = producto.unidades;
+    // Normalizamos las fechas sin modificar las propiedades finales
+    final fechaVentaNormalizada = (fechas.venta != null)
+        ? DateTime(fechas.venta!.year, fechas.venta!.month, fechas.venta!.day)
+        : null;
 
-      final productoActualizado = ProductoEnFicha(
-        uidProducto: producto.uidProducto,
-        nombreProducto: producto.nombreProducto,
-        unidades: nuevaCantidad,
-        precioUnitario: producto.precioUnitario,
-        cantidadDeCuotas: producto.cantidadDeCuotas,
-        precioDeLasCuotas: producto.precioDeLasCuotas,
-        saldado: productoExistente.saldado,
-        restante: nuevaCantidad * producto.precioDeLasCuotas,
-      );
+    final proximoAvisoNormalizado = (fechas.proximoAviso != null)
+        ? DateTime(fechas.proximoAviso!.year, fechas.proximoAviso!.month,
+            fechas.proximoAviso!.day)
+        : null;
 
-      final productosActualizados = [...state.productos];
-      productosActualizados[indexExistente] = productoActualizado;
+    final fechasNormalizadas = FechasFichaModel(
+      fechaDeCreacion: DateTime(
+        fechas.fechaDeCreacion.year,
+        fechas.fechaDeCreacion.month,
+        fechas.fechaDeCreacion.day,
+      ),
+      venta: fechaVentaNormalizada,
+      proximoAviso: proximoAvisoNormalizado,
+    );
 
-      state = state.copyWith(productos: productosActualizados);
+    _fechasProvider.setFechas(fechasNormalizadas);
+    notifyListeners();
+  }
+
+  void registrarPago(Map<String, dynamic> pagoMap) {
+    _pagosProvider.registrarPagoDesdeMapa(pagoMap);
+    notifyListeners();
+  }
+
+  void setId(String? id) {
+    _id = id;
+    notifyListeners();
+  }
+
+  void setNumeroDeFicha(int nuevoNumero) {
+    _numeroDeFicha = nuevoNumero;
+    notifyListeners();
+  }
+
+  // ---------------------------------------------------------------------
+  // 🔹 Incrementar o decrementar unidades de un producto
+  // ---------------------------------------------------------------------
+  void modificarCantidadDeProducto({
+    required String uidProducto,
+    required bool incrementar,
+    required Map<String, dynamic> datosCatalogo,
+  }) {
+    final existente = _productoProvider.productos.firstWhere(
+      (p) => p.uid == uidProducto,
+    );
+
+    int nuevaCantidad = (existente.unidades ?? 0) + (incrementar ? 1 : -1);
+    if (nuevaCantidad < 0) nuevaCantidad = 0;
+
+    if (nuevaCantidad == 0) {
+      _productoProvider.eliminarProductoPorUID(uidProducto);
+    } else if (existente.uid.isEmpty) {
+      // Producto nuevo desde catálogo
+      final nuevoProducto = ProductoFichaModel.fromMap({
+        FIELD_NAME__producto_ficha_model__UID:
+            datosCatalogo[FIELD_NAME__producto_ficha_model__UID],
+        FIELD_NAME__producto_ficha_model__Nombre:
+            datosCatalogo[FIELD_NAME__catalogo__Nombre_Del_Producto],
+        FIELD_NAME__producto_ficha_model__Unidades: nuevaCantidad,
+        FIELD_NAME__producto_ficha_model__Precio_Unitario:
+            (datosCatalogo[FIELD_NAME__catalogo__Precio] ?? 0).toDouble(),
+        FIELD_NAME__producto_ficha_model__Cantidad_De_Cuotas:
+            datosCatalogo[FIELD_NAME__catalogo__Cantidad_De_Cuotas] ?? 1,
+        FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas:
+            ((datosCatalogo[FIELD_NAME__catalogo__Precio] ?? 0).toDouble() /
+                (datosCatalogo[FIELD_NAME__catalogo__Cantidad_De_Cuotas] ?? 1)),
+      });
+      _productoProvider.agregarProducto(nuevoProducto);
     } else {
-      final productoConRestante = ProductoEnFicha(
-        uidProducto: producto.uidProducto,
-        nombreProducto: producto.nombreProducto,
-        unidades: producto.unidades,
-        precioUnitario: producto.precioUnitario,
-        cantidadDeCuotas: producto.cantidadDeCuotas,
-        precioDeLasCuotas: producto.precioDeLasCuotas,
-        saldado: producto.saldado,
-        restante: producto.unidades * producto.precioDeLasCuotas,
-      );
-
-      state =
-          state.copyWith(productos: [...state.productos, productoConRestante]);
+      _productoProvider.actualizarCantidadDeProducto(
+          uidProducto, nuevaCantidad);
     }
+
+    notifyListeners();
   }
 
+  // ---------------------------------------------------------------------
+  // 🔹 Actualizar valores financieros del producto
+  // ---------------------------------------------------------------------
   void actualizarValoresDelProducto({
     required String uidProducto,
-    required double precioUnitario,
-    required int cantidadDeCuotas,
-    required double precioDeLasCuotas,
+    required double nuevoPrecioUnitario,
+    required int nuevaCantidadDeCuotas,
+    required double nuevoImporteDeLasCuotas,
   }) {
-    final index =
-        state.productos.indexWhere((p) => p.uidProducto == uidProducto);
-    if (index == -1) {
-      // Si por alguna razón no existe, no hacemos nada (la UI impide editar si cantidad == 0)
-      return;
-    }
-
-    final existente = state.productos[index];
-
-    final actualizado = ProductoEnFicha(
-      uidProducto: existente.uidProducto,
-      nombreProducto: existente.nombreProducto,
-      unidades: existente.unidades,
-      precioUnitario: precioUnitario,
-      cantidadDeCuotas: cantidadDeCuotas,
-      precioDeLasCuotas: precioDeLasCuotas,
-      saldado: existente.saldado,
-      restante: existente.unidades * precioDeLasCuotas,
+    _productoProvider.actualizarValoresDelProducto(
+      uidProducto: uidProducto,
+      nuevoPrecioUnitario: nuevoPrecioUnitario,
+      nuevaCantidadDeCuotas: nuevaCantidadDeCuotas,
+      nuevoImporteDeLasCuotas: nuevoImporteDeLasCuotas,
     );
-
-    final productosActualizados = [...state.productos];
-    productosActualizados[index] = actualizado;
-
-    state = state.copyWith(productos: productosActualizados);
+    notifyListeners();
   }
 
-  void eliminarProductoPorUID(String uidProducto) {
-    final nuevosProductos =
-        state.productos.where((p) => p.uidProducto != uidProducto).toList();
-    state = state.copyWith(productos: nuevosProductos);
-  }
-
-  // --- INFORMAR PAGO ---
-  void registrarPago(double montoPagado, DateTime fechaPago) {
-    if (state.productos.isEmpty) return;
-
-    double totalCuotas =
-        state.productos.fold(0, (sum, p) => sum + p.precioDeLasCuotas);
-
-    if (totalCuotas <= 0) return;
-
-    List<ProductoEnFicha> productosActualizados = [];
-    double totalSaldadoFicha = 0.0;
-    double totalFicha = 0.0;
-    int maxCuotasRestantes = 0;
-
-    for (final p in state.productos) {
-      final proporcion = p.precioDeLasCuotas / totalCuotas;
-      final montoAsignado = montoPagado * proporcion;
-
-      final nuevoTotalSaldado = (p.totalSaldado + montoAsignado)
-          .clamp(0, p.cantidadDeCuotas * p.precioDeLasCuotas);
-      final nuevoRestante =
-          (p.cantidadDeCuotas * p.precioDeLasCuotas) - nuevoTotalSaldado;
-      final nuevasCuotasPagas =
-          (nuevoTotalSaldado / p.precioDeLasCuotas).floor();
-
-      final actualizado = p.copyWith(
-        totalSaldado: 0,
-        restante: nuevoRestante,
-        cuotasPagas: nuevasCuotasPagas,
-        saldado: nuevasCuotasPagas >= p.cantidadDeCuotas,
-      );
-
-      productosActualizados.add(actualizado);
-
-      totalFicha += p.cantidadDeCuotas * p.precioDeLasCuotas;
-      totalSaldadoFicha += nuevoTotalSaldado;
-      final restantes = p.cantidadDeCuotas - nuevasCuotasPagas;
-      if (restantes > maxCuotasRestantes) {
-        maxCuotasRestantes = restantes;
-      }
+  // ---------------------------------------------------------------------
+  // 🔹 Actualizar lista completa (ya existente)
+  // ---------------------------------------------------------------------
+  void actualizarProductos(List<Map<String, dynamic>> productosMap) {
+    _productoProvider.limpiarProductos();
+    for (final p in productosMap) {
+      _productoProvider.agregarProducto(ProductoFichaModel.fromMap(p));
     }
+    notifyListeners();
+  }
 
-    state = state.copyWith(
-      productos: productosActualizados,
-      totalFicha: totalFicha,
-      totalSaldadoFicha: totalSaldadoFicha,
-      cuotasRestantesFicha: maxCuotasRestantes,
-      proximoAviso: fechaPago,
+  // ------------------------------------------------------------------------------------
+  // MÉTODOS DE CONSTRUCCIÓN Y CARGA COMPLETA
+  // ------------------------------------------------------------------------------------
+
+  FichaModel construirFichaCompleta() {
+    return FichaModel(
+      id: _id,
+      numeroDeFicha: _numeroDeFicha,
+      cantidadDeProductos: _productoProvider.productos.length,
+      cliente: _clienteProvider.cliente,
+      fechas: _fechasProvider.fechas,
+      pagos: _pagosProvider.pagos,
+      productos: _productoProvider.productos,
     );
   }
+
+  void cargarDesdeFichaModel(FichaModel ficha) {
+    _id = ficha.id;
+    _numeroDeFicha = ficha.numeroDeFicha;
+    _clienteProvider.setCliente(ficha.cliente);
+    _fechasProvider.setFechas(ficha.fechas);
+    _pagosProvider.setPagos(ficha.pagos);
+
+    _productoProvider.limpiarProductos();
+    for (var p in ficha.productos) {
+      _productoProvider.agregarProducto(p);
+    }
+
+    notifyListeners();
+  }
+
+  void cargarDesdeMap(Map<String, dynamic> data) {
+    _id = data[FIELD_NAME__ficha_model__ID_De_Ficha];
+    _numeroDeFicha = data[FIELD_NAME__ficha_model__Numero_De_Ficha] ?? 0;
+
+    _clienteProvider.setCliente(ClienteFichaModel.fromMap(
+        data[FIELD_NAME__ficha_model__Cliente] ?? {}));
+
+    _fechasProvider.setFechas(
+        FechasFichaModel.fromMap(data[FIELD_NAME__ficha_model__Fechas] ?? {}));
+
+    _pagosProvider.setPagos(
+        PagosFichaModel.fromMap(data[FIELD_NAME__ficha_model__Pagos] ?? {}));
+
+    final productosMap = data[FIELD_NAME__ficha_model__Productos];
+    if (productosMap is Map<String, dynamic>) {
+      _productoProvider.limpiarProductos();
+      productosMap.forEach((key, value) {
+        _productoProvider.agregarProducto(ProductoFichaModel.fromMap(value));
+      });
+    }
+
+    notifyListeners();
+  }
+
+  // ------------------------------------------------------------------------------------
+  // VALIDACIÓN Y ESTADO
+  // ------------------------------------------------------------------------------------
+
+  bool get esValida {
+    return _clienteProvider.cliente.uid.isNotEmpty &&
+        _productoProvider.productos.isNotEmpty;
+  }
+
+  bool get estaVacia {
+    return _clienteProvider.cliente.uid.isEmpty &&
+        _productoProvider.productos.isEmpty;
+  }
+
+  // ------------------------------------------------------------------------------------
+  // LIMPIEZA
+  // ------------------------------------------------------------------------------------
 
   void limpiarFicha() {
-    state = FichaEnCurso();
+    _clienteProvider.limpiarCliente();
+    _fechasProvider.limpiarFechas();
+    _productoProvider.limpiarProductos();
+    _pagosProvider.limpiarPagos();
+    _id = null;
+    _numeroDeFicha = 0;
+    notifyListeners();
   }
 
-  void actualizarFechaDeVenta(DateTime? fecha) {
-    state = state.copyWith(fechaDeVenta: fecha);
-  }
+  // ------------------------------------------------------------------------------------
+  // SINCRONIZACIÓN CON FIREBASE
+  // ------------------------------------------------------------------------------------
 
-  void actualizarFrecuenciaDeAviso(String frecuencia) {
-    state = state.copyWith(frecuenciaDeAviso: frecuencia);
-  }
-
-  void actualizarProximoAviso(DateTime fecha) {
-    state = state.copyWith(proximoAviso: fecha);
-  }
-
-  void cargarFichaDesdeMapa(Map<String, dynamic> ficha,
-      {required String fichaId}) {
-    final uidCliente = ficha['UID_Cliente'] as String?;
-    final nombreCliente = ficha['Nombre'] as String?;
-    final apellidoCliente = ficha['Apellido'] as String?;
-    final zonaCliente = ficha['Zona'] as String?;
-    final direccionCliente = ficha['Dirección'] as String?;
-    final telefonoCliente = ficha['Teléfono'] as String?;
-
-    DateTime? fechaDeVenta;
-    DateTime? fechaDeAviso;
-
-    // Se maneja de forma flexible el tipo de dato recibido para evitar errores
-    final dynamic fechaVentaRaw = ficha['FechaDeVenta'];
-    final dynamic proximoAvisoRaw = ficha['ProximoAviso'];
-
-    if (fechaVentaRaw != null) {
-      if (fechaVentaRaw is String) {
-        try {
-          fechaDeVenta = DateTime.parse(fechaVentaRaw);
-        } catch (_) {}
-      } else if (fechaVentaRaw is DateTime) {
-        fechaDeVenta = fechaVentaRaw;
-      } else if (fechaVentaRaw is Timestamp) {
-        fechaDeVenta = fechaVentaRaw.toDate();
-      }
+  Future<void> guardarFicha() async {
+    if (_id != null) {
+      throw Exception(
+          'La ficha ya tiene un ID asignado. Use actualizarFichaMedianteID() en su lugar.');
     }
 
-    if (proximoAvisoRaw != null) {
-      if (proximoAvisoRaw is String) {
-        try {
-          fechaDeAviso = DateTime.parse(proximoAvisoRaw);
-        } catch (_) {}
-      } else if (proximoAvisoRaw is DateTime) {
-        fechaDeAviso = proximoAvisoRaw;
-      } else if (proximoAvisoRaw is Timestamp) {
-        fechaDeAviso = proximoAvisoRaw.toDate();
-      }
-    }
-
-    final int cantidadProductos = ficha['Cantidad_de_Productos'] ?? 0;
-    final List<ProductoEnFicha> productos = [];
-
-    for (int i = 0; i < cantidadProductos; i++) {
-      productos.add(
-        ProductoEnFicha(
-          uidProducto: ficha['UID_Producto_$i'] ?? '',
-          nombreProducto: ficha['nombreProducto_$i'] ?? '',
-          unidades: ficha['Unidades_Producto_$i'] ?? 0,
-          precioUnitario: (ficha['Precio_Producto_$i'] ?? 0).toDouble(),
-          cantidadDeCuotas: ficha['Cantidad_de_cuotas_Producto_$i'] ?? 0,
-          precioDeLasCuotas:
-              (ficha['Precio_de_las_cuotas_Producto_$i'] ?? 0).toDouble(),
-          saldado: ficha['Saldado_Producto_$i'] ?? false,
-          restante: (ficha['Restante_Producto_$i'] ?? 0).toDouble(),
-        ),
-      );
-    }
-
-    state = FichaEnCurso(
-      id: fichaId,
-      uidCliente: uidCliente,
-      nombreCliente: nombreCliente,
-      apellidoCliente: apellidoCliente,
-      zonaCliente: zonaCliente,
-      direccionCliente: direccionCliente,
-      telefonoCliente: telefonoCliente,
-      productos: productos,
-      fechaDeVenta: fechaDeVenta,
-      frecuenciaDeAviso: ficha['Frecuencia_de_aviso'] as String?,
-      proximoAviso: fechaDeAviso,
-    );
+    final nuevaFicha = construirFichaCompleta();
+    final nuevoId = await _firebaseService.CrearFichaEnFirebase(nuevaFicha);
+    _id = nuevoId;
+    notifyListeners();
   }
 
-  void actualizarDatosCliente({
-    required String uidCliente,
-    required String nombre,
-    required String apellido,
-    required String zona,
-    required String direccion,
-    required String telefono,
-  }) {
-    state = state.copyWith(
-      uidCliente: uidCliente,
-      nombreCliente: nombre,
-      apellidoCliente: apellido,
-      zonaCliente: zona,
-      direccionCliente: direccion,
-      telefonoCliente: telefono,
-    );
+  Future<void> actualizarFichaMedianteID() async {
+    if (_id == null) {
+      throw Exception('No hay ID asignado. No se puede actualizar.');
+    }
+    final ficha = construirFichaCompleta();
+    await _firebaseService.ActualizarFichaEnFirebase(_id!, ficha);
   }
 
-  void cargarSoloDatosDeFichaYProductos(Map<String, dynamic> ficha,
-      {required String fichaId}) {
-    final int cantidadProductos = ficha['Cantidad_de_Productos'] ?? 0;
-    List<ProductoEnFicha> productos = [];
-
-    for (int i = 0; i < cantidadProductos; i++) {
-      productos.add(
-        ProductoEnFicha(
-          uidProducto: ficha['UID_Producto_$i'] ?? '',
-          nombreProducto: ficha['nombreProducto_$i'] ?? '',
-          unidades: ficha['Unidades_Producto_$i'] ?? 0,
-          precioUnitario: (ficha['Precio_Producto_$i'] ?? 0).toDouble(),
-          cantidadDeCuotas: ficha['Cantidad_de_cuotas_Producto_$i'] ?? 0,
-          precioDeLasCuotas:
-              (ficha['Precio_de_las_cuotas_Producto_$i'] ?? 0).toDouble(),
-          saldado: ficha['Saldado_Producto_$i'] ?? false,
-          restante: (ficha['Restante_Producto_$i'] ?? 0).toDouble(),
-        ),
-      );
-    }
-
-    final dynamic fechaVentaRaw = ficha['FechaDeVenta'];
-    DateTime? fechaDeVenta;
-
-    if (fechaVentaRaw != null) {
-      if (fechaVentaRaw is String) {
-        try {
-          fechaDeVenta = DateTime.parse(fechaVentaRaw);
-        } catch (_) {}
-      } else if (fechaVentaRaw is DateTime) {
-        fechaDeVenta = fechaVentaRaw;
-      } else if (fechaVentaRaw is Timestamp) {
-        fechaDeVenta = fechaVentaRaw.toDate();
-      }
-    }
-
-    final dynamic fechaAvisoRaw = ficha['ProximoAviso'];
-    DateTime? fechaDeAviso;
-
-    if (fechaAvisoRaw != null) {
-      if (fechaAvisoRaw is String) {
-        try {
-          fechaDeAviso = DateTime.parse(fechaAvisoRaw);
-        } catch (_) {}
-      } else if (fechaAvisoRaw is DateTime) {
-        fechaDeAviso = fechaAvisoRaw;
-      } else if (fechaAvisoRaw is Timestamp) {
-        fechaDeAviso = fechaAvisoRaw.toDate();
-      }
-    }
-
-    state = state.copyWith(
-      id: fichaId,
-      productos: productos,
-      fechaDeVenta: fechaDeVenta,
-      proximoAviso: fechaDeAviso,
-    );
+  Future<void> eliminarFichaMedianteID() async {
+    if (_id == null) return;
+    await _firebaseService.EliminarFichaEnFirebase(_id!);
+    limpiarFicha();
   }
+
+  Future<void> cargarFichaMedianteID() async {
+    if (_id == null) throw Exception('No hay ID asignado.');
+
+    final ficha =
+        await _firebaseService.CargarFichaDesdeFirebaseMedianteIDCliente(_id!);
+
+    if (ficha == null) {
+      throw Exception(
+          'No se encontró ninguna ficha con el ID $_id en Firebase.');
+    }
+
+    cargarDesdeFichaModel(ficha);
+  }
+
+  // Métodos de obtención por filtros
+  Future<List<FichaModel>> obtenerFichasMedianteID() async {
+    return await _firebaseService.ObtenerFichasDesdeFirebaseMedianteIDCliente(
+        _clienteProvider.cliente.uid);
+  }
+
+  Future<List<FichaModel>> obtenerFichasMedianteNombre() async {
+    return await _firebaseService
+        .ObtenerFichasDesdeFirebaseMedianteNombreCliente(
+            _clienteProvider.cliente.nombre);
+  }
+
+  Future<List<FichaModel>> obtenerFichasMedianteApellido() async {
+    return await _firebaseService
+        .ObtenerFichasDesdeFirebaseMedianteApellidoCliente(
+            _clienteProvider.cliente.apellido);
+  }
+
+  Future<List<FichaModel>> obtenerFichasMedianteZona() async {
+    return await _firebaseService.ObtenerFichasDesdeFirebaseMedianteZonaCliente(
+        _clienteProvider.cliente.zona);
+  }
+
+  Future<List<FichaModel>> obtenerFichasMedianteFechaVenta() async {
+    final fecha = _fechasProvider.fechas.venta;
+    if (fecha == null) return [];
+    return await _firebaseService.ObtenerFichasDesdeFirebaseMedianteFechaVenta(
+        DateTime(fecha.year, fecha.month, fecha.day));
+  }
+
+  Future<List<FichaModel>> obtenerFichasMedianteFechaAviso() async {
+    final fecha = _fechasProvider.fechas.proximoAviso;
+    if (fecha == null) return [];
+    return await _firebaseService.ObtenerFichasDesdeFirebaseMedianteFechaAviso(
+        DateTime(fecha.year, fecha.month, fecha.day));
+  }
+
+  // ------------------------------------------------------------------------------------
+  // GETTERS DE ACCESO SIMPLIFICADO (para UI)
+  // ------------------------------------------------------------------------------------
+
+  String? get uidCliente => _clienteProvider.cliente.uid;
+  String? get nombreCliente => _clienteProvider.cliente.nombre;
+  String? get apellidoCliente => _clienteProvider.cliente.apellido;
+  String? get zonaCliente => _clienteProvider.cliente.zona;
+  String? get direccionCliente => _clienteProvider.cliente.direccion;
+  String? get telefonoCliente => _clienteProvider.cliente.telefono;
+  DateTime? get fechaDeVenta => _fechasProvider.fechas.venta;
+  DateTime? get proximoAviso => _fechasProvider.fechas.proximoAviso;
+  List<ProductoFichaModel> get productos => _productoProvider.productos;
+  PagosFichaModel get pagos => _pagosProvider.pagos;
 }
+
+final fichaEnCursoProvider =
+    ChangeNotifierProvider<FichaEnCursoProvider>((ref) {
+  return FichaEnCursoProvider();
+});

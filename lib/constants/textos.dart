@@ -74,3 +74,33 @@ const String TEXTO_ES__frecuencia_aviso_widget__campo__opcion_4 = 'Libre';
 const String TEXTO_ES__fichas_fechas_widget__campo__titulo =
     'Fechas de control';
 const String TEXTO_ES__fichas_fechas_widget__campo__label = '¿Vendida hoy?';
+
+//
+
+// Pantalla Editar fichas
+const String TEXTO_ES__agregar_fichas_screen__titulo = 'Agregar ficha';
+const String TEXTO_ES__editar_fichas_screen__boton__agregar = 'Agregar';
+const String TEXTO_ES__editar_fichas_screen__boton__buscar = 'Buscar';
+
+// Pantalla Editar fichas
+const String TEXTO_ES__editar_fichas_screen__titulo = 'Ficha seleccionada';
+const String TEXTO_ES__editar_fichas_screen__boton__editar = 'Editar';
+const String TEXTO_ES__editar_fichas_screen__boton__informar_pago =
+    'Informar pago';
+const String TEXTO_ES__editar_fichas_screen__boton__eliminar = 'Eliminar';
+const String TEXTO_ES__editar_fichas_screen__boton__confirmacion =
+    'Confirmación';
+const String TEXTO_ES__editar_fichas_screen__boton__cancelar = 'Cancelar';
+const String TEXTO_ES__editar_fichas_screen__boton__confirmar = 'Confirmar';
+const String TEXTO_ES__editar_fichas_screen__mensaje__confirmar_actualizacion =
+    '¿Deseas actualizar la ficha?';
+const String TEXTO_ES__editar_fichas_screen__mensaje__ID_no_definido =
+    'ID de ficha no definido';
+const String TEXTO_ES__editar_fichas_screen__mensaje__ficha_actualizada =
+    'Ficha actualizada correctamente';
+const String TEXTO_ES__editar_fichas_screen__mensaje__confirmar_eliminacion =
+    '¿Deseas eliminar la ficha?';
+const String TEXTO_ES__editar_fichas_screen__mensaje__ficha_eliminada =
+    'Ficha eliminada exitosamente';
+const String TEXTO_ES__editar_fichas_screen__mensaje__pago_registrado =
+    'Pago registrado correctamente';

@@ -1,8 +1,21 @@
+/// custom_web_campo_con_checkbox_dropdown.dart
+///
+/// Descripción:
+/// - Campo compuesto por checkbox + label + dropdown (lista de zonas).
+/// - No accede a sub-providers. Cuando el usuario cambia la opción y el campo
+///   está editable, el widget ejecuta `onChanged` para que el parent arme el
+///   Map y actualice el provider con `actualizarCliente(Map)` o aplique el filtro.
+///
+/// Interactúa con:
+/// - CustomWebClienteSection (parent) que decide cómo usar la selección
+///   (filtro o actualización del cliente en el provider).
+library;
+
 import 'package:flutter/material.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
 import 'package:valen_market_admin/constants/values.dart';
 
-class CustomWebCampoConCheckboxDropdown extends StatelessWidget {
+class CustomWebCampoConCheckboxDropdown extends StatefulWidget {
   final String label;
   final List<String> options;
   final String? selectedOption;
@@ -21,21 +34,45 @@ class CustomWebCampoConCheckboxDropdown extends StatelessWidget {
   });
 
   @override
+  State<CustomWebCampoConCheckboxDropdown> createState() =>
+      _CustomWebCampoConCheckboxDropdownState();
+}
+
+class _CustomWebCampoConCheckboxDropdownState
+    extends State<CustomWebCampoConCheckboxDropdown> {
+  String? _selectedOptionLocal;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedOptionLocal = widget.selectedOption;
+  }
+
+  @override
+  void didUpdateWidget(covariant CustomWebCampoConCheckboxDropdown oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Keep local selected in sync if parent changed it
+    if (widget.selectedOption != oldWidget.selectedOption) {
+      _selectedOptionLocal = widget.selectedOption;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         Checkbox(
-          value: isEditable,
+          value: widget.isEditable,
           onChanged: (value) {
-            if (value != null) onCheckboxChanged(value);
+            if (value != null) widget.onCheckboxChanged(value);
+            setState(() {});
           },
-          // Se define el color para cuando el Checkbox esté habilitado
           activeColor: WebColors.checkboxHabilitado,
         ),
         SizedBox(
           width: 90,
           child: Text(
-            label,
+            widget.label,
             style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
           ),
         ),
@@ -46,7 +83,7 @@ class CustomWebCampoConCheckboxDropdown extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
               border: Border.all(
-                color: isEditable
+                color: widget.isEditable
                     ? WebColors.negro
                     : WebColors.bordeControlDeshabilitado,
               ),
@@ -55,14 +92,22 @@ class CustomWebCampoConCheckboxDropdown extends StatelessWidget {
             ),
             child: DropdownButton<String>(
               isExpanded: true,
-              value: selectedOption,
-              onChanged: isEditable ? onChanged : null,
+              value: _selectedOptionLocal?.isEmpty == true
+                  ? null
+                  : _selectedOptionLocal,
+              onChanged: widget.isEditable
+                  ? (value) {
+                      setState(() => _selectedOptionLocal = value);
+                      widget.onChanged(value);
+                    }
+                  : null,
               underline: const SizedBox(),
-              iconEnabledColor: isEditable
+              iconEnabledColor: widget.isEditable
                   ? WebColors.negro
                   : WebColors.bordeControlDeshabilitado,
               style: TextStyle(
-                fontStyle: isEditable ? FontStyle.normal : FontStyle.italic,
+                fontStyle:
+                    widget.isEditable ? FontStyle.normal : FontStyle.italic,
                 color: WebColors.negro,
                 fontSize: 16,
               ),
@@ -74,12 +119,12 @@ class CustomWebCampoConCheckboxDropdown extends StatelessWidget {
                   fontSize: 16,
                 ),
               ),
-              items: options.map((zona) {
-                return DropdownMenuItem<String>(
-                  value: zona,
-                  child: Text(zona),
-                );
-              }).toList(),
+              items: widget.options
+                  .map((zona) => DropdownMenuItem<String>(
+                        value: zona,
+                        child: Text(zona),
+                      ))
+                  .toList(),
             ),
           ),
         ),

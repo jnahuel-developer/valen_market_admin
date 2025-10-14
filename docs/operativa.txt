@@ -1,0 +1,316 @@
+Tengo un proyecto en Flutter, con la siguiente descripción:
+
+Y esta estructura de archivos:
+
+Además, estas son las reglas de diseño obligatorias para todo el proyecto:
+
+ Como puedes ver, el proyecto es único, pero tiene 2 entradas:
+ - lib/main_dev.dart -> Para el ambiente de desarrollo
+ - lib/main_prod.dart -> Para el ambiente de producción
+
+ Ahora me encuentro trabajando en la mod0020 -> Refactorización de la estructura de datos almacenadas en los documentos de las fichas 
+
+ Dime si se entiende bien la estructura del proyecto, así comenzamos a trabajar en el nuevo desarrollo
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Ejemplo práctico de una ficha:
+Ficha {
+  "NumeroDeFicha": 30,
+  "CantidadDeProductos": 2,
+  "Cliente": {
+    "UID": "75298AzAX4UeaGCvm0Wl",
+    "Nombre": "fabian",
+    "Apellido": "gertie",
+    "Zona": "Norte"
+  },
+  "Fechas": {
+    "FechaDeCreacion": "2025-10-10T17:15:08-03:00",
+    "Venta": "2025-09-28T17:15:08-03:00",
+    "ProximoAviso": "2025-10-24T17:14:52-03:00"
+  },
+  "Pagos": {
+    "CantidadDeCuotas": 12,
+    "CuotasPagas": 2,
+    "Restante": 64250,
+    "Saldado": false,
+    "ImporteSaldado": 16750,
+    "ImporteCuota": 6750,
+    "ImporteTotal": 81000,
+    "0": {
+      "Fecha": "2025-10-05T17:14:52-03:00",
+      "Medio": "Efectivo",
+      "Monto": 6750
+    },
+    "1": {
+      "Fecha": "2025-10-14T17:14:52-03:00",
+      "Medio": "Transferencia",
+      "Monto": 10000
+    }
+  },
+  "Productos": {
+    "0": {
+      "UID": "EXs51qPRfvggQ0Jftt6f",
+      "Nombre": "Agujereadora",
+      "PrecioUnitario": 18000,
+      "PrecioDeLasCuotas": 1500,
+      "Unidades": 2
+    },
+    "1": {
+      "UID": "MROSzBJf0bJHnTbin1ZU",
+      "Nombre": "Reloj inteligente",
+      "PrecioUnitario": 45000,
+      "PrecioDeLasCuotas": 3750,
+      "Unidades": 1
+    }
+  }
+}
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Definición de los Model de los Sub Providers
+
+ClienteFichaModel:
+  // Variables internas
+  - String uid
+  - String nombre
+  - String apellido
+  - String zona
+  - String direccion
+  - String telefono
+  // Getters y Setters públicos
+  - ClienteFichaModel.fromMap(Map<String,dynamic>)
+  - Map<String,dynamic> toMap()
+
+FechasFichaModel:
+  // Variables internas
+  - DateTime fechaDeCreacion
+  - DateTime? venta
+  - DateTime? proximoAviso
+  // Getters y Setters públicos
+  - FechasFichaModel.fromMap(Map<String,dynamic>)
+  - Map<String,dynamic> toMap()
+
+PagoItemModel:
+  // Variables internas
+  - DateTime fecha
+  - String medio
+  - int monto
+  // Getters y Setters públicos
+  - PagoItemModel.fromMap(Map<String,dynamic>)
+  - Map<String,dynamic> toMap()
+
+PagosFichaModel:
+  // Variables internas
+  - int cantidadDeCuotas
+  - int cuotasPagas
+  - int restante
+  - bool saldado
+  - int importeSaldado
+  - int importeCuota
+  - int importeTotal
+  - List<PagoItemModel> pagos
+  // Getters y Setters públicos
+  - PagosFichaModel.fromMap(Map<String,dynamic>)
+  - Map<String,dynamic> toMap()
+
+ProductoFichaModel:
+  // Variables internas
+  - String uid
+  - String nombre
+  - int precioUnitario
+  - int precioDeLasCuotas
+  - int unidades
+  // Getters y Setters públicos
+  - ProductoFichaModel.fromMap(Map<String,dynamic>)
+  - Map<String,dynamic> toMap()
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Definición de los Sub Providers:
+
+ClienteFichaProvider:
+  - ClienteFichaModel get cliente ->  devuelve el objeto ClienteFichaModel en memoria;
+  - void setCliente(ClienteFichaModel cliente)  ->  asigna el cliente completo desde un ClienteFichaModel;
+  - void limpiarCliente() ->  resetea el cliente a estado vacío/default;
+
+FechasFichaProvider:
+  - FechasFichaModel get fechas ->  devuelve el objeto FechasFichaModel actual;
+  - void setFechas(FechasFichaModel fechas) ->  asigna las fechas completas;
+  - void limpiarFechas()  ->  resetea las fechas a estado vacío/default;
+
+PagosFichaProvider:
+  - PagosFichaModel get pagos ->  devuelve el modelo de pagos actual;
+  - void setPagos(PagosFichaModel nuevosPagos)  ->  reemplaza todo el objeto de pagos;
+  - void agregarPago(PagoItemModel nuevoPago) ->  añade un pago;
+  - void registrarPagoDesdeMapa(Map<String, dynamic> pagoMap) ->  crea PagoItemModel.fromMap(pagoMap) y delega a agregarPago;
+  - void limpiarPagos() ->  resetea pagos al estado inicial;
+
+ProductoFichaProvider:
+  - List<ProductoFichaModel> get productos  ->  devuelve la lista de productos en la ficha (ordenada);
+  - void agregarProducto(ProductoFichaModel producto) ->  agrega un producto a la lista;
+  - void eliminarProducto(String uidProducto) ->  elimina un producto de la lista
+  - void actualizarProducto(String uidProducto, ProductoFichaModel nuevoProducto) ->  actualizar el producto correspondiente en la lista
+  - int obtenerImporteTotal() ->  obtiene el importe total de la ficha
+  - int obtenerImporteCuotaTotal()  ->  obtiene el importe total de la cuota de la ficha
+  - void limpiarProductos() ->  vacía la lista de productos;
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Definición del Model del Provider (Este es el único punto de contacto entre UI y sub-providers / servicios)
+
+FichaModel:
+  // Variables internas
+  - String? id
+  - int numeroDeFicha
+  - int cantidadDeProductos
+  - ClienteFichaModel cliente
+  - FechasFichaModel fechas
+  - PagosFichaModel pagos
+  - List<ProductoFichaModel> productos
+  // Getters y Setters públicos
+  - FichaModel.fromMap(Map<String,dynamic>)
+  - Map<String,dynamic> toMap()
+
+
+FichaEnCursoProvider:
+  // Variables internas (privadas) - no deben ser accedidos directamente fuera de este módulo
+  final ClienteFichaProvider    _clienteProvider
+  final FechasFichaProvider     _fechasProvider
+  final ProductoFichaProvider   _productoProvider
+  final PagosFichaProvider      _pagosProvider
+  final FichasServiciosFirebase _firebaseService = FichasServiciosFirebase();
+  String? _id // id del documento Firestore
+  int _numeroDeFicha = 0
+
+  // Getters públicos
+  - String? get id      ->  devuelve _id
+  - int get numeroDeFicha  ->  devuelve _numeroDeFicha
+
+    // Getters simplificados para UI (passthrough desde subproviders):
+    - List<ProductoFichaModel> get productos  ->  _productoProvider.productos;
+    - PagosFichaModel get pagos               ->  _pagosProvider.pagos;
+
+
+  // Métodos públicos
+  - FichaModel construirFichaCompleta() ->  devuelve FichaModel
+  - void actualizarCliente(Map<String, dynamic> clienteMap) ->  crea ClienteFichaModel.fromMap(clienteMap) y llama _clienteProvider.setCliente(...); notifica listeners.
+  - void actualizarFechas(Map<String, dynamic> fechasMap) ->  crea FechasFichaModel.fromMap(fechasMap) y llama _fechasProvider.setFechas(...); notifica listeners.
+  - void actualizarProductos(List<Map<String, dynamic>> productosMap) ->  vacía _productoProvider y para cada Map hace ProductoFichaModel.fromMap(p) y agregarProducto(...); notifica listeners.
+  - void registrarPago(Map<String, dynamic> pagoMap)  ->  llama _pagosProvider.registrarPagoDesdeMapa(pagoMap); notifica listeners.
+  - void setId(String? id)  ->  asigna _id = id; notifica listeners.
+  - void setNumeroDeFicha(int nuevoNumero) ->  asigna _numeroDeFicha = nuevoNumero; notifica listeners.
+  - void cargarDesdeFichaModel(FichaModel ficha)  ->  asigna _id = ficha.id; _numeroDeFicha = ficha.numeroDeFicha; llama setCliente, setFechas, setPagos, agrega productos mediante agregarProducto(...); notifica listeners.
+  - void cargarDesdeMap(Map<String, dynamic> data)  ->  lee ID/NroDeFicha desde data, llama a ClienteFichaModel.fromMap, FechasFichaModel.fromMap, PagosFichaModel.fromMap, y ProductoFichaModel.fromMap para cada elemento; notifica listeners.
+  - void limpiarFicha() ->  llama a clienteProvider.limpiarCliente(), fechasProvider.limpiarFechas(), productoProvider.limpiarProductos(), pagosProvider.limpiarPagos(), _id; _numeroDeFicha = 0; notifica listeners.
+
+  // Métodos de control con Firebase
+  - Future<void> guardarFicha() ->  Crea una nueva ficha en la base de datos.
+  - Future<void> actualizarFichaMedianteID()  ->  Actualiza la ficha en la base de datos mediante el ID del documento.
+  - Future<void> eliminarFichaMedianteID()  ->  Elimina una ficha en la base de datos mediante el ID del documento.
+  - Future<void> cargarFichaMedianteID()  ->  Carga los datos en el Provider con los datos del documento de la ficha seleccionada mediante su ID del documento.
+  - Future<List<FichaModel>> obtenerFichasMedianteID()  ->  Obtiene todas las dichas que contengan el ID del cliente seleccionado
+  - Future<List<FichaModel>> obtenerFichasMedianteNombre()  -> Obtiene todas las dichas que contengan el nombre del cliente seleccionado
+  - Future<List<FichaModel>> obtenerFichasMedianteApellido()  -> Obtiene todas las dichas que contengan el apellido del cliente seleccionado
+  - Future<List<FichaModel>> obtenerFichasMedianteZona()  -> Obtiene todas las dichas que contengan la zona del cliente seleccionada
+  - Future<List<FichaModel>> obtenerFichasMedianteFechaVenta()  -> Obtiene todas las dichas que contengan la fecha de venta seleccionada
+  - Future<List<FichaModel>> obtenerFichasMedianteFechaAviso()  -> Obtiene todas las dichas que contengan la fecha del próximo aviso seleccionada
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Reglas operativas (a aplicar estrictamente)
+
+Interfaces Map-only:
+  - Los Widgets SIEMPRE pasan/reciben Map<String,dynamic> a/desde el FichaEnCursoProvider, no pasarán objetos parciales o variables sueltas.
+  - Ejemplo: actualizarCliente(Map)
+
+Provider como única capa que habla con servicios:
+  - La UI no llama a FichasServiciosFirebase ni a métodos Firebase directamente.
+  - Ejemplo: await ref.read(fichaEnCursoProvider).CrearFichaEnFirebase();
+
+Sub-providers encapsulados:
+  - Ningún otro archivo (widgets/pantallas) debe importar o manipular ClienteFichaProvider, FechasFichaProvider, ProductoFichaProvider o PagosFichaProvider directamente.
+  - Todo a través de FichaEnCursoProvider.
+
+Nombres de campos:
+  - Para mapear a Firestore o entre capas, usar las constantes de fieldNames.dart en toMap() y fromMap() de los modelos.
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Operaciones con Firebase
+
+Se necesita tener los siguientes métodos en Firebase:
+  - CrearFichaEnFirebase
+    -*  Debe crear un nuevo registro en la colección de fichas para almacenar la ficha actual contenida en el Provider;
+    -*  Debe obtener el número de ficha con "final numeroDeFicha = await obtenerYSiguienteNumeroFicha();";
+    -*  Debe devolver el ID del documento que se haya creado (El Provider deberá actualizar este dato en la ficha en curso)
+
+  - ActualizarFichaEnFirebase
+    -*  Debe actualizar los datos del documento en Firebase con los datos del Provider según su ID de documento;
+
+  - EliminarFichaEnFirebase
+    -*  Debe eliminar el documento en Firebase según su ID de documento;
+
+  - CargarFichaDesdeFirebaseMedianteIDCliente
+    -*  Debe actualizar los datos del Provider con los datos del documento de Firebase según su ID de documento;
+
+  - ObtenerFichasDesdeFirebaseMedianteIDCliente
+    -*  Debe devolver todas las fichas de la colección que tengan en su documento el mismo ID del cliente que el cargado en el Provider
+
+  - ObtenerFichasDesdeFirebaseMedianteNombreCliente
+    -*  Debe devolver todas las fichas de la colección que tengan en su documento el mismo nombre del cliente que el cargado en el Provider
+
+  - ObtenerFichasDesdeFirebaseMedianteApellidoCliente
+    -*  Debe devolver todas las fichas de la colección que tengan en su documento el mismo apellido del cliente que el cargado en el Provider
+
+  - ObtenerFichasDesdeFirebaseMedianteZonaCliente
+    -*  Debe devolver todas las fichas de la colección que tengan en su documento la misma zona del cliente que el cargado en el Provider
+
+  - ObtenerFichasDesdeFirebaseMedianteFechaVenta
+    -*  Debe devolver todas las fichas de la colección que tengan en su documento la misma fecha de venta que la cargada en el Provider
+
+  - ObtenerFichasDesdeFirebaseMedianteFechaAviso
+    -*  Debe devolver todas las fichas de la colección que tengan en su documento la misma fecha de proximo aviso que la cargada en el Provider
+
+  - obtenerYSiguienteNumeroFicha
+    -*  Debe leer de la colección "config", el documento "fichas", el campo "UltimoNroDeFicha".
+        Debe devolver ese número leído, e incrementar en 1 el del documento.
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Encabezado de cada archivo, para describirlo
+
+/// ---------------------------------------------------------------------------
+/// NOMBRE DEL WIDGET
+///
+/// 🔹 Rol: Descripcón de funcionamiento.
+/// 🔹 Interactúa con:
+///   - [Nombre del Widget]:
+///       • ¿Cómo inteactúa?.
+/// 🔹 Lógica:
+///   - Lógica de funcionamiento
+/// ---------------------------------------------------------------------------

@@ -1,19 +1,42 @@
+/// custom_web_campo_sin_checkbox_textfield.dart
+///
+/// Descripción:
+/// - Campo de solo lectura que muestra la Dirección o el Teléfono del cliente.
+/// - No accede a sub-providers. Lee FichaEnCursoProvider para obtener el valor
+///   actual del cliente y lo muestra. Cada cambio en el provider se reflejará
+///   automáticamente por `ref.watch` en la UI.
+///
+/// Interactúa con:
+/// - CustomWebClienteSection (parent)
+/// - FichaEnCursoProvider (solo lectura: direccionCliente / telefonoCliente)
+library;
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
 import 'package:valen_market_admin/constants/values.dart';
+import 'package:valen_market_admin/web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
 
-class CustomWebCampoSinCheckboxTextField extends StatelessWidget {
+class CustomWebCampoSinCheckboxTextField extends ConsumerWidget {
   final String label;
-  final TextEditingController controller;
+  final bool isDireccion;
 
   const CustomWebCampoSinCheckboxTextField({
     super.key,
     required this.label,
-    required this.controller,
+    required this.isDireccion,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ficha = ref.watch(fichaEnCursoProvider);
+    final texto = isDireccion
+        ? (ficha.direccionCliente ?? '')
+        : (ficha.telefonoCliente ?? '');
+
+    // Use a controller only to display the current value; recreate ensures it updates when texto changes.
+    final controller = TextEditingController(text: texto);
+
     return Row(
       children: [
         const SizedBox(width: 40),

@@ -1,471 +1,318 @@
+// Se definió el servicio de fichas para interactuar con Firestore.
+// Se usaron las constantes de fieldNames.dart y los modelos definidos.
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:valen_market_admin/services/firebase/clientes_servicios_firebase.dart';
+import 'package:valen_market_admin/constants/fieldNames.dart';
+import 'package:valen_market_admin/web_flow/features/fichas/model/ficha_model.dart';
 
 class FichasServiciosFirebase {
   final CollectionReference _fichasCollection =
       FirebaseFirestore.instance.collection('BDD_Fichas');
 
+  final DocumentReference _configFichasDoc =
+      FirebaseFirestore.instance.collection('config').doc('fichas');
+
   /* ---------------------------------------------------------------------------------------- */
-  //                            MÉTODOS PARA AGREGAR FICHAS                                   */
+  //                                CREAR / GUARDAR FICHA                                      //
   /* ---------------------------------------------------------------------------------------- */
 
-  /// Agrega una nueva ficha asociada a un cliente con sus productos seleccionados.
-  Future<void> agregarFicha({
-    required String uidCliente,
-    required String nombreCliente,
-    required String apellidoCliente,
-    required String zonaCliente,
-    required List<Map<String, dynamic>> productos,
-    required DateTime fechaDeVenta,
-    required String frecuenciaDeAviso,
-    required DateTime proximoAviso,
-  }) async {
+  /// Se creó una nueva ficha en Firestore.
+  /// Se devolverá el ID del documento creado.
+  /// Se validará que la ficha no tenga ya un ID (no debe existir previo).
+  Future<String> CrearFichaEnFirebase(FichaModel ficha) async {
     try {
-      final nroFicha = await obtenerYSiguienteNumeroFicha();
-/*
-      Map<String, dynamic> productosMap = {};
-      for (int i = 0; i < productos.length; i++) {
-        final producto = productos[i];
-        productosMap['UID_Producto_$i'] = producto['uidProducto'];
-        productosMap['Unidades_Producto_$i'] = producto['unidades'];
-        productosMap['Precio_Producto_$i'] = producto['precioUnitario'];
-        productosMap['Cantidad_de_cuotas_Producto_$i'] =
-            producto['cantidadDeCuotas'];
-        productosMap['Precio_de_las_cuotas_Producto_$i'] =
-            producto['precioDeLasCuotas'];
-        productosMap['Saldado_Producto_$i'] = producto['saldado'];
-        productosMap['Restante_Producto_$i'] = producto['restante'];
-      }
+      // Se obtuvo el siguiente número de ficha.
+      final numeroDeFicha = await obtenerYSiguienteNumeroFicha();
 
-      final fichaData = {
-        'NroDeFicha': nroFicha,
-        'UID_Cliente': uidCliente,
-        'Nombre': nombreCliente,
-        'Apellido': apellidoCliente,
-        'Zona': zonaCliente,
-        'Cantidad_de_Productos': productos.length,
-        'FechaDeVenta': Timestamp.fromDate(fechaDeVenta),
-        'Frecuencia_de_aviso': frecuenciaDeAviso,
-        'ProximoAviso': Timestamp.fromDate(proximoAviso),
-        ...productosMap,
-        'FechaDeCreacion': FieldValue.serverTimestamp(),
-      };
+      // Se construye el mapa de la ficha a partir del modelo.
+      final Map<String, dynamic> data = ficha.toMap();
 
-      await _fichasCollection.add(fichaData);
-*/
-      // --- Estructuramos los productos como una lista de mapas ---
-      final List<Map<String, dynamic>> productosList = productos.map((p) {
-        return {
-          'UID': p['uidProducto'],
-          'Nombre': p['nombreProducto'] ?? '',
-          'Unidades': p['unidades'],
-          'PrecioUnitario': p['precioUnitario'],
-          'CantidadDeCuotas': p['cantidadDeCuotas'],
-          'PrecioDeLasCuotas': p['precioDeLasCuotas'],
-          'Saldado': p['saldado'],
-          'Restante': p['restante'],
-          'CuotasPagas': p['cuotasPagas'] ?? 0,
-          'TotalSaldado': p['totalSaldado'] ?? 0.0,
-        };
-      }).toList();
+      // Se aseguró el número de ficha
+      data[FIELD_NAME__ficha_model__Numero_De_Ficha] = numeroDeFicha;
 
-      // --- Documento estructurado en secciones ---
-      final fichaDataNuevoFormato = {
-        'NroDeFicha': nroFicha,
-        'Cliente': {
-          'UID': uidCliente,
-          'Nombre': nombreCliente,
-          'Apellido': apellidoCliente,
-          'Zona': zonaCliente,
-        },
-        'Fechas': {
-          'Venta': Timestamp.fromDate(fechaDeVenta),
-          'ProximoAviso': Timestamp.fromDate(proximoAviso),
-        },
-        'Productos': productosList,
-        'CantidadDeProductos': productosList.length,
-        'FrecuenciaDeAviso': frecuenciaDeAviso,
-        'FechaDeCreacion': FieldValue.serverTimestamp(),
-      };
+      // Se forzó timestamp de creación en el nodo de fechas
+      final fechasMap = Map<String, dynamic>.from(
+          data[FIELD_NAME__ficha_model__Fechas] ?? {});
+      fechasMap[FIELD_NAME__fecha_ficha_model__Fecha_De_Creacion] =
+          FieldValue.serverTimestamp();
+      data[FIELD_NAME__ficha_model__Fechas] = fechasMap;
 
-      await _fichasCollection.add(fichaDataNuevoFormato);
+      // Se creó el documento en Firestore y se devolvió su ID.
+      final docRef = await _fichasCollection.add(data);
+      return docRef.id;
     } catch (e) {
-      throw Exception('Error al agregar la ficha: $e');
+      throw Exception('Error en CrearFichaEnFirebase: $e');
     }
   }
 
   /* ---------------------------------------------------------------------------------------- */
-  //                                MÉTODOS PARA LEER FICHAS                                  */
+  //                                ACTUALIZAR FICHA                                          //
   /* ---------------------------------------------------------------------------------------- */
-/*
-  /// Busca fichas por el UID del cliente y devuelve cada ficha combinada con los datos del cliente.
-  Future<List<Map<String, dynamic>>> buscarFichasPorClienteId(
+
+  /// Se actualizó la ficha existente identificada por [fichaId] con los datos en [ficha].
+  Future<void> ActualizarFichaEnFirebase(
+      String fichaId, FichaModel ficha) async {
+    try {
+      // Se verificó que exista el documento antes de actualizar.
+      final docRef = _fichasCollection.doc(fichaId);
+      final snapshot = await docRef.get();
+      if (!snapshot.exists) {
+        throw Exception('No existe ficha con ID: $fichaId');
+      }
+
+      // Se construyó el mapa de actualización desde el modelo.
+      final Map<String, dynamic> data = ficha.toMap();
+
+      // Si en las fechas hay un campo FechaDeCreacion con tipo DateTime, se debe mantener el valor
+      // existente en servidor; por eso si viene DateTime se convierte a Timestamp.
+      if (data[FIELD_NAME__ficha_model__Fechas] != null) {
+        final fechasRaw =
+            Map<String, dynamic>.from(data[FIELD_NAME__ficha_model__Fechas]);
+        if (fechasRaw[FIELD_NAME__fecha_ficha_model__Fecha_De_Creacion]
+            is DateTime) {
+          fechasRaw[FIELD_NAME__fecha_ficha_model__Fecha_De_Creacion] =
+              Timestamp.fromDate(
+                  fechasRaw[FIELD_NAME__fecha_ficha_model__Fecha_De_Creacion]
+                      as DateTime);
+        }
+        data[FIELD_NAME__ficha_model__Fechas] = fechasRaw;
+      }
+
+      // Se actualizó el documento.
+      await docRef.update(data);
+    } catch (e) {
+      throw Exception('Error en ActualizarFichaEnFirebase: $e');
+    }
+  }
+
+  /* ---------------------------------------------------------------------------------------- */
+  //                                ELIMINAR FICHA                                            //
+  /* ---------------------------------------------------------------------------------------- */
+
+  /// Se eliminó el documento de la ficha identificado por [fichaId].
+  Future<void> EliminarFichaEnFirebase(String fichaId) async {
+    try {
+      final docRef = _fichasCollection.doc(fichaId);
+      final snapshot = await docRef.get();
+      if (!snapshot.exists) {
+        throw Exception('No existe ficha con ID: $fichaId');
+      }
+      await docRef.delete();
+    } catch (e) {
+      throw Exception('Error en EliminarFichaEnFirebase: $e');
+    }
+  }
+
+  /* ---------------------------------------------------------------------------------------- */
+  //                                CARGAR / OBTENER FICHAS                                   //
+  /* ---------------------------------------------------------------------------------------- */
+
+  /// Se cargó la ficha identificada por [fichaId] y se devolvió como FichaModel.
+  /// Si no existe, se devolverá null.
+  Future<FichaModel?> CargarFichaDesdeFirebaseMedianteIDCliente(
+      String fichaId) async {
+    try {
+      final docRef = _fichasCollection.doc(fichaId);
+      final snapshot = await docRef.get();
+      if (!snapshot.exists) return null;
+
+      final Map<String, dynamic> data =
+          Map<String, dynamic>.from(snapshot.data() as Map);
+      // Se añadió el ID en el mapa para que fromMap lo tome si corresponde.
+      data[FIELD_NAME__ficha_model__ID_De_Ficha] = snapshot.id;
+
+      final ficha = FichaModel.fromMap(data);
+      return ficha;
+    } catch (e) {
+      throw Exception('Error en CargarFichaDesdeFirebaseMedianteIDCliente: $e');
+    }
+  }
+
+  /// Se obtuvieron todas las fichas que pertenecen al cliente con UID [uidCliente].
+  Future<List<FichaModel>> ObtenerFichasDesdeFirebaseMedianteIDCliente(
       String uidCliente) async {
     try {
-      final fichasSnapshot = await _fichasCollection
-          .where('UID_Cliente', isEqualTo: uidCliente)
+      final snapshot = await _fichasCollection
+          .where(
+            '$FIELD_NAME__ficha_model__Cliente.$FIELD_NAME__cliente_ficha_model__UID',
+            isEqualTo: uidCliente,
+          )
           .get();
 
-      if (fichasSnapshot.docs.isEmpty) {
-        return [];
-      }
-
-      final clienteData =
-          await ClientesServiciosFirebase.obtenerClientePorId(uidCliente);
-
-      if (clienteData == null) {
-        throw Exception('No se encontró el cliente con UID: $uidCliente');
-      }
-
-      final resultados = fichasSnapshot.docs.map((doc) {
-        final fichaData = doc.data() as Map<String, dynamic>;
-        fichaData['ID'] = doc.id;
-        fichaData['Nombre'] = clienteData['Nombre'] ?? '';
-        fichaData['Apellido'] = clienteData['Apellido'] ?? '';
-        fichaData['Zona'] = clienteData['Zona'] ?? '';
-        fichaData['direccion'] = clienteData['Direccion'] ?? '';
-        fichaData['telefono'] = clienteData['Telefono'] ?? '';
-
-        fichaData['FechaDeVenta'] = (fichaData['FechaDeVenta'] is Timestamp)
-            ? (fichaData['FechaDeVenta'] as Timestamp).toDate()
-            : null;
-
-        fichaData['ProximoAviso'] = (fichaData['ProximoAviso'] is Timestamp)
-            ? (fichaData['ProximoAviso'] as Timestamp).toDate()
-            : null;
-
-        fichaData['Nro_de_cuotas_pagadas'] =
-            fichaData['Nro_de_cuotas_pagadas'] ?? 0;
-        fichaData['Restante'] = fichaData['Restante'] ?? 0;
-        return fichaData;
+      final List<FichaModel> resultados = snapshot.docs.map((doc) {
+        final Map<String, dynamic> data =
+            Map<String, dynamic>.from(doc.data() as Map);
+        data[FIELD_NAME__ficha_model__ID_De_Ficha] = doc.id;
+        return FichaModel.fromMap(data);
       }).toList();
 
       return resultados;
     } catch (e) {
-      throw Exception('Error al buscar fichas por cliente ID: $e');
+      throw Exception(
+          'Error en ObtenerFichasDesdeFirebaseMedianteIDCliente: $e');
     }
   }
 
-  Future<List<Map<String, dynamic>>> buscarFichasPorNombre(
+  /// Se obtuvieron fichas filtradas por el nombre del cliente.
+  Future<List<FichaModel>> ObtenerFichasDesdeFirebaseMedianteNombreCliente(
       String nombre) async {
     try {
       final snapshot = await _fichasCollection
-          .where('Nombre', isEqualTo: nombre.toLowerCase())
+          .where(
+            '$FIELD_NAME__ficha_model__Cliente.$FIELD_NAME__cliente_ficha_model__Nombre',
+            isEqualTo: nombre,
+          )
           .get();
 
-      return snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        data['ID'] = doc.id;
-        return data;
-      }).toList();
-    } catch (e) {
-      throw Exception('Error al buscar fichas por nombre: $e');
-    }
-  }
-
-  Future<List<Map<String, dynamic>>> buscarFichasPorApellido(
-      String apellido) async {
-    try {
-      final snapshot = await _fichasCollection
-          .where('Apellido', isEqualTo: apellido.toLowerCase())
-          .get();
-
-      return snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        data['ID'] = doc.id;
-        return data;
-      }).toList();
-    } catch (e) {
-      throw Exception('Error al buscar fichas por apellido: $e');
-    }
-  }
-
-  Future<List<Map<String, dynamic>>> buscarFichasPorZona(String zona) async {
-    try {
-      final snapshot =
-          await _fichasCollection.where('Zona', isEqualTo: zona).get();
-
-      return snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        data['ID'] = doc.id;
-        return data;
-      }).toList();
-    } catch (e) {
-      throw Exception('Error al buscar fichas por zona: $e');
-    }
-  }
-*/
-
-  /// Se buscan fichas asociadas al UID de un cliente y se devuelven junto con los datos del cliente.
-  Future<List<Map<String, dynamic>>> buscarFichasPorClienteId(
-      String uidCliente) async {
-    try {
-      final fichasSnapshot = await _fichasCollection
-          .where('Cliente.UID', isEqualTo: uidCliente)
-          .get();
-
-      if (fichasSnapshot.docs.isEmpty) {
-        return [];
-      }
-
-      final clienteData =
-          await ClientesServiciosFirebase.obtenerClientePorId(uidCliente);
-
-      if (clienteData == null) {
-        throw Exception('No se encontró el cliente con UID: $uidCliente');
-      }
-
-      final resultados = fichasSnapshot.docs.map((doc) {
-        final fichaData = doc.data() as Map<String, dynamic>;
-        final cliente = fichaData['Cliente'] ?? {};
-        final fechas = fichaData['Fechas'] ?? {};
-
-        fichaData['ID'] = doc.id;
-        fichaData['Nombre'] = cliente['Nombre'] ?? clienteData['Nombre'] ?? '';
-        fichaData['Apellido'] =
-            cliente['Apellido'] ?? clienteData['Apellido'] ?? '';
-        fichaData['Zona'] = cliente['Zona'] ?? clienteData['Zona'] ?? '';
-
-        fichaData['FechaDeVenta'] = (fechas['Venta'] is Timestamp)
-            ? (fechas['Venta'] as Timestamp).toDate()
-            : null;
-
-        fichaData['ProximoAviso'] = (fechas['ProximoAviso'] is Timestamp)
-            ? (fechas['ProximoAviso'] as Timestamp).toDate()
-            : null;
-
-        fichaData['Nro_de_cuotas_pagadas'] =
-            fichaData['Nro_de_cuotas_pagadas'] ?? 0;
-        fichaData['Restante'] = fichaData['Restante'] ?? 0;
-
-        return fichaData;
+      final resultados = snapshot.docs.map((doc) {
+        final Map<String, dynamic> data =
+            Map<String, dynamic>.from(doc.data() as Map);
+        data[FIELD_NAME__ficha_model__ID_De_Ficha] = doc.id;
+        return FichaModel.fromMap(data);
       }).toList();
 
       return resultados;
     } catch (e) {
-      throw Exception('Error al buscar fichas por cliente ID: $e');
+      throw Exception(
+          'Error en ObtenerFichasDesdeFirebaseMedianteNombreCliente: $e');
     }
   }
 
-  /// Se buscan fichas en las que el nombre del cliente coincida con el valor indicado.
-  Future<List<Map<String, dynamic>>> buscarFichasPorNombre(
-      String nombre) async {
-    try {
-      final snapshot = await _fichasCollection
-          .where('Cliente.Nombre', isEqualTo: nombre)
-          .get();
-
-      return snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        data['ID'] = doc.id;
-        return data;
-      }).toList();
-    } catch (e) {
-      throw Exception('Error al buscar fichas por nombre: $e');
-    }
-  }
-
-  /// Se buscan fichas en las que el apellido del cliente coincida con el valor indicado.
-  Future<List<Map<String, dynamic>>> buscarFichasPorApellido(
+  /// Se obtuvieron fichas filtradas por el apellido del cliente.
+  Future<List<FichaModel>> ObtenerFichasDesdeFirebaseMedianteApellidoCliente(
       String apellido) async {
     try {
       final snapshot = await _fichasCollection
-          .where('Cliente.Apellido', isEqualTo: apellido)
+          .where(
+            '$FIELD_NAME__ficha_model__Cliente.$FIELD_NAME__cliente_ficha_model__Apellido',
+            isEqualTo: apellido,
+          )
           .get();
 
-      return snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        data['ID'] = doc.id;
-        return data;
+      final resultados = snapshot.docs.map((doc) {
+        final Map<String, dynamic> data =
+            Map<String, dynamic>.from(doc.data() as Map);
+        data[FIELD_NAME__ficha_model__ID_De_Ficha] = doc.id;
+        return FichaModel.fromMap(data);
       }).toList();
+
+      return resultados;
     } catch (e) {
-      throw Exception('Error al buscar fichas por apellido: $e');
+      throw Exception(
+          'Error en ObtenerFichasDesdeFirebaseMedianteApellidoCliente: $e');
     }
   }
 
-  /// Se buscan fichas en las que la zona del cliente coincida con el valor indicado.
-  Future<List<Map<String, dynamic>>> buscarFichasPorZona(String zona) async {
+  /// Se obtuvieron fichas filtradas por la zona del cliente.
+  Future<List<FichaModel>> ObtenerFichasDesdeFirebaseMedianteZonaCliente(
+      String zona) async {
     try {
-      final snapshot =
-          await _fichasCollection.where('Cliente.Zona', isEqualTo: zona).get();
+      final snapshot = await _fichasCollection
+          .where(
+            '$FIELD_NAME__ficha_model__Cliente.$FIELD_NAME__cliente_ficha_model__Zona',
+            isEqualTo: zona,
+          )
+          .get();
 
-      return snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        data['ID'] = doc.id;
-        return data;
+      final resultados = snapshot.docs.map((doc) {
+        final Map<String, dynamic> data =
+            Map<String, dynamic>.from(doc.data() as Map);
+        data[FIELD_NAME__ficha_model__ID_De_Ficha] = doc.id;
+        return FichaModel.fromMap(data);
       }).toList();
+
+      return resultados;
     } catch (e) {
-      throw Exception('Error al buscar fichas por zona: $e');
+      throw Exception(
+          'Error en ObtenerFichasDesdeFirebaseMedianteZonaCliente: $e');
     }
   }
 
-  // Se obtiene el numero de la ultima ficha registrada para continuarlo
+  /// Se obtuvieron fichas filtradas por la fecha de venta (día, mes, año).
+  Future<List<FichaModel>> ObtenerFichasDesdeFirebaseMedianteFechaVenta(
+      DateTime fechaVenta) async {
+    try {
+      // Se normaliza la fecha al día sin horas.
+      final inicioDelDia = Timestamp.fromDate(
+          DateTime(fechaVenta.year, fechaVenta.month, fechaVenta.day, 0, 0, 0));
+      final finDelDia = Timestamp.fromDate(DateTime(
+          fechaVenta.year, fechaVenta.month, fechaVenta.day, 23, 59, 59, 999));
+
+      final query = await _fichasCollection
+          .where(
+            '$FIELD_NAME__ficha_model__Fechas.$FIELD_NAME__fecha_ficha_model__Venta',
+            isGreaterThanOrEqualTo: inicioDelDia,
+            isLessThanOrEqualTo: finDelDia,
+          )
+          .get();
+
+      final resultados = query.docs.map((doc) {
+        final Map<String, dynamic> data =
+            Map<String, dynamic>.from(doc.data() as Map);
+        data[FIELD_NAME__ficha_model__ID_De_Ficha] = doc.id;
+        return FichaModel.fromMap(data);
+      }).toList();
+
+      return resultados;
+    } catch (e) {
+      throw Exception(
+          'Error en ObtenerFichasDesdeFirebaseMedianteFechaVenta: $e');
+    }
+  }
+
+  /// Se obtuvieron fichas filtradas por la fecha de próximo aviso (día, mes, año).
+  Future<List<FichaModel>> ObtenerFichasDesdeFirebaseMedianteFechaAviso(
+      DateTime fechaAviso) async {
+    try {
+      // Se normaliza la fecha al día sin horas.
+      final inicioDelDia = Timestamp.fromDate(
+          DateTime(fechaAviso.year, fechaAviso.month, fechaAviso.day, 0, 0, 0));
+      final finDelDia = Timestamp.fromDate(DateTime(
+          fechaAviso.year, fechaAviso.month, fechaAviso.day, 23, 59, 59, 999));
+
+      final query = await _fichasCollection
+          .where(
+            '$FIELD_NAME__ficha_model__Fechas.$FIELD_NAME__fecha_ficha_model__Proximo_Aviso',
+            isGreaterThanOrEqualTo: inicioDelDia,
+            isLessThanOrEqualTo: finDelDia,
+          )
+          .get();
+
+      final resultados = query.docs.map((doc) {
+        final Map<String, dynamic> data =
+            Map<String, dynamic>.from(doc.data() as Map);
+        data[FIELD_NAME__ficha_model__ID_De_Ficha] = doc.id;
+        return FichaModel.fromMap(data);
+      }).toList();
+
+      return resultados;
+    } catch (e) {
+      throw Exception(
+          'Error en ObtenerFichasDesdeFirebaseMedianteFechaAviso: $e');
+    }
+  }
+
+  /* ---------------------------------------------------------------------------------------- */
+  //                                NÚMERO CONSECUTIVO DE FICHA                                //
+  /* ---------------------------------------------------------------------------------------- */
+
+  /// Se leyó y se incrementó en 1 el campo "UltimoNroDeFicha" del doc "config/fichas".
+  /// Se devuelve el número recién asignado.
   Future<int> obtenerYSiguienteNumeroFicha() async {
-    final configDoc =
-        FirebaseFirestore.instance.collection('config').doc('fichas');
-
     try {
-      final snapshot = await configDoc.get();
-      int ultimoNumero = 0;
-
+      final snapshot = await _configFichasDoc.get();
+      int ultimo = 0;
       if (snapshot.exists) {
-        ultimoNumero = snapshot.data()?['UltimoNroDeFicha'] ?? 0;
+        final data = snapshot.data() as Map<String, dynamic>;
+        ultimo = data['UltimoNroDeFicha'] ?? 0;
       }
 
-      // Actualizamos en config
-      await configDoc
-          .set({'UltimoNroDeFicha': ultimoNumero + 1}, SetOptions(merge: true));
+      final siguiente = ultimo + 1;
+      await _configFichasDoc
+          .set({'UltimoNroDeFicha': siguiente}, SetOptions(merge: true));
 
-      return ultimoNumero;
+      return siguiente;
     } catch (e) {
-      throw Exception('Error al obtener e incrementar el número de ficha: $e');
-    }
-  }
-
-  /// Obtiene todas las fichas registradas
-  Future<List<Map<String, dynamic>>> obtenerTodasLasFichas() async {
-    try {
-      final querySnapshot = await _fichasCollection.get();
-      return querySnapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        data['ID'] = doc.id;
-        return data;
-      }).toList();
-    } catch (e) {
-      throw Exception('Error al obtener las fichas: $e');
-    }
-  }
-/*
-  /// Obtiene una ficha específica por su ID
-  Future<Map<String, dynamic>?> obtenerFichaPorId(String fichaId) async {
-    try {
-      final docSnapshot = await _fichasCollection.doc(fichaId).get();
-      if (docSnapshot.exists) {
-        final data = docSnapshot.data() as Map<String, dynamic>;
-        data['ID'] = docSnapshot.id;
-
-        if (data['FechaDeVenta'] is Timestamp) {
-          data['FechaDeVenta'] = (data['FechaDeVenta'] as Timestamp).toDate();
-        }
-
-        if (data['ProximoAviso'] is Timestamp) {
-          data['ProximoAviso'] = (data['ProximoAviso'] as Timestamp).toDate();
-        }
-
-        return data;
-      } else {
-        return null;
-      }
-    } catch (e) {
-      throw Exception('Error al obtener la ficha por ID: $e');
-    }
-  }
-*/
-
-  /// Se obtiene una ficha específica a partir de su ID.
-  Future<Map<String, dynamic>?> obtenerFichaPorId(String fichaId) async {
-    try {
-      final docSnapshot = await _fichasCollection.doc(fichaId).get();
-
-      if (!docSnapshot.exists) {
-        return null;
-      }
-
-      final data = docSnapshot.data() as Map<String, dynamic>;
-      data['ID'] = docSnapshot.id;
-
-      // Se extraen las secciones del documento
-      final cliente = data['Cliente'] ?? {};
-      final fechas = data['Fechas'] ?? {};
-      final productos = data['Productos'] ?? [];
-
-      // Se asignan los valores con nombres coherentes
-      data['UID_Cliente'] = cliente['UID'];
-      data['Nombre'] = cliente['Nombre'];
-      data['Apellido'] = cliente['Apellido'];
-      data['Zona'] = cliente['Zona'];
-
-      // Se convierten las fechas en objetos DateTime
-      data['FechaDeVenta'] = (fechas['Venta'] is Timestamp)
-          ? (fechas['Venta'] as Timestamp).toDate()
-          : null;
-
-      data['ProximoAviso'] = (fechas['ProximoAviso'] is Timestamp)
-          ? (fechas['ProximoAviso'] as Timestamp).toDate()
-          : null;
-
-      // Se garantiza que la lista de productos sea devuelta correctamente
-      data['Productos'] = List<Map<String, dynamic>>.from(productos);
-
-      return data;
-    } catch (e) {
-      throw Exception('Error al obtener la ficha por ID: $e');
-    }
-  }
-
-  /* ---------------------------------------------------------------------------------------- */
-  //                                MÉTODOS PARA ACTUALIZAR FICHAS                            */
-  /* ---------------------------------------------------------------------------------------- */
-
-  /// Actualiza una ficha existente
-  Future<void> actualizarFichaPorID({
-    required String fichaId,
-    required Map<String, dynamic> nuevosDatos,
-  }) async {
-    try {
-      await _fichasCollection.doc(fichaId).update(nuevosDatos);
-    } catch (e) {
-      throw Exception('Error al actualizar la ficha: $e');
-    }
-  }
-
-  /* ---------------------------------------------------------------------------------------- */
-  //                               MÉTODOS PARA ELIMINAR FICHAS                               */
-  /* ---------------------------------------------------------------------------------------- */
-
-  /// Elimina una ficha por su ID
-  Future<void> eliminarFichaPorID(String fichaId) async {
-    try {
-      await _fichasCollection.doc(fichaId).delete();
-    } catch (e) {
-      throw Exception('Error al eliminar la ficha: $e');
-    }
-  }
-
-  /* ---------------------------------------------------------------------------------------- */
-  //                            MÉTODOS PARA AGREGAR PAGOS                                    */
-  /* ---------------------------------------------------------------------------------------- */
-
-  Future<void> registrarPagoFicha({
-    required String fichaId,
-    required double monto,
-    required DateTime fechaPago,
-  }) async {
-    try {
-      final fichaRef = _fichasCollection.doc(fichaId);
-      final ficha = await fichaRef.get();
-      if (!ficha.exists) throw Exception('Ficha no encontrada');
-
-      final data = ficha.data() as Map<String, dynamic>;
-      final pagosPrevios = List<Map<String, dynamic>>.from(data['Pagos'] ?? []);
-      pagosPrevios.add({
-        'FechaPago': Timestamp.fromDate(fechaPago),
-        'Monto': monto,
-      });
-
-      final double nuevoTotalSaldado = (data['TotalSaldado'] ?? 0) + monto;
-      final double nuevoRestante =
-          ((data['TotalFicha'] ?? 0) - nuevoTotalSaldado)
-              .clamp(0, double.infinity);
-
-      await fichaRef.update({
-        'Pagos': pagosPrevios,
-        'TotalSaldado': nuevoTotalSaldado,
-        'Restante': nuevoRestante,
-        'UltimoPago': Timestamp.fromDate(fechaPago),
-      });
-    } catch (e) {
-      throw Exception('Error al registrar el pago: $e');
+      throw Exception('Error en obtenerYSiguienteNumeroFicha: $e');
     }
   }
 }

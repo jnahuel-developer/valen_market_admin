@@ -1,26 +1,36 @@
+/// ---------------------------------------------------------------------------
+/// CUSTOM_WEB_POPUP_EDITAR_PRODUCTO
+///
+/// 🔹 Rol: Popup para editar los valores financieros de un producto.
+/// 🔹 Interactúa con:
+///   - Widget que lo abre (CustomWebProductosSection):
+///       • Devuelve un Map<String,dynamic> con las nuevas variables.
+/// 🔹 Lógica:
+///   - El checkbox "Relacionar variables" mantiene relación entre precio,
+///     cuotas y precio por cuota. Al aceptar se devuelve un Map con:
+///       { 'nuevoPrecioUnitario': double,
+///         'nuevaCantidadDeCuotas': int,
+///         'nuevoPrecioDeCuotas': double }
+/// ---------------------------------------------------------------------------
+library;
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
+import 'package:valen_market_admin/constants/fieldNames.dart';
 import 'package:valen_market_admin/constants/values.dart';
-import 'package:valen_market_admin/web_flow/features/fichas/model/ficha_en_curso_model.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_text_field.dart';
 
 class CustomWebPopupEditarProducto extends StatefulWidget {
   final Map<String, dynamic> productoCatalogo;
-  final ProductoEnFicha? productoEnFicha;
   final int cantidadSeleccionada;
-  final void Function(
-    double nuevoPrecio,
-    int nuevasCuotas,
-    double nuevoPrecioDeCuotas,
-  ) onAceptar;
+  final void Function(Map<String, dynamic> resultado) onAceptar;
 
   const CustomWebPopupEditarProducto({
     super.key,
     required this.productoCatalogo,
     required this.cantidadSeleccionada,
     required this.onAceptar,
-    this.productoEnFicha,
   });
 
   @override
@@ -41,17 +51,22 @@ class _CustomWebPopupEditarProductoState
   void initState() {
     super.initState();
 
-    final double precioInit = (widget.productoEnFicha?.precioUnitario ??
-            widget.productoCatalogo['Precio'] ??
+    final double precioInit = (widget.productoCatalogo[
+                FIELD_NAME__producto_ficha_model__Precio_Unitario] ??
+            widget.productoCatalogo[FIELD_NAME__catalogo__Precio] ??
             0)
         .toDouble();
-    final int cuotasInit = widget.productoEnFicha?.cantidadDeCuotas ??
-        widget.productoCatalogo['CantidadDeCuotas'] ??
-        1;
-    final double precioCuotaInit = widget.productoEnFicha?.precioDeLasCuotas ??
-        ((precioInit > 0 && cuotasInit > 0) ? (precioInit / cuotasInit) : 0.0);
+    final int cuotasInit = (widget.productoCatalogo[
+            FIELD_NAME__producto_ficha_model__Cantidad_De_Cuotas] ??
+        widget.productoCatalogo[FIELD_NAME__catalogo__Cantidad_De_Cuotas] ??
+        1) as int;
+    final double precioCuotaInit = (widget.productoCatalogo[
+                FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas] ??
+            ((precioInit > 0 && cuotasInit > 0)
+                ? (precioInit / cuotasInit)
+                : 0.0))
+        .toDouble();
 
-    // Se inicializan con formato de miles correcto
     _precioController =
         TextEditingController(text: _formatter.format(precioInit));
     _cuotasController = TextEditingController(text: cuotasInit.toString());
@@ -121,17 +136,25 @@ class _CustomWebPopupEditarProductoState
       nuevoPrecioCuota = nuevoPrecio / nuevasCuotas;
     }
 
-    widget.onAceptar(nuevoPrecio, nuevasCuotas, nuevoPrecioCuota);
-    Navigator.of(context).pop();
+    final resultado = <String, dynamic>{
+      'nuevoPrecioUnitario': nuevoPrecio,
+      'nuevaCantidadDeCuotas': nuevasCuotas,
+      'nuevoPrecioDeCuotas': nuevoPrecioCuota,
+    };
+
+    widget.onAceptar(resultado);
+    Navigator.of(context).pop(resultado);
   }
 
   @override
   Widget build(BuildContext context) {
-    final nombre = widget.productoCatalogo['NombreDelProducto'] ??
-        widget.productoCatalogo['Nombre'] ??
-        'Producto';
-    final stock = (widget.productoCatalogo['Stock'] ?? 0).toInt();
-    final imageUrl = widget.productoCatalogo['LinkDeLaFoto'] ?? '';
+    final nombre =
+        widget.productoCatalogo[FIELD_NAME__catalogo__Nombre_Del_Producto] ??
+            'Producto';
+    final stock =
+        (widget.productoCatalogo[FIELD_NAME__catalogo__Stock] ?? 0).toInt();
+    final imageUrl =
+        widget.productoCatalogo[FIELD_NAME__catalogo__Link_De_La_Foto] ?? '';
     final formatCurrency = NumberFormat.currency(locale: 'es_AR', symbol: '\$');
 
     return Dialog(

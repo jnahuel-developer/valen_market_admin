@@ -1,5 +1,29 @@
+/// ---------------------------------------------------------------------------
+/// WEB_FICHAS_AGREGAR_SCREEN
+///
+/// 🔹 Rol:
+///   Pantalla principal para crear nuevas fichas desde el flujo web.
+///   Contiene las secciones de cliente, fechas y productos, y permite
+///   guardar la ficha en Firebase mediante el Provider unificado.
+///
+/// 🔹 Interactúa con:
+///   - [FichaEnCursoProvider]:
+///       • Se limpia al iniciar.
+///       • Se consulta para validar y construir la ficha.
+///       • Se llama a `guardarFicha()` para persistir en Firebase.
+///   - [CustomWebClienteSection], [CustomWebFichaFechasSection],
+///     [CustomWebProductosSection].
+///
+/// 🔹 Lógica interna:
+///   - Limpia el provider al abrirse.
+///   - Permite seleccionar cliente, fechas y productos.
+///   - Al presionar "Agregar", valida y guarda la ficha.
+/// ---------------------------------------------------------------------------
+library;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:valen_market_admin/constants/textos.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_ficha_cliente_section.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_ficha_fechas_section.dart';
@@ -9,7 +33,6 @@ import 'package:valen_market_admin/web_flow/widgets/custom_web_popup_resultados_
 import 'package:valen_market_admin/web_flow/widgets/custom_web_popup_selector_criterio_busqueda.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_top_bar.dart';
 import 'package:valen_market_admin/constants/pantallas.dart';
-import 'package:valen_market_admin/services/firebase/fichas_servicios_firebase.dart';
 
 class WebFichasAgregarScreen extends ConsumerStatefulWidget {
   const WebFichasAgregarScreen({super.key});
@@ -21,20 +44,21 @@ class WebFichasAgregarScreen extends ConsumerStatefulWidget {
 
 class _WebFichasAgregarScreenState
     extends ConsumerState<WebFichasAgregarScreen> {
-  final fichasService = FichasServiciosFirebase();
-
   final GlobalKey<CustomWebClienteSectionState> _clienteKey = GlobalKey();
   final GlobalKey<CustomWebProductosSectionState> _productosKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
-
-    // Espera a que termine el build inicial antes de modificar el provider
+    // Limpiar ficha en curso apenas se construye la pantalla
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(fichaEnCursoProvider.notifier).limpiarFicha();
+      ref.read(fichaEnCursoProvider).limpiarFicha();
     });
   }
+
+  // ---------------------------------------------------------------------------
+  // 🔹 Diálogo de búsqueda (aún activo por compatibilidad)
+  // ---------------------------------------------------------------------------
 
   Future<String?> _mostrarSelectorDeCriterio(BuildContext context) {
     return showDialog<String>(
@@ -58,14 +82,18 @@ class _WebFichasAgregarScreenState
     );
   }
 
-  Future<void> _agregarFicha() async {
-    final fichaEnCurso = ref.read(fichaEnCursoProvider);
+  // ---------------------------------------------------------------------------
+  // 🔹 Agregar ficha (guardar en Firebase)
+  // ---------------------------------------------------------------------------
 
-    if (!fichaEnCurso.esValida) {
+  Future<void> _agregarFicha() async {
+    final fichaProvider = ref.read(fichaEnCursoProvider);
+
+    if (!fichaProvider.esValida) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content:
-                Text('Debes seleccionar un cliente y al menos un producto.')),
+          content: Text('Debes seleccionar un cliente y al menos un producto.'),
+        ),
       );
       return;
     }
@@ -78,39 +106,33 @@ class _WebFichasAgregarScreenState
     );
 
     try {
-      await fichasService.agregarFicha(
-        uidCliente: fichaEnCurso.uidCliente!,
-        nombreCliente: fichaEnCurso.nombreCliente ?? '',
-        apellidoCliente: fichaEnCurso.apellidoCliente ?? '',
-        zonaCliente: fichaEnCurso.zonaCliente ?? '',
-        productos: fichaEnCurso.productos.map((p) => p.toMap()).toList(),
-        fechaDeVenta: fichaEnCurso.fechaDeVenta ?? DateTime.now(),
-        frecuenciaDeAviso: 'mensual',
-        proximoAviso: fichaEnCurso.proximoAviso ??
-            DateTime.now().add(const Duration(days: 30)),
-      );
+      await fichaProvider.guardarFicha();
 
-      ref.read(fichaEnCursoProvider.notifier).limpiarFicha();
+      // Cerrar loader
+      if (mounted) Navigator.of(context).pop();
 
-      if (!mounted) return;
+      // Feedback visual
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Ficha guardada exitosamente.')),
+        );
+      }
 
-      Navigator.of(context).pop(); // Cerrar el loader
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ficha guardada exitosamente.')),
-      );
-
-      // Resetear la UI de clientes y productos
-      _clienteKey.currentState?.resetear();
-      _productosKey.currentState?.resetear();
+      // Limpiar ficha y resetear secciones visuales
+      fichaProvider.limpiarFicha();
+      _clienteKey.currentState?.setState(() {}); // refresca cliente
+      _productosKey.currentState?.setState(() {}); // refresca productos
     } catch (e) {
-      if (!mounted) return;
-      Navigator.of(context).pop(); // Cerrar el loader
+      if (mounted) Navigator.of(context).pop(); // Cerrar loader
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al guardar la ficha: $e')),
       );
     }
   }
+
+  // ---------------------------------------------------------------------------
+  // 🔹 BUILD
+  // ---------------------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
@@ -118,20 +140,20 @@ class _WebFichasAgregarScreenState
       body: Column(
         children: [
           const CustomWebTopBar(
-            titulo: 'Agregar ficha',
+            titulo: TEXTO_ES__agregar_fichas_screen__titulo,
             pantallaPadreRouteName: PANTALLA_WEB__Home,
           ),
           Expanded(
             child: Row(
               children: [
-                // Lado izquierdo - Cliente + Fechas
+                // LADO IZQUIERDO → Cliente + Fechas + Botón agregar
                 Expanded(
                   flex: 1,
                   child: Padding(
                     padding: const EdgeInsets.all(20),
                     child: Column(
                       children: [
-                        // Datos del cliente
+                        // Sección cliente
                         Expanded(
                           flex: 2,
                           child: CustomWebClienteSection(
@@ -140,18 +162,19 @@ class _WebFichasAgregarScreenState
                         ),
                         const SizedBox(height: 20),
 
-                        // Fechas de control (nuevo bloque)
-                        Expanded(
+                        // Sección fechas
+                        const Expanded(
                           flex: 1,
                           child: CustomWebFichaFechasSection(),
                         ),
                         const SizedBox(height: 20),
 
-                        // Botón para agregar ficha
+                        // Botón "Agregar"
                         SizedBox(
                           width: double.infinity,
                           child: CustomGradientButton(
-                            text: 'Agregar',
+                            text:
+                                TEXTO_ES__editar_fichas_screen__boton__agregar,
                             onPressed: _agregarFicha,
                           ),
                         ),
@@ -160,7 +183,7 @@ class _WebFichasAgregarScreenState
                   ),
                 ),
 
-                // Lado derecho - Productos
+                // LADO DERECHO → Productos + botón buscar (provisorio)
                 Expanded(
                   flex: 1,
                   child: Padding(
@@ -176,7 +199,7 @@ class _WebFichasAgregarScreenState
                         SizedBox(
                           width: double.infinity,
                           child: CustomGradientButton(
-                            text: 'Buscar',
+                            text: TEXTO_ES__editar_fichas_screen__boton__buscar,
                             onPressed: () async {
                               final criterioSeleccionado =
                                   await _mostrarSelectorDeCriterio(context);

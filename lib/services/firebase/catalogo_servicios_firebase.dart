@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:valen_market_admin/constants/fieldNames.dart';
 
 class CatalogoServiciosFirebase {
   final CollectionReference _catalogoCollection =
@@ -20,14 +21,15 @@ class CatalogoServiciosFirebase {
   }) async {
     try {
       await _catalogoCollection.add({
-        'NombreDelProducto': nombreDelProducto,
-        'DescripcionCorta': descripcionCorta,
-        'DescripcionLarga': descripcionLarga,
-        'Precio': precio,
-        'CantidadDeCuotas': cantidadDeCuotas,
-        'Stock': stock,
-        'LinkDeLaFoto': linkDeLaFoto,
-        'FechaDeCreacion': FieldValue.serverTimestamp(),
+        FIELD_NAME__catalogo__Nombre_Del_Producto: nombreDelProducto,
+        FIELD_NAME__catalogo__Descripcion_Corta: descripcionCorta,
+        FIELD_NAME__catalogoDescripcionCorta__Descripcion_Larga:
+            descripcionLarga,
+        FIELD_NAME__catalogo__Precio: precio,
+        FIELD_NAME__catalogo__Cantidad_De_Cuotas: cantidadDeCuotas,
+        FIELD_NAME__catalogo__Stock: stock,
+        FIELD_NAME__catalogo__Link_De_La_Foto: linkDeLaFoto,
+        FIELD_NAME__catalogo__Fecha_De_Creacion: FieldValue.serverTimestamp(),
       });
     } catch (e) {
       throw Exception('Error al agregar el producto: $e');

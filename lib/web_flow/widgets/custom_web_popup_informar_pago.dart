@@ -1,48 +1,72 @@
+/// ---------------------------------------------------------------------------
+/// CUSTOM_WEB_POPUP_INFORMAR_PAGO
+///
+/// 🔹 Rol: Muestra un resumen financiero de la ficha en curso, permite ingresar
+///   un pago (monto y medio) y elegir / normalizar la próxima fecha de aviso.
+///
+/// 🔹 Interactúa con:
+///   - [FichaEnCursoProvider]:
+///       • Lee los productos (resumen) y los datos financieros actuales.
+///       • Registra el pago mediante `registrarPago(Map<String,dynamic>)`.
+///       • Actualiza la fecha de próximo aviso mediante `actualizarFechas(...)`.
+///
+/// 🔹 Lógica:
+///   - El importe puede tomarse como "valor estándar" (importe de cuota definido
+///     en la ficha) cuando el checkbox está activo, o ingresarse manualmente.
+///   - Al confirmar:
+///       • Se crea un mapa del pago `{ Fecha, Medio, Monto }` y se delega al Provider.
+///       • Se actualiza la fecha de próximo aviso (fecha normalizada sin hora).
+/// ---------------------------------------------------------------------------
+library;
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
+import 'package:valen_market_admin/constants/fieldNames.dart';
 import 'package:valen_market_admin/constants/values.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_campo_con_checkbox_textfield.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_ficha_fechas_section.dart';
-import 'package:valen_market_admin/web_flow/features/fichas/model/ficha_en_curso_model.dart';
+import 'package:valen_market_admin/web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
 
-class CustomWebPopupInformarPago extends StatefulWidget {
-  final FichaEnCurso ficha;
-  final Function(double montoPagado, DateTime nuevaFechaAviso) onConfirmar;
+class CustomWebPopupInformarPago extends ConsumerStatefulWidget {
+  final void Function(double montoPagado, DateTime nuevaFechaAviso)?
+      onConfirmar;
 
   const CustomWebPopupInformarPago({
     super.key,
-    required this.ficha,
-    required this.onConfirmar,
+    this.onConfirmar,
   });
 
   @override
-  State<CustomWebPopupInformarPago> createState() =>
+  ConsumerState<CustomWebPopupInformarPago> createState() =>
       _CustomWebPopupInformarPagoState();
 }
 
 class _CustomWebPopupInformarPagoState
-    extends State<CustomWebPopupInformarPago> {
-  final NumberFormat _formatter =
+    extends ConsumerState<CustomWebPopupInformarPago> {
+  final NumberFormat _currencyFormatter =
       NumberFormat.currency(locale: 'es_AR', symbol: '\$');
-  late TextEditingController _montoController;
+
+  late final TextEditingController _montoController;
+  String _medioSeleccionado = 'Efectivo';
   bool _usarValorEstandar = true;
+
+  final List<String> _mediosDisponibles = [
+    'Efectivo',
+    'Transferencia',
+    'Mercado Pago',
+    'Tarjeta',
+    'Otro',
+  ];
 
   @override
   void initState() {
     super.initState();
     _montoController = TextEditingController();
-    _calcularMontoEstandar();
-  }
-
-  void _calcularMontoEstandar() {
-    double total = 0;
-    for (final p in widget.ficha.productos) {
-      if ((p.cuotasPagas ?? 0) < (p.cantidadDeCuotas ?? 1)) {
-        total += p.precioDeLasCuotas ?? 0;
-      }
-    }
-    _montoController.text = _formatter.format(total);
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _calcularMontoEstandar());
   }
 
   @override
@@ -51,24 +75,88 @@ class _CustomWebPopupInformarPagoState
     super.dispose();
   }
 
+  void _calcularMontoEstandar() {
+    final fichaProv = ref.read(fichaEnCursoProvider);
+    final productos = fichaProv.productos;
+
+    double sumaCuotas = 0.0;
+    for (final p in productos) {
+      sumaCuotas += (p.precioDeLasCuotas ?? 0).toDouble();
+    }
+
+    setState(() {
+      _montoController.text = _currencyFormatter.format(sumaCuotas);
+      _usarValorEstandar = true;
+    });
+  }
+
   double _parseMonto(String text) {
-    return double.tryParse(text.replaceAll('.', '').replaceAll(',', '.')) ??
-        0.0;
+    final sanitized = text
+        .replaceAll('.', '')
+        .replaceAll(',', '.')
+        .replaceAll('\$', '')
+        .trim();
+    return double.tryParse(sanitized) ?? 0.0;
+  }
+
+  DateTime _normalizarSoloFecha(DateTime dt) =>
+      DateTime(dt.year, dt.month, dt.day);
+
+  Future<void> _onRegistrarPago() async {
+    final monto = _parseMonto(_montoController.text);
+    if (monto <= 0) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Ingrese un monto válido mayor que 0')),
+        );
+      }
+      return;
+    }
+
+    final hoy = DateTime.now();
+    final fechaPago = _normalizarSoloFecha(hoy);
+
+    final pagoMap = <String, dynamic>{
+      FIELD_NAME__pago_item_model__Fecha: Timestamp.fromDate(fechaPago),
+      FIELD_NAME__pago_item_model__Medio: _medioSeleccionado,
+      FIELD_NAME__pago_item_model__Monto: monto.round(),
+    };
+
+    try {
+      ref.read(fichaEnCursoProvider.notifier).registrarPago(pagoMap);
+
+      final proximoAviso = ref.read(fichaEnCursoProvider).proximoAviso;
+      final fechaAvisoFinal = proximoAviso != null
+          ? _normalizarSoloFecha(proximoAviso)
+          : _normalizarSoloFecha(DateTime.now());
+
+      widget.onConfirmar?.call(monto, fechaAvisoFinal);
+
+      if (mounted) Navigator.of(context).pop();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al registrar pago: $e')),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final productos = widget.ficha.productos;
+    final fichaProv = ref.watch(fichaEnCursoProvider);
 
-    // --- Cálculos generales ---
-    final double totalFicha =
-        productos.fold(0, (sum, p) => sum + (p.precioUnitario ?? 0));
-    final double totalSaldado =
-        productos.fold(0, (sum, p) => sum + (p.totalSaldado ?? 0));
-    final int maxCuotas = productos.fold(
-        0, (max, p) => p.cantidadDeCuotas > max ? p.cantidadDeCuotas : max);
-    final double valorCuotaEstandar =
-        productos.fold(0, (sum, p) => sum + (p.precioDeLasCuotas ?? 0));
+    // Datos provenientes del Provider central
+    final productos = fichaProv.productos;
+    final pagos = fichaProv.pagos;
+
+    // Datos de resumen
+    final double totalFicha = pagos.importeTotal.toDouble();
+    final double totalSaldado = pagos.importeSaldado.toDouble();
+    final double restante = pagos.restante.toDouble();
+    final double valorCuota = pagos.importeCuota.toDouble();
+    final int cuotasPagas = pagos.cuotasPagas;
+    final int cantidadDeCuotas = pagos.cantidadDeCuotas;
 
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 50, vertical: 30),
@@ -101,6 +189,7 @@ class _CustomWebPopupInformarPagoState
               padding: const EdgeInsets.all(10),
               height: 250,
               child: SingleChildScrollView(
+                scrollDirection: Axis.vertical,
                 child: DataTable(
                   columnSpacing: 16,
                   columns: const [
@@ -108,21 +197,16 @@ class _CustomWebPopupInformarPagoState
                     DataColumn(label: Text('Precio venta')),
                     DataColumn(label: Text('Unidades')),
                     DataColumn(label: Text('Precio cuota')),
-                    DataColumn(label: Text('Pagadas / Totales')),
-                    DataColumn(label: Text('Saldado')),
-                    DataColumn(label: Text('Restante')),
                   ],
                   rows: productos.map((p) {
                     return DataRow(
                       cells: [
-                        DataCell(Text(p.nombreProducto)),
-                        DataCell(Text(_formatter.format(p.precioUnitario))),
+                        DataCell(Text(p.nombre ?? '')),
+                        DataCell(Text(
+                            _currencyFormatter.format(p.precioUnitario ?? 0))),
                         DataCell(Text('${p.unidades ?? 1}')),
-                        DataCell(Text(_formatter.format(p.precioDeLasCuotas))),
-                        DataCell(
-                            Text('${p.cuotasPagas} / ${p.cantidadDeCuotas}')),
-                        DataCell(Text(_formatter.format(p.totalSaldado ?? 0))),
-                        DataCell(Text(_formatter.format(p.restante ?? 0))),
+                        DataCell(Text(_currencyFormatter
+                            .format(p.precioDeLasCuotas ?? 0))),
                       ],
                     );
                   }).toList(),
@@ -132,7 +216,7 @@ class _CustomWebPopupInformarPagoState
 
             const SizedBox(height: 25),
 
-            // ─────────── BLOQUE RESUMEN ───────────
+            // ─────────── BLOQUE RESUMEN DE PAGOS ───────────
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(14),
@@ -143,11 +227,14 @@ class _CustomWebPopupInformarPagoState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Total ficha: ${_formatter.format(totalFicha)}'),
-                  Text('Total saldado: ${_formatter.format(totalSaldado)}'),
-                  Text('Cuotas restantes: $maxCuotas'),
                   Text(
-                      'Valor estándar de cuota: ${_formatter.format(valorCuotaEstandar)}'),
+                      'Importe total: ${_currencyFormatter.format(totalFicha)}'),
+                  Text(
+                      'Importe saldado: ${_currencyFormatter.format(totalSaldado)}'),
+                  Text('Restante: ${_currencyFormatter.format(restante)}'),
+                  Text('Cuotas pagas: $cuotasPagas / $cantidadDeCuotas'),
+                  Text(
+                      'Valor de cuota: ${_currencyFormatter.format(valorCuota)}'),
                 ],
               ),
             ),
@@ -155,16 +242,56 @@ class _CustomWebPopupInformarPagoState
             const SizedBox(height: 25),
 
             // ─────────── BLOQUE PAGO ───────────
-            CustomWebCampoConCheckboxTextField(
-              label: 'Usar valor estándar',
-              controller: _montoController,
-              isEditable: true,
-              onCheckboxChanged: (v) {
-                setState(() {
-                  _usarValorEstandar = v;
-                  if (v) _calcularMontoEstandar();
-                });
-              },
+            Row(
+              children: [
+                Expanded(
+                  child: CustomWebCampoConCheckboxTextField(
+                    label: 'Usar valor estándar',
+                    controller: _montoController,
+                    isEditable: !_usarValorEstandar,
+                    onCheckboxChanged: (v) {
+                      setState(() {
+                        _usarValorEstandar = v;
+                        if (v) {
+                          _calcularMontoEstandar();
+                        }
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(width: 16),
+                SizedBox(
+                  width: 220,
+                  child: DropdownButtonFormField<String>(
+                    initialValue: _medioSeleccionado,
+                    decoration: InputDecoration(
+                      hintText: 'Medio de pago',
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 12),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                            VALUE__general_widget__campo__big_border_radius),
+                        borderSide:
+                            BorderSide(color: WebColors.bordeControlHabilitado),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                            VALUE__general_widget__campo__big_border_radius),
+                        borderSide:
+                            BorderSide(color: WebColors.negro, width: 1.5),
+                      ),
+                    ),
+                    items: _mediosDisponibles
+                        .map((m) => DropdownMenuItem(value: m, child: Text(m)))
+                        .toList(),
+                    onChanged: (v) {
+                      if (v != null) {
+                        setState(() => _medioSeleccionado = v);
+                      }
+                    },
+                  ),
+                ),
+              ],
             ),
 
             const SizedBox(height: 20),
@@ -184,11 +311,7 @@ class _CustomWebPopupInformarPagoState
                 ),
                 const SizedBox(width: 20),
                 ElevatedButton(
-                  onPressed: () {
-                    final monto = _parseMonto(_montoController.text);
-                    widget.onConfirmar(monto, DateTime.now());
-                    Navigator.of(context).pop();
-                  },
+                  onPressed: _onRegistrarPago,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: WebColors.textoRosa,
                     foregroundColor: WebColors.blanco,
