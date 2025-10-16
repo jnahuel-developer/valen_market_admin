@@ -1,3 +1,128 @@
+/// ---------------------------------------------------------------------------
+/// FICHA_EN_CURSO_PROVIDER
+///
+/// 🔹 Rol general:
+/// Gestiona el estado global de la ficha actualmente en edición o creación
+/// dentro del flujo web. Centraliza la interacción entre la UI, los modelos
+/// de ficha (`FichaModel`) y el servicio de Firebase (`FichasServiciosFirebase`).
+///
+/// 🔹 Forma de uso:
+/// Este provider debe utilizarse a través de `ref.watch(fichaEnCursoProvider)`
+/// o `ref.read(fichaEnCursoProvider.notifier)` dentro de widgets `ConsumerWidget`
+/// o `ConsumerStatefulWidget`.
+///
+/// - Nunca acceder directamente a los subproviders internos.
+/// - Toda modificación (cliente, fechas, productos, pagos) debe pasar por los
+///   métodos públicos de `FichaEnCursoProvider`.
+///
+/// 🔹 Interactúa con:
+///   - [ClienteFichaProvider]: gestiona la información del cliente.
+///   - [FechasFichaProvider]: controla fechas de creación, venta y próximo aviso.
+///   - [ProductoFichaProvider]: maneja la lista de productos dentro de la ficha.
+///   - [PagosFichaProvider]: registra y actualiza los pagos realizados.
+///   - [FichasServiciosFirebase]: sincroniza con la base de datos Firestore.
+///
+/// 🔹 Lógica principal:
+///   - Permite crear, actualizar o eliminar fichas en Firebase.
+///   - Mantiene la ficha en curso en memoria mientras se edita.
+///   - Expone métodos de conveniencia para acceder a datos específicos.
+///   - Gestiona coherencia interna entre subproviders (cliente, fechas, pagos, etc.).
+///
+/// 🔹 Estados:
+///   - `estaVacia`: no hay cliente ni productos cargados.
+///   - `esValida`: lista para guardarse (cliente válido + productos cargados).
+///
+/// ---------------------------------------------------------------------------
+///
+/// 🔸 INTERFACES Y MÉTODOS DISPONIBLES
+/// ---------------------------------------------------------------------------
+///
+/// ▶️ CLIENTE
+/// - `void actualizarCliente(Map<String, dynamic> clienteMap)`
+///   Carga o modifica los datos del cliente actual.
+///
+/// ▶️ FECHAS
+/// - `void actualizarFechas(Map<String, dynamic> fechasMap)`
+///   Establece las fechas de la ficha (creación, venta, aviso).
+///
+/// ▶️ PAGOS
+/// - `void registrarPago(Map<String, dynamic> pagoMap)`
+///   Agrega un nuevo pago a la lista interna de pagos.
+///
+/// ▶️ IDENTIFICADORES
+/// - `void setId(String? id)`
+///   Define el ID de la ficha actual (usado para actualización en Firebase).
+///
+/// - `void setNumeroDeFicha(int nuevoNumero)`
+///   Establece el número correlativo de ficha.
+///
+/// ▶️ PRODUCTOS
+/// - `void modificarCantidadDeProducto({required String uidProducto, required bool incrementar, required Map<String, dynamic> datosCatalogo})`
+///   Incrementa o decrementa la cantidad de unidades de un producto, agregándolo o quitándolo según corresponda.
+///
+/// - `void actualizarValoresDelProducto({...})`
+///   Permite modificar precio unitario, cuotas o importe de cuotas de un producto ya existente.
+///
+/// - `void actualizarProductos(List<Map<String, dynamic>> productosMap)`
+///   Reemplaza la lista completa de productos (por ejemplo, al cargar una ficha guardada).
+///
+/// ▶️ CONSTRUCCIÓN Y CARGA DE FICHAS
+/// - `FichaModel construirFichaCompleta()`
+///   Construye un objeto `FichaModel` a partir del estado actual del provider.
+///
+/// - `void cargarDesdeFichaModel(FichaModel ficha)`
+///   Carga el estado interno desde un modelo ya existente.
+///
+/// - `void cargarDesdeMap(Map<String, dynamic> data)`
+///   Restaura el estado a partir de un mapa (por ejemplo, obtenido de Firebase).
+///
+/// ▶️ VALIDACIÓN Y ESTADO
+/// - `bool get esValida`
+///   Retorna `true` si la ficha tiene cliente y productos cargados.
+///
+/// - `bool get estaVacia`
+///   Retorna `true` si no hay cliente ni productos cargados.
+///
+/// ▶️ LIMPIEZA
+/// - `void limpiarFicha()`
+///   Reinicia completamente el estado de la ficha en curso.
+///
+/// ▶️ SINCRONIZACIÓN CON FIREBASE
+/// - `Future<void> guardarFicha()`
+///   Crea una nueva ficha en Firebase (solo si no tiene ID asignado).
+///
+/// - `Future<void> actualizarFichaMedianteID()`
+///   Actualiza una ficha existente en Firebase.
+///
+/// - `Future<void> eliminarFichaMedianteID()`
+///   Elimina una ficha en Firebase y limpia el estado local.
+///
+/// - `Future<void> cargarFichaMedianteID()`
+///   Descarga y carga una ficha existente desde Firebase.
+///
+/// ▶️ CONSULTAS POR FILTROS (Firebase)
+/// - `Future<List<FichaModel>> obtenerFichasMedianteID()`
+/// - `Future<List<FichaModel>> obtenerFichasMedianteNombre()`
+/// - `Future<List<FichaModel>> obtenerFichasMedianteApellido()`
+/// - `Future<List<FichaModel>> obtenerFichasMedianteZona()`
+/// - `Future<List<FichaModel>> obtenerFichasMedianteFechaVenta()`
+/// - `Future<List<FichaModel>> obtenerFichasMedianteFechaAviso()`
+///
+/// ▶️ GETTERS DE ACCESO SIMPLIFICADO (para UI)
+/// - `String? get uidCliente`
+/// - `String? get nombreCliente`
+/// - `String? get apellidoCliente`
+/// - `String? get zonaCliente`
+/// - `String? get direccionCliente`
+/// - `String? get telefonoCliente`
+/// - `DateTime? get fechaDeVenta`
+/// - `DateTime? get proximoAviso`
+/// - `List<ProductoFichaModel> get productos`
+/// - `PagosFichaModel get pagos`
+///
+/// ---------------------------------------------------------------------------
+library;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valen_market_admin/constants/fieldNames.dart';

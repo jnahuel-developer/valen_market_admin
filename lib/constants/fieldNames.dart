@@ -39,8 +39,9 @@ const String FIELD_NAME__cliente_ficha_model__Telefono = 'Telefono';
 // Datos de la colección de fechas
 const String FIELD_NAME__fecha_ficha_model__Fecha_De_Creacion =
     'FechaDeCreacion';
-const String FIELD_NAME__fecha_ficha_model__Venta = 'Venta';
-const String FIELD_NAME__fecha_ficha_model__Proximo_Aviso = 'ProximoAviso';
+const String FIELD_NAME__fecha_ficha_model__Fecha_De_Venta = 'FechaDeVenta';
+const String FIELD_NAME__fecha_ficha_model__Fecha_De_Proximo_Aviso =
+    'FechaDeProximoAviso';
 
 // Datos del ítem de pago
 const String FIELD_NAME__pago_item_model__Fecha = 'Fecha';
@@ -56,6 +57,7 @@ const String FIELD_NAME__pago_ficha_model__Saldado = 'Saldado';
 const String FIELD_NAME__pago_ficha_model__Importe_Saldado = 'ImporteSaldado';
 const String FIELD_NAME__pago_ficha_model__Importe_Cuota = 'ImporteCuota';
 const String FIELD_NAME__pago_ficha_model__Importe_Total = 'ImporteTotal';
+const String FIELD_NAME__pago_ficha_model__Pagos_Realizados = 'PagosRealizados';
 
 // Datos de la colección de productos
 const String FIELD_NAME__producto_ficha_model__UID = 'UID';
@@ -64,6 +66,4 @@ const String FIELD_NAME__producto_ficha_model__Precio_Unitario =
     'PrecioUnitario';
 const String FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas =
     'PrecioDeLasCuotas';
-const String FIELD_NAME__producto_ficha_model__Cantidad_De_Cuotas =
-    'CantidadDeCuotas';
 const String FIELD_NAME__producto_ficha_model__Unidades = 'Unidades';

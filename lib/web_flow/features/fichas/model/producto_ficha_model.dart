@@ -3,9 +3,8 @@ import 'package:valen_market_admin/constants/fieldNames.dart';
 class ProductoFichaModel {
   final String uid;
   final String nombre;
-  final double precioUnitario;
-  final int cantidadDeCuotas;
-  final double precioDeLasCuotas;
+  final num precioUnitario;
+  final num precioDeLasCuotas;
   final int unidades;
 
   ProductoFichaModel({
@@ -13,21 +12,20 @@ class ProductoFichaModel {
     required this.nombre,
     required this.precioUnitario,
     required this.precioDeLasCuotas,
-    required this.cantidadDeCuotas,
     required this.unidades,
   });
 
   factory ProductoFichaModel.fromMap(Map<String, dynamic> data) {
     return ProductoFichaModel(
-      uid: data[FIELD_NAME__producto_ficha_model__UID] ?? '',
-      nombre: data[FIELD_NAME__producto_ficha_model__Nombre] ?? '',
+      uid: (data[FIELD_NAME__producto_ficha_model__UID] ?? '').toString(),
+      nombre: (data[FIELD_NAME__producto_ficha_model__Nombre] ?? '').toString(),
       precioUnitario:
-          data[FIELD_NAME__producto_ficha_model__Precio_Unitario] ?? 0,
+          (data[FIELD_NAME__producto_ficha_model__Precio_Unitario] ?? 0),
       precioDeLasCuotas:
-          data[FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas] ?? 0,
-      cantidadDeCuotas:
-          data[FIELD_NAME__producto_ficha_model__Cantidad_De_Cuotas] ?? 0,
-      unidades: data[FIELD_NAME__producto_ficha_model__Unidades] ?? 1,
+          (data[FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas] ?? 0),
+      unidades: int.tryParse(
+              '${data[FIELD_NAME__producto_ficha_model__Unidades] ?? 0}') ??
+          0,
     );
   }
 
@@ -37,27 +35,29 @@ class ProductoFichaModel {
       FIELD_NAME__producto_ficha_model__Nombre: nombre,
       FIELD_NAME__producto_ficha_model__Precio_Unitario: precioUnitario,
       FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas: precioDeLasCuotas,
-      FIELD_NAME__producto_ficha_model__Cantidad_De_Cuotas: cantidadDeCuotas,
       FIELD_NAME__producto_ficha_model__Unidades: unidades,
     };
   }
 
-  /// Crea una copia con cambios seleccionados
-  ProductoFichaModel copyWith({
-    String? uid,
-    String? nombre,
-    double? precioUnitario,
-    int? cantidadDeCuotas,
-    double? precioDeLasCuotas,
-    int? unidades,
-  }) {
+  static ProductoFichaModel productoVacio() => ProductoFichaModel(
+        uid: '',
+        nombre: '',
+        precioUnitario: 0,
+        precioDeLasCuotas: 0,
+        unidades: 0,
+      );
+
+  ProductoFichaModel copyWith(Map<String, dynamic> cambios) {
     return ProductoFichaModel(
-      uid: uid ?? this.uid,
-      nombre: nombre ?? this.nombre,
-      precioUnitario: precioUnitario ?? this.precioUnitario,
-      cantidadDeCuotas: cantidadDeCuotas ?? this.cantidadDeCuotas,
-      precioDeLasCuotas: precioDeLasCuotas ?? this.precioDeLasCuotas,
-      unidades: unidades ?? this.unidades,
+      uid: cambios[FIELD_NAME__producto_ficha_model__UID] ?? uid,
+      nombre: cambios[FIELD_NAME__producto_ficha_model__Nombre] ?? nombre,
+      precioUnitario:
+          cambios[FIELD_NAME__producto_ficha_model__Precio_Unitario] ??
+              precioUnitario,
+      precioDeLasCuotas:
+          cambios[FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas] ??
+              precioDeLasCuotas,
+      unidades: cambios[FIELD_NAME__producto_ficha_model__Unidades] ?? unidades,
     );
   }
 }
