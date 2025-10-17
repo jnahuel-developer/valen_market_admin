@@ -22,7 +22,7 @@
 ///
 /// 🔹 Métodos disponibles:
 ///   • `List<ProductoFichaModel> get productos`
-///   • `void agregarProducto(ProductoFichaModel producto)`
+///   • `void agregarProducto(ProductoFichaModel producto)`uid
 ///   • `void eliminarProductoPorUID(String uidProducto)`
 ///   • `void actualizarCantidadDeProducto(String uidProducto, int nuevaCantidad)`
 ///   • `void actualizarValoresDelProducto({ ... })`
@@ -46,17 +46,17 @@ class ProductosFichaProvider extends ChangeNotifier {
   void agregarProducto(Map<String, dynamic> nuevoProducto) {
     final producto = ProductoFichaModel.fromMap(nuevoProducto);
     final existe = _productos
-        .any((p) => p[FIELD_NAME__producto_ficha_model__UID] == producto.uid);
-    if (!existe && producto.uid.isNotEmpty) {
+        .any((p) => p[FIELD_NAME__producto_ficha_model__ID] == producto.id);
+    if (!existe && producto.id.isNotEmpty) {
       _productos.add(producto.toMap());
       notifyListeners();
     }
   }
 
   /// Actualiza un producto existente por UID
-  void actualizarProducto(String uid, Map<String, dynamic> datosActualizados) {
+  void actualizarProducto(String id, Map<String, dynamic> datosActualizados) {
     final index = _productos
-        .indexWhere((p) => p[FIELD_NAME__producto_ficha_model__UID] == uid);
+        .indexWhere((p) => p[FIELD_NAME__producto_ficha_model__ID] == id);
     if (index != -1) {
       final productoExistente = ProductoFichaModel.fromMap(_productos[index])
           .copyWith(datosActualizados);
@@ -66,9 +66,9 @@ class ProductosFichaProvider extends ChangeNotifier {
   }
 
   /// Elimina un producto por UID
-  void eliminarProducto(String uid) {
+  void eliminarProducto(String id) {
     _productos
-        .removeWhere((p) => p[FIELD_NAME__producto_ficha_model__UID] == uid);
+        .removeWhere((p) => p[FIELD_NAME__producto_ficha_model__ID] == id);
     notifyListeners();
   }
 

@@ -1,19 +1,3 @@
-/// ---------------------------------------------------------------------------
-/// CUSTOM_WEB_FICHA_SHOP_ITEM
-///
-/// 🔹 Rol: Representa un producto en la cuadrícula de la sección de productos.
-/// 🔹 Interactúa con:
-///   - [CustomWebProductosSection]:
-///       • Llama a callbacks (incrementar, decrementar, editar) pasados por el
-///         contenedor; no accede a providers directamente.
-/// 🔹 Lógica:
-///   - Muestra imagen, nombre, precio unitario y precio por cuota (si aplica),
-///     stock y cantidad seleccionada.
-///   - Los botones de +/- llaman a onIncrement/onDecrement.
-///   - El botón de editar se muestra solo si onEdit != null y cantidad > 0.
-/// ---------------------------------------------------------------------------
-library;
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
@@ -40,10 +24,11 @@ class CustomWebFichaShopItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final String nombre =
         producto[FIELD_NAME__catalogo__Nombre_Del_Producto] ?? 'Producto';
-    final double precio = ((producto[FIELD_NAME__catalogo__Precio] ??
-            producto[FIELD_NAME__producto_ficha_model__Precio_Unitario] ??
-            0))
-        .toDouble();
+    final double precio =
+        ((producto[FIELD_NAME__producto_ficha_model__Precio_Unitario] ??
+                producto[FIELD_NAME__producto_ficha_model__Precio_Unitario] ??
+                0))
+            .toDouble();
     final int stock = (producto[FIELD_NAME__catalogo__Stock] ?? 0).toInt();
     final String imageUrl =
         producto[FIELD_NAME__catalogo__Link_De_La_Foto] ?? '';
@@ -54,14 +39,13 @@ class CustomWebFichaShopItem extends StatelessWidget {
     // calcular precio por cuota: primero mirar si producto en ficha trajo precioDeLasCuotas
     final double precioCuota =
         ((producto[FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas] ??
-                ((producto[FIELD_NAME__catalogo__Precio] ?? 0) /
+                ((producto[FIELD_NAME__producto_ficha_model__Precio_Unitario] ??
+                        0) /
                     (producto[FIELD_NAME__catalogo__Cantidad_De_Cuotas] ?? 1))))
             .toDouble();
 
     final int cuotas =
-        (producto[FIELD_NAME__producto_ficha_model__Cantidad_De_Cuotas] ??
-            producto[FIELD_NAME__catalogo__Cantidad_De_Cuotas] ??
-            1);
+        (producto[FIELD_NAME__catalogo__Cantidad_De_Cuotas] ?? 1);
 
     final String precioCuotaFormateado =
         NumberFormat('#,###', 'es_AR').format(precioCuota);

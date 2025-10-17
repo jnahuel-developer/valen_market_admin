@@ -34,7 +34,7 @@ import 'package:valen_market_admin/web_flow/features/fichas/model/cliente_ficha_
 class ClienteFichaProvider extends ChangeNotifier {
   // Estructura interna en formato Map
   Map<String, dynamic> _cliente = {
-    FIELD_NAME__cliente_ficha_model__UID: '',
+    FIELD_NAME__cliente_ficha_model__ID: '',
     FIELD_NAME__cliente_ficha_model__Nombre: '',
     FIELD_NAME__cliente_ficha_model__Apellido: '',
     FIELD_NAME__cliente_ficha_model__Zona: '',
@@ -55,7 +55,7 @@ class ClienteFichaProvider extends ChangeNotifier {
   // Limpia el estado del cliente
   void limpiarCliente() {
     _cliente = {
-      FIELD_NAME__cliente_ficha_model__UID: '',
+      FIELD_NAME__cliente_ficha_model__ID: '',
       FIELD_NAME__cliente_ficha_model__Nombre: '',
       FIELD_NAME__cliente_ficha_model__Apellido: '',
       FIELD_NAME__cliente_ficha_model__Zona: '',

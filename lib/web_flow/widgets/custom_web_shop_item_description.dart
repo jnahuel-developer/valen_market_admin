@@ -66,7 +66,7 @@ class CustomShopItemDescription extends StatelessWidget {
             FIELD_NAME__catalogo__Descripcion_Corta: descripcionCorta,
             FIELD_NAME__catalogoDescripcionCorta__Descripcion_Larga:
                 descripcionLarga,
-            FIELD_NAME__catalogo__Precio: precio,
+            FIELD_NAME__catalogo__Precio_Unitario: precio,
             FIELD_NAME__catalogo__Cantidad_De_Cuotas: cuotas,
             FIELD_NAME__catalogo__Stock: stock,
             FIELD_NAME__catalogo__Link_De_La_Foto: imageUrl,
@@ -190,7 +190,8 @@ class CustomShopItemDescription extends StatelessWidget {
                 if (descripcionLarga != null &&
                     descripcionLarga!.trim().isNotEmpty)
                   const SizedBox(height: 8),
-                _textItem(FIELD_NAME__catalogo__Precio, '\$${precio.toInt()}',
+                _textItem(FIELD_NAME__catalogo__Precio_Unitario,
+                    '\$${precio.toInt()}',
                     fontSize: 16),
                 const SizedBox(height: 8),
                 _textItem('Cuotas', cuotas.toString(), fontSize: 16),

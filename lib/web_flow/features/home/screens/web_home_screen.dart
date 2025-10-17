@@ -25,7 +25,7 @@ class WebHomeScreen extends StatelessWidget {
           return Column(
             children: [
               const CustomWebTopBar(
-                titulo: TEXTO_ES__home_screen__titulo,
+                titulo: TEXTO__home_screen__titulo,
                 pantallaPadreRouteName: null,
               ),
               Expanded(
@@ -39,10 +39,10 @@ class WebHomeScreen extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           _buildBloque(context, bloqueWidth, bloqueHeight,
-                              TEXTO_ES__home_screen__bloque__clientes, [
-                            TEXTO_ES__home_screen__boton__ver_clientes,
-                            TEXTO_ES__home_screen__boton__agregar_cliente,
-                            TEXTO_ES__home_screen__boton__volcar_panilla_de_clientes,
+                              TEXTO__home_screen__bloque__clientes, [
+                            TEXTO__home_screen__boton__ver_clientes,
+                            TEXTO__home_screen__boton__agregar_cliente,
+                            TEXTO__home_screen__boton__volcar_panilla_de_clientes,
                           ], [
                             // Ver clientes -> Todavia no fue desarrollado
                             () {},
@@ -53,10 +53,10 @@ class WebHomeScreen extends StatelessWidget {
                             () {},
                           ]),
                           _buildBloque(context, bloqueWidth, bloqueHeight,
-                              TEXTO_ES__home_screen__bloque__catalogo, [
-                            TEXTO_ES__home_screen__boton__ver_catalogo,
-                            TEXTO_ES__home_screen__boton__agregar_producto,
-                            TEXTO_ES__home_screen__boton__volcar_panilla_de_productos,
+                              TEXTO__home_screen__bloque__catalogo, [
+                            TEXTO__home_screen__boton__ver_catalogo,
+                            TEXTO__home_screen__boton__agregar_producto,
+                            TEXTO__home_screen__boton__volcar_panilla_de_productos,
                           ], [
                             // Ver el catálogo completo
                             () => Navigator.pushNamed(
@@ -68,10 +68,10 @@ class WebHomeScreen extends StatelessWidget {
                             () {},
                           ]),
                           _buildBloque(context, bloqueWidth, bloqueHeight,
-                              TEXTO_ES__home_screen__bloque__fichas, [
-                            TEXTO_ES__home_screen__boton__agregar_ficha,
-                            TEXTO_ES__home_screen__boton__buscar_ficha,
-                            TEXTO_ES__home_screen__boton__editar_ficha,
+                              TEXTO__home_screen__bloque__fichas, [
+                            TEXTO__home_screen__boton__agregar_ficha,
+                            TEXTO__home_screen__boton__buscar_ficha,
+                            TEXTO__home_screen__boton__editar_ficha,
                           ], [
                             // Agregar ficha
                             () => Navigator.pushNamed(
@@ -90,17 +90,17 @@ class WebHomeScreen extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           _buildBloque(context, bloqueWidth, bloqueHeight,
-                              TEXTO_ES__home_screen__bloque__pagos, [
-                            TEXTO_ES__home_screen__boton__agregar_pagos,
-                            TEXTO_ES__home_screen__boton__buscar_pagos,
-                            TEXTO_ES__home_screen__boton__editar_pagos,
+                              TEXTO__home_screen__bloque__pagos, [
+                            TEXTO__home_screen__boton__agregar_pagos,
+                            TEXTO__home_screen__boton__buscar_pagos,
+                            TEXTO__home_screen__boton__editar_pagos,
                           ], [
                             () {}, // planilla
                             () {}, // registrar pago
                             () {}, // historial
                           ]),
                           _buildBloque(context, bloqueWidth, bloqueHeight,
-                              TEXTO_ES__home_screen__bloque__promociones, [
+                              TEXTO__home_screen__bloque__promociones, [
                             'NO DISPONIBLE',
                             'NO DISPONIBLE',
                             'NO DISPONIBLE',
@@ -110,7 +110,7 @@ class WebHomeScreen extends StatelessWidget {
                             () {}, // clientes
                           ]),
                           _buildBloque(context, bloqueWidth, bloqueHeight,
-                              TEXTO_ES__home_screen__bloque__estadisticas, [
+                              TEXTO__home_screen__bloque__estadisticas, [
                             'NO DISPONIBLE',
                             'NO DISPONIBLE',
                             'NO DISPONIBLE',

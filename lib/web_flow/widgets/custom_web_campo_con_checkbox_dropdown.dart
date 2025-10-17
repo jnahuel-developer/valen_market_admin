@@ -1,16 +1,3 @@
-/// custom_web_campo_con_checkbox_dropdown.dart
-///
-/// Descripción:
-/// - Campo compuesto por checkbox + label + dropdown (lista de zonas).
-/// - No accede a sub-providers. Cuando el usuario cambia la opción y el campo
-///   está editable, el widget ejecuta `onChanged` para que el parent arme el
-///   Map y actualice el provider con `actualizarCliente(Map)` o aplique el filtro.
-///
-/// Interactúa con:
-/// - CustomWebClienteSection (parent) que decide cómo usar la selección
-///   (filtro o actualización del cliente en el provider).
-library;
-
 import 'package:flutter/material.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
 import 'package:valen_market_admin/constants/values.dart';

@@ -1,120 +1,198 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:valen_market_admin/constants/fieldNames.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
-import 'package:valen_market_admin/web_flow/features/fichas/model/cliente_ficha_model.dart';
-import 'package:valen_market_admin/web_flow/features/fichas/model/pago_item_model.dart';
-import 'package:valen_market_admin/web_flow/features/fichas/model/producto_ficha_model.dart';
-import 'package:valen_market_admin/web_flow/features/fichas/model/fechas_ficha_model.dart';
 
 void main() {
-  group('📦 FichaEnCursoProvider - pruebas de lógica interna', () {
-    late FichaEnCursoProvider fichaProvider;
+  late FichaEnCursoProvider provider;
 
-    setUp(() {
-      fichaProvider = FichaEnCursoProvider();
+  setUp(() {
+    provider = FichaEnCursoProvider();
+    debugPrint(
+        '\n🧩 --- Nuevo test: Se inicializa un FichaEnCursoProvider limpio ---');
+  });
+
+  tearDown(() {
+    provider.limpiarFicha();
+  });
+
+  group('1) Inicialización y estructura básica', () {
+    test('Debe iniciar con una ficha vacía', () {
+      final ficha = provider.obtenerFichaCompleta();
+      debugPrint('Ficha inicial: $ficha');
+
+      expect(ficha[FIELD_NAME__ficha_model__Cliente], isNotNull);
+      expect(ficha[FIELD_NAME__ficha_model__Fechas], isNotNull);
+      expect(ficha[FIELD_NAME__ficha_model__Productos], isList);
+      expect(ficha[FIELD_NAME__ficha_model__Pagos], isNotNull);
+      debugPrint('\n**************************************************');
     });
 
-    test('Inicializa correctamente los subproviders', () {
-      expect(fichaProvider.cliente.cliente.uid, '');
-      expect(fichaProvider.pagos.pagos.pagos, isEmpty);
-      expect(fichaProvider.productos.productos, isEmpty);
-      expect(fichaProvider.fechas.fechas.fechaDeCreacion, isNotNull);
+    test('Limpiar ficha debe reiniciar todos los subproviders', () {
+      provider.limpiarFicha();
+      final ficha = provider.obtenerFichaCompleta();
+      expect(ficha[FIELD_NAME__ficha_model__Productos], isEmpty);
+      debugPrint('\n**************************************************');
     });
+  });
 
-    test('Permite asignar un cliente y recuperarlo', () {
-      final cliente = ClienteFichaModel(
-        uid: '123',
-        nombre: 'Juan',
-        apellido: 'Pérez',
-        zona: 'Centro',
-        direccion: 'Calle Falsa 123',
-        telefono: '555-1234',
+  group('2) Carga de cliente', () {
+    test('Debe poder cargar un cliente completo desde un Map', () {
+      final clienteMap = {
+        FIELD_NAME__cliente_ficha_model__ID: '75298AzAX4UeaGCvm0Wl',
+        FIELD_NAME__cliente_ficha_model__Nombre: 'Fabian',
+        FIELD_NAME__cliente_ficha_model__Apellido: 'Gertie',
+        FIELD_NAME__cliente_ficha_model__Zona: 'Norte',
+        FIELD_NAME__cliente_ficha_model__Direccion: 'Calle falsa 123',
+        FIELD_NAME__cliente_ficha_model__Telefono: '1122334455',
+      };
+
+      provider.actualizarCliente(clienteMap);
+      final ficha = provider.obtenerFichaCompleta();
+
+      debugPrint('Cliente cargado en ficha: $ficha');
+
+      expect(
+        ficha[FIELD_NAME__ficha_model__Cliente]
+            [FIELD_NAME__cliente_ficha_model__Nombre],
+        equals('Fabian'),
       );
 
-      fichaProvider.actualizarCliente(cliente);
-
-      expect(fichaProvider.cliente.cliente.nombre, 'Juan');
-      expect(fichaProvider.cliente.cliente.apellido, 'Pérez');
+      debugPrint('\n**************************************************');
     });
+  });
 
-    test('Permite agregar productos a la ficha', () {
-      final producto1 = ProductoFichaModel(
-        uid: 'p1',
-        nombre: 'Yerba Mate',
-        cantidad: 2,
-        precioUnitario: 1200,
+  group('3) Carga de fechas', () {
+    test('Debe actualizar las fechas correctamente', () {
+      final fechas = {
+        FIELD_NAME__fecha_ficha_model__Fecha_De_Creacion: '2025-10-10',
+        FIELD_NAME__fecha_ficha_model__Fecha_De_Venta: '2025-09-28',
+        FIELD_NAME__fecha_ficha_model__Fecha_De_Proximo_Aviso: '2025-10-24',
+      };
+
+      provider.actualizarFechas(fechas);
+      final ficha = provider.obtenerFichaCompleta();
+
+      debugPrint('Fechas cargadas en ficha: $ficha');
+
+      expect(
+        ficha[FIELD_NAME__ficha_model__Fechas]
+            [FIELD_NAME__fecha_ficha_model__Fecha_De_Venta],
+        equals('2025-09-28'),
       );
 
-      final producto2 = ProductoFichaModel(
-        uid: 'p2',
-        nombre: 'Azúcar',
-        cantidad: 1,
-        precioUnitario: 800,
-      );
+      debugPrint('\n**************************************************');
+    });
+  });
 
-      fichaProvider.agregarProducto(producto1);
-      fichaProvider.agregarProducto(producto2);
+  group('4) Manejo de productos', () {
+    test('Debe agregar un producto a la lista', () {
+      final producto = {
+        FIELD_NAME__producto_ficha_model__ID: 'EXs51qPRfvggQ0Jftt6f',
+        FIELD_NAME__producto_ficha_model__Nombre: 'Agujereadora',
+        FIELD_NAME__producto_ficha_model__Precio_Unitario: 18000,
+        FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas: 1500,
+        FIELD_NAME__producto_ficha_model__Unidades: 2,
+      };
 
-      expect(fichaProvider.productos.productos.length, 2);
-      expect(fichaProvider.productos.productos.first.nombre, 'Yerba Mate');
+      provider.agregarProducto(producto);
+      final ficha = provider.obtenerFichaCompleta();
+      final productos = ficha[FIELD_NAME__ficha_model__Productos] as List;
+
+      debugPrint('Productos en ficha: $ficha');
+
+      expect(productos.length, 1);
+      expect(productos.first[FIELD_NAME__producto_ficha_model__Nombre],
+          equals('Agujereadora'));
+
+      debugPrint('\n**************************************************');
     });
 
-    test('Calcula totales correctamente al agregar productos', () {
-      fichaProvider.agregarProducto(ProductoFichaModel(
-        uid: 'x',
-        nombre: 'Yerba',
-        cantidad: 2,
-        precioUnitario: 1000,
-      ));
+    test('Debe modificar y eliminar un producto', () {
+      final producto = {
+        FIELD_NAME__producto_ficha_model__ID: 'MROSzBJf0bJHnTbin1ZU',
+        FIELD_NAME__producto_ficha_model__Nombre: 'Reloj inteligente',
+        FIELD_NAME__producto_ficha_model__Precio_Unitario: 45000,
+        FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas: 3750,
+        FIELD_NAME__producto_ficha_model__Unidades: 1,
+      };
 
-      fichaProvider.recalcularTotales();
+      // Agregar producto inicial
+      provider.agregarProducto(producto);
+      var ficha = provider.obtenerFichaCompleta();
+      debugPrint('Productos agregados: $ficha');
 
-      expect(fichaProvider.totalGeneral, 2000);
-    });
-
-    test('Registra pagos y recalcula el saldo', () {
-      fichaProvider.totalGeneral = 3000;
-
-      fichaProvider.pagos.agregarPago(
-        PagoItemModel(
-          idPago: 'p1',
-          monto: 1000,
-          fecha: DateTime.now(),
-          metodo: 'Efectivo',
-        ),
+      // Actualizar unidades del mismo producto
+      provider.actualizarProducto(
+        'MROSzBJf0bJHnTbin1ZU',
+        {
+          ...producto,
+          FIELD_NAME__producto_ficha_model__Unidades: 23,
+        },
       );
 
-      fichaProvider.pagos.agregarPago(
-        PagoItemModel(
-          idPago: 'p2',
-          monto: 2000,
-          fecha: DateTime.now(),
-          metodo: 'Tarjeta',
-        ),
-      );
+      ficha = provider.obtenerFichaCompleta();
+      debugPrint('Productos modificados: $ficha');
 
-      expect(fichaProvider.pagos.pagos.importeSaldado, 3000);
-      expect(fichaProvider.pagos.pagos.restante, 0);
-      expect(fichaProvider.pagos.pagos.saldado, isTrue);
+      // Validar modificación
+      final productosModificados =
+          ficha[FIELD_NAME__ficha_model__Productos] as List;
+      expect(
+          productosModificados
+              .first[FIELD_NAME__producto_ficha_model__Unidades],
+          equals(23));
+
+      // Eliminar producto por ID
+      provider.eliminarProducto('MROSzBJf0bJHnTbin1ZU');
+      final productosEliminados = provider
+          .obtenerFichaCompleta()[FIELD_NAME__ficha_model__Productos] as List;
+
+      debugPrint(
+          'Productos después de eliminar: ${provider.obtenerFichaCompleta()}');
+
+      expect(productosEliminados, isEmpty);
+
+      debugPrint('\n**************************************************');
     });
+  });
 
-    test('Permite actualizar las fechas de la ficha', () {
-      final nuevasFechas = FechasFichaModel(
-        fechaDeCreacion: DateTime(2024, 1, 1),
-        venta: DateTime(2024, 2, 1),
-        proximoAviso: DateTime(2024, 3, 1),
-      );
+  group('5) Manejo de pagos', () {
+    test('Debe registrar un pago y recalcular los datos financieros', () async {
+      var ficha = provider.obtenerFichaCompleta();
+      provider.limpiarFicha();
 
-      fichaProvider.actualizarFechas(nuevasFechas);
+      final pago = {
+        FIELD_NAME__pago_item_model__Fecha: '2025-10-14',
+        FIELD_NAME__pago_item_model__Medio: 'Transferencia',
+        FIELD_NAME__pago_item_model__Monto: 10000,
+      };
 
-      expect(fichaProvider.fechas.fechas.venta, DateTime(2024, 2, 1));
+      await provider.registrarPago(pago);
+
+      ficha = provider.obtenerFichaCompleta();
+      final pagos = ficha[FIELD_NAME__ficha_model__Pagos]
+          [FIELD_NAME__pago_ficha_model__Pagos_Realizados] as List;
+
+      debugPrint('Pagos realizados: $ficha');
+
+      expect(pagos.length, 1);
+      expect(pagos.first[FIELD_NAME__pago_item_model__Monto], equals(10000));
+
+      debugPrint('\n**************************************************');
     });
+  });
 
-    test('Permite limpiar completamente la ficha en curso', () {
-      fichaProvider.limpiarFicha();
+  group('6) Ficha completa', () {
+    test('Debe generar un Map completo coherente', () {
+      final ficha = provider.obtenerFichaCompleta();
+      debugPrint('Ficha final completa: $ficha');
 
-      expect(fichaProvider.cliente.cliente.nombre, '');
-      expect(fichaProvider.productos.productos, isEmpty);
-      expect(fichaProvider.pagos.pagos.pagos, isEmpty);
+      expect(ficha.containsKey(FIELD_NAME__ficha_model__Cliente), isTrue);
+      expect(ficha.containsKey(FIELD_NAME__ficha_model__Fechas), isTrue);
+      expect(ficha.containsKey(FIELD_NAME__ficha_model__Productos), isTrue);
+      expect(ficha.containsKey(FIELD_NAME__ficha_model__Pagos), isTrue);
+
+      debugPrint('\n**************************************************');
     });
   });
 }

@@ -1,24 +1,3 @@
-/// ---------------------------------------------------------------------------
-/// CUSTOM_WEB_POPUP_INFORMAR_PAGO
-///
-/// 🔹 Rol: Muestra un resumen financiero de la ficha en curso, permite ingresar
-///   un pago (monto y medio) y elegir / normalizar la próxima fecha de aviso.
-///
-/// 🔹 Interactúa con:
-///   - [FichaEnCursoProvider]:
-///       • Lee los productos (resumen) y los datos financieros actuales.
-///       • Registra el pago mediante `registrarPago(Map<String,dynamic>)`.
-///       • Actualiza la fecha de próximo aviso mediante `actualizarFechas(...)`.
-///
-/// 🔹 Lógica:
-///   - El importe puede tomarse como "valor estándar" (importe de cuota definido
-///     en la ficha) cuando el checkbox está activo, o ingresarse manualmente.
-///   - Al confirmar:
-///       • Se crea un mapa del pago `{ Fecha, Medio, Monto }` y se delega al Provider.
-///       • Se actualiza la fecha de próximo aviso (fecha normalizada sin hora).
-/// ---------------------------------------------------------------------------
-library;
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -76,8 +55,8 @@ class _CustomWebPopupInformarPagoState
   }
 
   void _calcularMontoEstandar() {
-    final fichaProv = ref.read(fichaEnCursoProvider);
-    final productos = fichaProv.productos;
+    final ficha = ref.read(fichaEnCursoProvider);
+    final productos = ficha.obtenerProductos();
 
     double sumaCuotas = 0.0;
     for (final p in productos) {
@@ -144,11 +123,11 @@ class _CustomWebPopupInformarPagoState
 
   @override
   Widget build(BuildContext context) {
-    final fichaProv = ref.watch(fichaEnCursoProvider);
+    final ficha = ref.watch(fichaEnCursoProvider);
 
     // Datos provenientes del Provider central
-    final productos = fichaProv.productos;
-    final pagos = fichaProv.pagos;
+    final productos = ficha.obtenerProductos();
+    final pagos = ficha.obtenerPagos();
 
     // Datos de resumen
     final double totalFicha = pagos.importeTotal.toDouble();

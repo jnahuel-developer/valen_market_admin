@@ -1,15 +1,42 @@
 // --------------------------------------------------------------------------------------------
-// CAMPOS EN LA COLECCIÓN DE CATÁLOGO
+// CAMPOS EN LA COLECCIÓN DE CLIENTES
 // --------------------------------------------------------------------------------------------
 
 // Datos de la colección del cliente
-const String FIELD_NAME__catalogo__Nombre_Del_Producto = 'NombreDelProducto';
+const String FIELD_NAME__clientes__Nombre_De_La_Coleccion = 'BDD_Clientes';
+const String FIELD_NAME__clientes__ID_Del_Cliente = 'ID';
+const String FIELD_NAME__clientes__Nombre_Del_Cliente = 'Nombre';
+const String FIELD_NAME__clientes__Apellido_Del_Cliente = 'Apellido';
+const String FIELD_NAME__clientes__Zona_Del_Cliente = 'Zona';
+const String FIELD_NAME__clientes__Direccion_Del_Cliente = 'Direccion';
+const String FIELD_NAME__clientes__Telefono_Del_Cliente = 'Telefono';
+const String FIELD_NAME__clientes__Nombre_Compuesto_Del_Cliente =
+    'NombreCompleto';
+
+// --------------------------------------------------------------------------------------------
+// CAMPOS EN LA COLECCIÓN DE CONFIGURACIÓN
+// --------------------------------------------------------------------------------------------
+
+// Datos del número de la última ficha asignada
+const String FIELD_NAME__config__Nombre_De_La_Coleccion = 'config';
+const String FIELD_NAME__config__Nombre_Del_Documento = 'fichas';
+const String FIELD_NAME__config__Ultimo_Numero_De_Ficha = 'UltimoNroDeFicha';
+
+// --------------------------------------------------------------------------------------------
+// CAMPOS EN LA COLECCIÓN DE CATÁLOGO
+// --------------------------------------------------------------------------------------------
+
+const String FIELD_NAME__catalogo__Nombre_De_La_Coleccion = 'BDD_Catalogo';
+
+// Datos de la colección del cliente
+const String FIELD_NAME__catalogo__ID_Del_Producto = 'ID';
+const String FIELD_NAME__catalogo__Nombre_Del_Producto = 'Nombre';
 const String FIELD_NAME__catalogo__Descripcion_Corta = 'DescripcionCorta';
 const String FIELD_NAME__catalogoDescripcionCorta__Descripcion_Larga =
     'DescripcionLarga';
-const String FIELD_NAME__catalogo__Precio = 'Precio';
+const String FIELD_NAME__catalogo__Precio_Unitario = 'PrecioUnitario';
 const String FIELD_NAME__catalogo__Cantidad_De_Cuotas = 'CantidadDeCuotas';
-const String FIELD_NAME__catalogo__Importe_De_Las_Cuotas = 'ImporteDeLasCuotas';
+const String FIELD_NAME__catalogo__Precio_De_Las_Cuotas = 'PrecioDeLasCuotas';
 const String FIELD_NAME__catalogo__Stock = 'Stock';
 const String FIELD_NAME__catalogo__Link_De_La_Foto = 'LinkDeLaFoto';
 const String FIELD_NAME__catalogo__Fecha_De_Creacion = 'FechaDeCreacion';
@@ -17,6 +44,8 @@ const String FIELD_NAME__catalogo__Fecha_De_Creacion = 'FechaDeCreacion';
 // --------------------------------------------------------------------------------------------
 // CAMPOS EN LA COLECCIÓN DE FICHAS
 // --------------------------------------------------------------------------------------------
+
+const String FIELD_NAME__ficha__Nombre_De_La_Coleccion = 'BDD_Fichas';
 
 // Datos de la ficha o nombre de las colecciones
 const String FIELD_NAME__ficha_model__ID_De_Ficha = 'ID';
@@ -29,12 +58,18 @@ const String FIELD_NAME__ficha_model__Fechas = 'Fechas';
 const String FIELD_NAME__ficha_model__Pagos = 'Pagos';
 
 // Datos de la colección del cliente
-const String FIELD_NAME__cliente_ficha_model__UID = 'UID';
-const String FIELD_NAME__cliente_ficha_model__Nombre = 'Nombre';
-const String FIELD_NAME__cliente_ficha_model__Apellido = 'Apellido';
-const String FIELD_NAME__cliente_ficha_model__Zona = 'Zona';
-const String FIELD_NAME__cliente_ficha_model__Direccion = 'Direccion';
-const String FIELD_NAME__cliente_ficha_model__Telefono = 'Telefono';
+const String FIELD_NAME__cliente_ficha_model__ID =
+    FIELD_NAME__clientes__ID_Del_Cliente;
+const String FIELD_NAME__cliente_ficha_model__Nombre =
+    FIELD_NAME__clientes__Nombre_Del_Cliente;
+const String FIELD_NAME__cliente_ficha_model__Apellido =
+    FIELD_NAME__clientes__Apellido_Del_Cliente;
+const String FIELD_NAME__cliente_ficha_model__Zona =
+    FIELD_NAME__clientes__Zona_Del_Cliente;
+const String FIELD_NAME__cliente_ficha_model__Direccion =
+    FIELD_NAME__clientes__Direccion_Del_Cliente;
+const String FIELD_NAME__cliente_ficha_model__Telefono =
+    FIELD_NAME__clientes__Telefono_Del_Cliente;
 
 // Datos de la colección de fechas
 const String FIELD_NAME__fecha_ficha_model__Fecha_De_Creacion =
@@ -60,10 +95,11 @@ const String FIELD_NAME__pago_ficha_model__Importe_Total = 'ImporteTotal';
 const String FIELD_NAME__pago_ficha_model__Pagos_Realizados = 'PagosRealizados';
 
 // Datos de la colección de productos
-const String FIELD_NAME__producto_ficha_model__UID = 'UID';
-const String FIELD_NAME__producto_ficha_model__Nombre = 'Nombre';
+const String FIELD_NAME__producto_ficha_model__ID = 'ID';
+const String FIELD_NAME__producto_ficha_model__Nombre =
+    FIELD_NAME__catalogo__Nombre_Del_Producto;
 const String FIELD_NAME__producto_ficha_model__Precio_Unitario =
-    'PrecioUnitario';
+    FIELD_NAME__catalogo__Precio_Unitario;
 const String FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas =
-    'PrecioDeLasCuotas';
+    FIELD_NAME__catalogo__Precio_De_Las_Cuotas;
 const String FIELD_NAME__producto_ficha_model__Unidades = 'Unidades';

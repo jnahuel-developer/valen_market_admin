@@ -1,26 +1,3 @@
-/// ---------------------------------------------------------------------------
-/// WEB_FICHAS_AGREGAR_SCREEN
-///
-/// 🔹 Rol:
-///   Pantalla principal para crear nuevas fichas desde el flujo web.
-///   Contiene las secciones de cliente, fechas y productos, y permite
-///   guardar la ficha en Firebase mediante el Provider unificado.
-///
-/// 🔹 Interactúa con:
-///   - [FichaEnCursoProvider]:
-///       • Se limpia al iniciar.
-///       • Se consulta para validar y construir la ficha.
-///       • Se llama a `guardarFicha()` para persistir en Firebase.
-///   - [CustomWebClienteSection], [CustomWebFichaFechasSection],
-///     [CustomWebProductosSection].
-///
-/// 🔹 Lógica interna:
-///   - Limpia el provider al abrirse.
-///   - Permite seleccionar cliente, fechas y productos.
-///   - Al presionar "Agregar", valida y guarda la ficha.
-/// ---------------------------------------------------------------------------
-library;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valen_market_admin/constants/textos.dart';
@@ -87,9 +64,9 @@ class _WebFichasAgregarScreenState
   // ---------------------------------------------------------------------------
 
   Future<void> _agregarFicha() async {
-    final fichaProvider = ref.read(fichaEnCursoProvider);
+    final ficha = ref.read(fichaEnCursoProvider);
 
-    if (!fichaProvider.esValida) {
+    if (!ficha.hayFichaValida) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Debes seleccionar un cliente y al menos un producto.'),
@@ -106,7 +83,7 @@ class _WebFichasAgregarScreenState
     );
 
     try {
-      await fichaProvider.guardarFicha();
+      await ficha.guardarFichaEnFirebase();
 
       // Cerrar loader
       if (mounted) Navigator.of(context).pop();
@@ -119,7 +96,7 @@ class _WebFichasAgregarScreenState
       }
 
       // Limpiar ficha y resetear secciones visuales
-      fichaProvider.limpiarFicha();
+      ficha.limpiarFicha();
       _clienteKey.currentState?.setState(() {}); // refresca cliente
       _productosKey.currentState?.setState(() {}); // refresca productos
     } catch (e) {
@@ -140,7 +117,7 @@ class _WebFichasAgregarScreenState
       body: Column(
         children: [
           const CustomWebTopBar(
-            titulo: TEXTO_ES__agregar_fichas_screen__titulo,
+            titulo: TEXTO__agregar_fichas_screen__titulo,
             pantallaPadreRouteName: PANTALLA_WEB__Home,
           ),
           Expanded(
@@ -173,8 +150,7 @@ class _WebFichasAgregarScreenState
                         SizedBox(
                           width: double.infinity,
                           child: CustomGradientButton(
-                            text:
-                                TEXTO_ES__editar_fichas_screen__boton__agregar,
+                            text: TEXTO__editar_fichas_screen__boton__agregar,
                             onPressed: _agregarFicha,
                           ),
                         ),
@@ -199,7 +175,7 @@ class _WebFichasAgregarScreenState
                         SizedBox(
                           width: double.infinity,
                           child: CustomGradientButton(
-                            text: TEXTO_ES__editar_fichas_screen__boton__buscar,
+                            text: TEXTO__editar_fichas_screen__boton__buscar,
                             onPressed: () async {
                               final criterioSeleccionado =
                                   await _mostrarSelectorDeCriterio(context);

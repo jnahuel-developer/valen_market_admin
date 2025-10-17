@@ -1,19 +1,7 @@
-/// custom_web_campo_sin_checkbox_textfield.dart
-///
-/// Descripción:
-/// - Campo de solo lectura que muestra la Dirección o el Teléfono del cliente.
-/// - No accede a sub-providers. Lee FichaEnCursoProvider para obtener el valor
-///   actual del cliente y lo muestra. Cada cambio en el provider se reflejará
-///   automáticamente por `ref.watch` en la UI.
-///
-/// Interactúa con:
-/// - CustomWebClienteSection (parent)
-/// - FichaEnCursoProvider (solo lectura: direccionCliente / telefonoCliente)
-library;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
+import 'package:valen_market_admin/constants/fieldNames.dart';
 import 'package:valen_market_admin/constants/values.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
 
@@ -30,9 +18,18 @@ class CustomWebCampoSinCheckboxTextField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ficha = ref.watch(fichaEnCursoProvider);
-    final texto = isDireccion
-        ? (ficha.direccionCliente ?? '')
-        : (ficha.telefonoCliente ?? '');
+
+    // Se lee el Map del cliente cargado en la ficha
+    final cliente = ficha.obtenerCliente();
+
+    // Se obtiene la dirección del Map de datos del cliente
+    final direccion = cliente[FIELD_NAME__cliente_ficha_model__Direccion];
+
+    // Se obtiene la dirección del Map de datos del cliente
+    final telefono = cliente[FIELD_NAME__cliente_ficha_model__Telefono];
+
+    // Se verifica si se debe mostrar la dirección o el teléfono
+    final texto = isDireccion ? (direccion ?? '') : (telefono ?? '');
 
     // Use a controller only to display the current value; recreate ensures it updates when texto changes.
     final controller = TextEditingController(text: texto);

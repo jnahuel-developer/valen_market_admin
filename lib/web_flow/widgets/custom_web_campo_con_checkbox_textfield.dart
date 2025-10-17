@@ -1,18 +1,3 @@
-/// custom_web_campo_con_checkbox_textfield.dart
-///
-/// Descripción:
-/// - Campo compuesto por checkbox + label + textfield.
-/// - No accede a sub-providers. Solo proporciona la UI para que el operador
-///   edite un valor (nombre o apellido) y emita eventos al parent via
-///   onCheckboxChanged / onTextChanged (ambos usan Map-only en la capa superior).
-/// - Mantiene la apariencia y el comportamiento: cuando el checkbox está
-///   desactivado, el TextField está en modo lectura (estilo itálico).
-///
-/// Interactúa con:
-/// - CustomWebClienteSection (parent) que maneja la lista y llama a
-///   fichaEnCursoProvider.actualizarCliente(Map) cuando corresponda.
-library;
-
 import 'package:flutter/material.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
 import 'package:valen_market_admin/constants/values.dart';

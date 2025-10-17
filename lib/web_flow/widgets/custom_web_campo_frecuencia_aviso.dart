@@ -1,22 +1,8 @@
-/// ---------------------------------------------------------------------------
-/// CUSTOM_WEB_CAMPO_FRECUENCIA_AVISO
-///
-/// 🔹 Rol: Controla la programación del próximo aviso al cliente.
-/// 🔹 Interactúa con:
-///   - [FichaEnCursoProvider]:
-///       • Lee el próximo aviso actual.
-///       • Actualiza la fecha de aviso según la opción seleccionada.
-/// 🔹 Lógica:
-///   - Los 3 primeros checkboxes generan fechas fijas (+7, +15, +30 días).
-///   - El cuarto habilita la selección manual mediante un calendario.
-///   - La fecha seleccionada se guarda en el Provider en formato normalizado.
-/// ---------------------------------------------------------------------------
-library;
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
+import 'package:valen_market_admin/constants/fieldNames.dart';
 import 'package:valen_market_admin/constants/textos.dart';
 import 'package:valen_market_admin/constants/values.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
@@ -33,8 +19,7 @@ class _CustomWebCampoFrecuenciaAvisoState
     extends ConsumerState<CustomWebCampoFrecuenciaAviso> {
   final DateFormat _formatter = DateFormat('dd/MM/yyyy');
   final TextEditingController _controller = TextEditingController();
-  String _opcionSeleccionada =
-      TEXTO_ES__frecuencia_aviso_widget__campo__opcion_1;
+  String _opcionSeleccionada = TEXTO__frecuencia_aviso_widget__campo__opcion_1;
 
   @override
   void initState() {
@@ -44,22 +29,26 @@ class _CustomWebCampoFrecuenciaAvisoState
       final ficha = ref.read(fichaEnCursoProvider);
       final today = DateTime.now();
 
-      if (ficha.proximoAviso != null) {
-        final aviso = ficha.proximoAviso!;
+      // Se lee el Map de fechas cargadas en la ficha
+      final fechas = ficha.obtenerFechas();
+
+      // Se obtiene la fecha de venta del Map de fechas
+      final fechaProximoAviso =
+          fechas[FIELD_NAME__fecha_ficha_model__Fecha_De_Proximo_Aviso]
+              as DateTime?;
+
+      if (fechaProximoAviso != null) {
+        final aviso = fechaProximoAviso;
         final diff = aviso.difference(today).inDays;
 
         if (diff == VALUE__frecuencia_aviso_widget__campo__opcion_1) {
-          _opcionSeleccionada =
-              TEXTO_ES__frecuencia_aviso_widget__campo__opcion_1;
+          _opcionSeleccionada = TEXTO__frecuencia_aviso_widget__campo__opcion_1;
         } else if (diff == VALUE__frecuencia_aviso_widget__campo__opcion_2) {
-          _opcionSeleccionada =
-              TEXTO_ES__frecuencia_aviso_widget__campo__opcion_2;
+          _opcionSeleccionada = TEXTO__frecuencia_aviso_widget__campo__opcion_2;
         } else if (diff == VALUE__frecuencia_aviso_widget__campo__opcion_3) {
-          _opcionSeleccionada =
-              TEXTO_ES__frecuencia_aviso_widget__campo__opcion_3;
+          _opcionSeleccionada = TEXTO__frecuencia_aviso_widget__campo__opcion_3;
         } else {
-          _opcionSeleccionada =
-              TEXTO_ES__frecuencia_aviso_widget__campo__opcion_4;
+          _opcionSeleccionada = TEXTO__frecuencia_aviso_widget__campo__opcion_4;
         }
 
         _controller.text = _formatter.format(aviso);
@@ -74,15 +63,15 @@ class _CustomWebCampoFrecuenciaAvisoState
   void _actualizarFecha() {
     DateTime fecha;
     switch (_opcionSeleccionada) {
-      case TEXTO_ES__frecuencia_aviso_widget__campo__opcion_1:
+      case TEXTO__frecuencia_aviso_widget__campo__opcion_1:
         fecha = DateTime.now().add(const Duration(
             days: VALUE__frecuencia_aviso_widget__campo__opcion_1));
         break;
-      case TEXTO_ES__frecuencia_aviso_widget__campo__opcion_2:
+      case TEXTO__frecuencia_aviso_widget__campo__opcion_2:
         fecha = DateTime.now().add(const Duration(
             days: VALUE__frecuencia_aviso_widget__campo__opcion_2));
         break;
-      case TEXTO_ES__frecuencia_aviso_widget__campo__opcion_3:
+      case TEXTO__frecuencia_aviso_widget__campo__opcion_3:
         fecha = DateTime.now().add(const Duration(
             days: VALUE__frecuencia_aviso_widget__campo__opcion_3));
         break;
@@ -94,7 +83,7 @@ class _CustomWebCampoFrecuenciaAvisoState
     _controller.text = _formatter.format(fechaNormalizada);
 
     ref.read(fichaEnCursoProvider.notifier).actualizarFechas({
-      'proximoAviso': fechaNormalizada,
+      FIELD_NAME__fecha_ficha_model__Fecha_De_Proximo_Aviso: fechaNormalizada,
     });
   }
 
@@ -121,12 +110,11 @@ class _CustomWebCampoFrecuenciaAvisoState
       _controller.text = _formatter.format(fechaNormalizada);
 
       ref.read(fichaEnCursoProvider.notifier).actualizarFechas({
-        'proximoAviso': fechaNormalizada,
+        FIELD_NAME__fecha_ficha_model__Fecha_De_Proximo_Aviso: fechaNormalizada,
       });
 
       setState(() {
-        _opcionSeleccionada =
-            TEXTO_ES__frecuencia_aviso_widget__campo__opcion_4;
+        _opcionSeleccionada = TEXTO__frecuencia_aviso_widget__campo__opcion_4;
       });
     }
   }
@@ -134,10 +122,10 @@ class _CustomWebCampoFrecuenciaAvisoState
   @override
   Widget build(BuildContext context) {
     final opciones = [
-      TEXTO_ES__frecuencia_aviso_widget__campo__opcion_1,
-      TEXTO_ES__frecuencia_aviso_widget__campo__opcion_2,
-      TEXTO_ES__frecuencia_aviso_widget__campo__opcion_3,
-      TEXTO_ES__frecuencia_aviso_widget__campo__opcion_4,
+      TEXTO__frecuencia_aviso_widget__campo__opcion_1,
+      TEXTO__frecuencia_aviso_widget__campo__opcion_2,
+      TEXTO__frecuencia_aviso_widget__campo__opcion_3,
+      TEXTO__frecuencia_aviso_widget__campo__opcion_4,
     ];
 
     return Row(
@@ -146,7 +134,7 @@ class _CustomWebCampoFrecuenciaAvisoState
         const SizedBox(
           width: 150,
           child: Text(
-            TEXTO_ES__frecuencia_aviso_widget__campo__titulo,
+            TEXTO__frecuencia_aviso_widget__campo__titulo,
             style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
           ),
         ),
@@ -164,7 +152,7 @@ class _CustomWebCampoFrecuenciaAvisoState
                         if (v == null) return;
                         setState(() => _opcionSeleccionada = v);
                         if (v !=
-                            TEXTO_ES__frecuencia_aviso_widget__campo__opcion_4) {
+                            TEXTO__frecuencia_aviso_widget__campo__opcion_4) {
                           _actualizarFecha();
                         }
                       },
@@ -181,7 +169,7 @@ class _CustomWebCampoFrecuenciaAvisoState
                   controller: _controller,
                   readOnly: true,
                   enabled: _opcionSeleccionada ==
-                      TEXTO_ES__frecuencia_aviso_widget__campo__opcion_4,
+                      TEXTO__frecuencia_aviso_widget__campo__opcion_4,
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.symmetric(
                         horizontal: 15, vertical: 12),
@@ -210,11 +198,11 @@ class _CustomWebCampoFrecuenciaAvisoState
               IconButton(
                 icon: const Icon(Icons.calendar_month),
                 color: _opcionSeleccionada ==
-                        TEXTO_ES__frecuencia_aviso_widget__campo__opcion_4
+                        TEXTO__frecuencia_aviso_widget__campo__opcion_4
                     ? WebColors.iconHabilitado
                     : WebColors.controlDeshabilitado,
                 onPressed: _opcionSeleccionada ==
-                        TEXTO_ES__frecuencia_aviso_widget__campo__opcion_4
+                        TEXTO__frecuencia_aviso_widget__campo__opcion_4
                     ? () => _mostrarSelectorDeFecha(context)
                     : null,
               ),

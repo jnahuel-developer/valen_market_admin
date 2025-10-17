@@ -36,3 +36,6 @@ const Key KEY__agregar_clientes_screen__scrollview__principal =
 
 // Generica
 const Key KEY___screen__boton__ = Key('KEY___screen__boton__');
+
+const Key KEY__cliente_section__campo__fecha_de_venta =
+    Key('KEY__cliente_section__campo__fecha_de_venta');

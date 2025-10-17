@@ -1,19 +1,3 @@
-/// ---------------------------------------------------------------------------
-/// CUSTOM_WEB_POPUP_EDITAR_PRODUCTO
-///
-/// 🔹 Rol: Popup para editar los valores financieros de un producto.
-/// 🔹 Interactúa con:
-///   - Widget que lo abre (CustomWebProductosSection):
-///       • Devuelve un Map<String,dynamic> con las nuevas variables.
-/// 🔹 Lógica:
-///   - El checkbox "Relacionar variables" mantiene relación entre precio,
-///     cuotas y precio por cuota. Al aceptar se devuelve un Map con:
-///       { 'nuevoPrecioUnitario': double,
-///         'nuevaCantidadDeCuotas': int,
-///         'nuevoPrecioDeCuotas': double }
-/// ---------------------------------------------------------------------------
-library;
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
@@ -53,13 +37,12 @@ class _CustomWebPopupEditarProductoState
 
     final double precioInit = (widget.productoCatalogo[
                 FIELD_NAME__producto_ficha_model__Precio_Unitario] ??
-            widget.productoCatalogo[FIELD_NAME__catalogo__Precio] ??
+            widget.productoCatalogo[FIELD_NAME__catalogo__Precio_Unitario] ??
             0)
         .toDouble();
-    final int cuotasInit = (widget.productoCatalogo[
-            FIELD_NAME__producto_ficha_model__Cantidad_De_Cuotas] ??
-        widget.productoCatalogo[FIELD_NAME__catalogo__Cantidad_De_Cuotas] ??
-        1) as int;
+    final int cuotasInit =
+        (widget.productoCatalogo[FIELD_NAME__catalogo__Cantidad_De_Cuotas] ?? 1)
+            as int;
     final double precioCuotaInit = (widget.productoCatalogo[
                 FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas] ??
             ((precioInit > 0 && cuotasInit > 0)

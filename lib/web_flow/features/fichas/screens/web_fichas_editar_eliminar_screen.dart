@@ -1,39 +1,3 @@
-/// ---------------------------------------------------------------------------
-/// WEB_FICHAS_EDITAR_ELIMINAR_SCREEN
-///
-/// 🔹 Rol: Permite visualizar, editar y eliminar una ficha seleccionada,
-///         así como registrar pagos asociados.
-///
-/// 🔹 Interactúa con:
-///   - [FichaEnCursoProvider]:
-///       • Lee todos los datos del cliente, fechas, productos y pagos actuales.
-///       • Actualiza la ficha en Firebase mediante los métodos
-///         `actualizarFichaMedianteID()` y `eliminarFichaMedianteID()`.
-///       • Construye el modelo completo de ficha con `construirFichaCompleta()`.
-///   - [FichasServiciosFirebase]:
-///       • Sincroniza las operaciones de actualización, eliminación y registro
-///         de pagos con Firestore.
-///   - [CustomWebClienteSection]:
-///       • Muestra y permite editar la información del cliente de la ficha.
-///   - [CustomWebFichaFechasSection]:
-///       • Muestra y permite modificar las fechas de venta y próximo aviso.
-///   - [CustomWebProductosSection]:
-///       • Muestra los productos incluidos en la ficha y sus valores.
-///   - [CustomWebPopupInformarPago]:
-///       • Permite registrar un nuevo pago sobre la ficha en curso.
-///   - [CustomGradientButton]:
-///       • Botones de acción para “Editar”, “Informar pago” y “Eliminar”.
-///
-/// 🔹 Lógica:
-///   - Al cargarse, muestra los datos existentes desde el Provider.
-///   - “Editar”: toma el estado actual del Provider y actualiza la ficha en Firebase.
-///   - “Informar pago”: lanza el pop-up de registro de pago.
-///   - “Eliminar”: elimina la ficha en Firebase.
-///   - Las operaciones muestran mensajes de éxito o error según el resultado.
-/// ---------------------------------------------------------------------------
-
-library;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
@@ -41,7 +5,6 @@ import 'package:valen_market_admin/constants/fieldNames.dart';
 import 'package:valen_market_admin/constants/pantallas.dart';
 import 'package:valen_market_admin/constants/textos.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
-import 'package:valen_market_admin/web_flow/features/fichas/model/ficha_model.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_ficha_cliente_section.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_ficha_fechas_section.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_ficha_productos_section.dart';
@@ -68,21 +31,20 @@ class _WebFichasEditarEliminarScreenState
   // ─────────────────────────────────────────────────────────────
   Future<void> _confirmarActualizacionFicha() async {
     final bool? confirmar = await _mostrarPopupConfirmacion(
-      TEXTO_ES__editar_fichas_screen__mensaje__confirmar_actualizacion,
+      TEXTO__editar_fichas_screen__mensaje__confirmar_actualizacion,
     );
 
     if (confirmar == true) {
       setState(() => _cargando = true);
       try {
-        final fichaProv = ref.read(fichaEnCursoProvider);
-        final String? idFicha = fichaProv.id;
+        final ficha = ref.read(fichaEnCursoProvider);
+        final String? idFicha = ficha.id;
 
         if (idFicha == null) {
-          throw Exception(
-              TEXTO_ES__editar_fichas_screen__mensaje__ID_no_definido);
+          throw Exception(TEXTO__editar_fichas_screen__mensaje__ID_no_definido);
         }
 
-        final FichaModel fichaActualizada = fichaProv.construirFichaCompleta();
+        final FichaModel fichaActualizada = ficha.construirFichaCompleta();
         await fichasService.ActualizarFichaEnFirebase(
             idFicha, fichaActualizada);
 
@@ -92,7 +54,7 @@ class _WebFichasEditarEliminarScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content: Text(
-                  TEXTO_ES__editar_fichas_screen__mensaje__ficha_actualizada)),
+                  TEXTO__editar_fichas_screen__mensaje__ficha_actualizada)),
         );
         Navigator.pushReplacementNamed(context, PANTALLA_WEB__Home);
       } catch (e) {
@@ -112,18 +74,17 @@ class _WebFichasEditarEliminarScreenState
   // ─────────────────────────────────────────────────────────────
   Future<void> _confirmarEliminacionFicha() async {
     final bool? confirmar = await _mostrarPopupConfirmacion(
-      TEXTO_ES__editar_fichas_screen__mensaje__confirmar_eliminacion,
+      TEXTO__editar_fichas_screen__mensaje__confirmar_eliminacion,
     );
 
     if (confirmar == true) {
       setState(() => _cargando = true);
       try {
-        final fichaProv = ref.read(fichaEnCursoProvider);
-        final String? idFicha = fichaProv.id;
+        final ficha = ref.read(fichaEnCursoProvider);
+        final String? idFicha = ficha.id;
 
         if (idFicha == null) {
-          throw Exception(
-              TEXTO_ES__editar_fichas_screen__mensaje__ID_no_definido);
+          throw Exception(TEXTO__editar_fichas_screen__mensaje__ID_no_definido);
         }
 
         await fichasService.EliminarFichaEnFirebase(idFicha);
@@ -132,8 +93,8 @@ class _WebFichasEditarEliminarScreenState
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text(
-                  TEXTO_ES__editar_fichas_screen__mensaje__ficha_eliminada)),
+              content:
+                  Text(TEXTO__editar_fichas_screen__mensaje__ficha_eliminada)),
         );
         Navigator.pushReplacementNamed(context, PANTALLA_WEB__Home);
       } catch (e) {
@@ -152,14 +113,14 @@ class _WebFichasEditarEliminarScreenState
 // MÉTODO: Informar Pago (versión definitiva)
 // ─────────────────────────────────────────────────────────────
   Future<void> _informarPago() async {
-    final fichaProv = ref.read(fichaEnCursoProvider);
-    final String? idFicha = fichaProv.id;
+    final ficha = ref.read(fichaEnCursoProvider);
+    final String? idFicha = ficha.id;
 
     if (idFicha == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            TEXTO_ES__editar_fichas_screen__mensaje__ID_no_definido,
+            TEXTO__editar_fichas_screen__mensaje__ID_no_definido,
           ),
         ),
       );
@@ -190,7 +151,7 @@ class _WebFichasEditarEliminarScreenState
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text(
-                  TEXTO_ES__editar_fichas_screen__mensaje__pago_registrado,
+                  TEXTO__editar_fichas_screen__mensaje__pago_registrado,
                 ),
               ),
             );
@@ -214,16 +175,16 @@ class _WebFichasEditarEliminarScreenState
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text(TEXTO_ES__editar_fichas_screen__boton__confirmacion),
+        title: const Text(TEXTO__editar_fichas_screen__boton__confirmacion),
         content: Text(mensaje),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text(TEXTO_ES__editar_fichas_screen__boton__cancelar),
+            child: const Text(TEXTO__editar_fichas_screen__boton__cancelar),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text(TEXTO_ES__editar_fichas_screen__boton__confirmar),
+            child: const Text(TEXTO__editar_fichas_screen__boton__confirmar),
           ),
         ],
       ),
@@ -241,7 +202,7 @@ class _WebFichasEditarEliminarScreenState
           Column(
             children: [
               const CustomWebTopBar(
-                titulo: TEXTO_ES__editar_fichas_screen__titulo,
+                titulo: TEXTO__editar_fichas_screen__titulo,
                 pantallaPadreRouteName: PANTALLA_WEB__Home,
               ),
               Expanded(
@@ -294,22 +255,21 @@ class _WebFichasEditarEliminarScreenState
                   children: [
                     Expanded(
                       child: CustomGradientButton(
-                        text: TEXTO_ES__editar_fichas_screen__boton__editar,
+                        text: TEXTO__editar_fichas_screen__boton__editar,
                         onPressed: _confirmarActualizacionFicha,
                       ),
                     ),
                     const SizedBox(width: 15),
                     Expanded(
                       child: CustomGradientButton(
-                        text:
-                            TEXTO_ES__editar_fichas_screen__boton__informar_pago,
+                        text: TEXTO__editar_fichas_screen__boton__informar_pago,
                         onPressed: _informarPago,
                       ),
                     ),
                     const SizedBox(width: 15),
                     Expanded(
                       child: CustomGradientButton(
-                        text: TEXTO_ES__editar_fichas_screen__boton__eliminar,
+                        text: TEXTO__editar_fichas_screen__boton__eliminar,
                         onPressed: _confirmarEliminacionFicha,
                       ),
                     ),

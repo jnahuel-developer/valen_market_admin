@@ -1,5 +1,4 @@
-// ignore_for_file: avoid_print
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:valen_market_admin/constants/fieldNames.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/provider/fechas_ficha_provider.dart';
@@ -10,19 +9,19 @@ void main() {
 
     setUp(() {
       provider = FechasFichaProvider();
-      print(
+      debugPrint(
           '\n ***** Nuevo test iniciado — Se crea una instancia vacia del Provider ***** ');
     });
 
     test('\n1) Creacion inicial - Fechas vacias', () {
       final fechas = provider.obtenerFechas();
-      print('Estado inicial de las fechas: $fechas');
+      debugPrint('Estado inicial de las fechas: $fechas');
 
       expect(fechas[FIELD_NAME__fecha_ficha_model__Fecha_De_Creacion], '');
       expect(fechas[FIELD_NAME__fecha_ficha_model__Fecha_De_Venta], '');
       expect(fechas[FIELD_NAME__fecha_ficha_model__Fecha_De_Proximo_Aviso], '');
-      print('Fechas iniciales correctamente vacias.');
-      print('\n**************************************************');
+      debugPrint('Fechas iniciales correctamente vacias.');
+      debugPrint('\n**************************************************');
     });
 
     test('\n2) Actualizacion completa - Cargar fechas', () {
@@ -35,10 +34,10 @@ void main() {
       provider.actualizarFechas(nuevasFechas);
       final fechas = provider.obtenerFechas();
 
-      print('Fechas actualizadas: $fechas');
+      debugPrint('Fechas actualizadas: $fechas');
       expect(fechas, equals(nuevasFechas));
-      print('Actualizacion completa realizada correctamente.');
-      print('\n**************************************************');
+      debugPrint('Actualizacion completa realizada correctamente.');
+      debugPrint('\n**************************************************');
     });
 
     test('\n3) Copia de fechas - Mantener mismos datos', () {
@@ -51,14 +50,15 @@ void main() {
       provider.actualizarFechas(datosOriginales);
       final copia = provider.copiarFechas();
 
-      print('Fechas originales: $datosOriginales');
-      print('Fechas copiadas:  $copia');
+      debugPrint('Fechas originales: $datosOriginales');
+      debugPrint('Fechas copiadas:  $copia');
 
       expect(copia, equals(datosOriginales));
       expect(!identical(copia, datosOriginales), true,
           reason: 'Debe ser una copia independiente.');
-      print('Copia creada correctamente, con independencia de la original.');
-      print('\n**************************************************');
+      debugPrint(
+          'Copia creada correctamente, con independencia de la original.');
+      debugPrint('\n**************************************************');
     });
 
     test('\n4) Modificacion parcial - Solo una fecha actualizada', () {
@@ -76,14 +76,14 @@ void main() {
       provider.actualizarFechas(modificadas);
       final fechas = provider.obtenerFechas();
 
-      print('Fechas despues de modificacion parcial: $fechas');
+      debugPrint('Fechas despues de modificacion parcial: $fechas');
 
       expect(
           fechas[FIELD_NAME__fecha_ficha_model__Fecha_De_Venta], '2025-01-15');
       expect(fechas[FIELD_NAME__fecha_ficha_model__Fecha_De_Creacion],
           '2025-01-01');
-      print('Modificacion parcial aplicada correctamente.');
-      print('\n**************************************************');
+      debugPrint('Modificacion parcial aplicada correctamente.');
+      debugPrint('\n**************************************************');
     });
 
     test('\n5) Limpieza - Fechas restablecidas a valores vacios', () {
@@ -94,15 +94,15 @@ void main() {
       };
 
       provider.actualizarFechas(previas);
-      print('Fechas antes de limpiar: ${provider.obtenerFechas()}');
+      debugPrint('Fechas antes de limpiar: ${provider.obtenerFechas()}');
 
       provider.limpiarFechas();
       final fechasLimpias = provider.obtenerFechas();
 
-      print('Fechas despues de limpiar: $fechasLimpias');
+      debugPrint('Fechas despues de limpiar: $fechasLimpias');
       expect(fechasLimpias.values.every((v) => v == ''), true);
-      print('Fechas restablecidas correctamente a estado vacio.');
-      print('\n**************************************************');
+      debugPrint('Fechas restablecidas correctamente a estado vacio.');
+      debugPrint('\n**************************************************');
     });
   });
 }

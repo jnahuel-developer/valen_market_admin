@@ -1,14 +1,14 @@
 import 'package:valen_market_admin/constants/fieldNames.dart';
 
 class ProductoFichaModel {
-  final String uid;
+  final String id;
   final String nombre;
   final num precioUnitario;
   final num precioDeLasCuotas;
   final int unidades;
 
   ProductoFichaModel({
-    required this.uid,
+    required this.id,
     required this.nombre,
     required this.precioUnitario,
     required this.precioDeLasCuotas,
@@ -17,7 +17,7 @@ class ProductoFichaModel {
 
   factory ProductoFichaModel.fromMap(Map<String, dynamic> data) {
     return ProductoFichaModel(
-      uid: (data[FIELD_NAME__producto_ficha_model__UID] ?? '').toString(),
+      id: (data[FIELD_NAME__producto_ficha_model__ID] ?? '').toString(),
       nombre: (data[FIELD_NAME__producto_ficha_model__Nombre] ?? '').toString(),
       precioUnitario:
           (data[FIELD_NAME__producto_ficha_model__Precio_Unitario] ?? 0),
@@ -31,7 +31,7 @@ class ProductoFichaModel {
 
   Map<String, dynamic> toMap() {
     return {
-      FIELD_NAME__producto_ficha_model__UID: uid,
+      FIELD_NAME__producto_ficha_model__ID: id,
       FIELD_NAME__producto_ficha_model__Nombre: nombre,
       FIELD_NAME__producto_ficha_model__Precio_Unitario: precioUnitario,
       FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas: precioDeLasCuotas,
@@ -40,7 +40,7 @@ class ProductoFichaModel {
   }
 
   static ProductoFichaModel productoVacio() => ProductoFichaModel(
-        uid: '',
+        id: '',
         nombre: '',
         precioUnitario: 0,
         precioDeLasCuotas: 0,
@@ -49,7 +49,7 @@ class ProductoFichaModel {
 
   ProductoFichaModel copyWith(Map<String, dynamic> cambios) {
     return ProductoFichaModel(
-      uid: cambios[FIELD_NAME__producto_ficha_model__UID] ?? uid,
+      id: cambios[FIELD_NAME__producto_ficha_model__ID] ?? id,
       nombre: cambios[FIELD_NAME__producto_ficha_model__Nombre] ?? nombre,
       precioUnitario:
           cambios[FIELD_NAME__producto_ficha_model__Precio_Unitario] ??

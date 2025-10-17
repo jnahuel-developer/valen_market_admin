@@ -1,22 +1,9 @@
-/// ---------------------------------------------------------------------------
-/// CUSTOM_WEB_CAMPO_FECHA_CON_CHECKBOX
-///
-/// 🔹 Rol: Controla la fecha de venta de una ficha.
-/// 🔹 Interactúa con:
-///   - [FichaEnCursoProvider]:
-///       • Lee la fecha de venta actual.
-///       • Actualiza el campo de venta en el provider.
-/// 🔹 Lógica:
-///   - Si "usar hoy" está activo → carga la fecha actual y desactiva el selector.
-///   - Si está desactivado → permite elegir una fecha manualmente.
-///   - Inicializa automáticamente desde el Provider si hay una fecha previa.
-/// ---------------------------------------------------------------------------
-library;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
+import 'package:valen_market_admin/constants/fieldNames.dart';
+import 'package:valen_market_admin/constants/keys.dart';
 import 'package:valen_market_admin/constants/textos.dart';
 import 'package:valen_market_admin/constants/values.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
@@ -46,18 +33,32 @@ class _CustomWebCampoFechaConCheckboxState
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final ficha = ref.read(fichaEnCursoProvider);
-      final today = DateTime.now();
 
-      if (ficha.fechaDeVenta != null) {
-        final fecha = ficha.fechaDeVenta!;
-        _controller.text = _formatter.format(fecha);
-        _useToday = _mismaFecha(fecha, today);
+      // Se lee el Map de fechas cargadas en la ficha
+      final fechas = ficha.obtenerFechas();
+
+      // Se obtiene la fecha de venta del Map de fechas
+      final fechaVenta =
+          fechas[FIELD_NAME__fecha_ficha_model__Fecha_De_Venta] as DateTime?;
+
+      // Se toma la fecha de hoy
+      final DateTime today = DateTime.now();
+
+      // Se verifica si existe una fecha de venta cargada en la ficha en curso
+      if (fechaVenta != null) {
+        // Si la hay, se la carga en el controlador para que el operador la vea
+        _controller.text = _formatter.format(fechaVenta);
+
+        // Se verifica si la fecha de venta cargada es de hoy
+        _useToday = _esMismaFecha(fechaVenta, today);
       } else {
+        // Caso contrario, no hay fecha de venta. Se debe setear hoy por defecto
         _controller.text = _formatter.format(today);
         _useToday = true;
 
+        // Se actualiza la fecha de venta en el Provider
         ref.read(fichaEnCursoProvider.notifier).actualizarFechas({
-          'venta': today,
+          FIELD_NAME__fecha_ficha_model__Fecha_De_Venta: today,
         });
       }
 
@@ -65,28 +66,32 @@ class _CustomWebCampoFechaConCheckboxState
     });
   }
 
-  bool _mismaFecha(DateTime a, DateTime b) =>
+  // Función auxiliar para comparar 2 fechas. No se usan los datos de la hora
+  bool _esMismaFecha(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
 
   Future<void> _mostrarSelectorDeFecha(BuildContext context) async {
-    final DateTime today = DateTime.now();
-    final DateTime limiteInferior =
-        DateTime(today.year - 2, today.month, today.day);
+    final DateTime hoy = DateTime.now();
+    final DateTime limiteInferior = DateTime(hoy.year - 2, hoy.month, hoy.day);
 
     final DateTime? seleccion = await showDatePicker(
       context: context,
-      initialDate: today,
+      initialDate: hoy,
       firstDate: limiteInferior,
-      lastDate: today,
+      lastDate: hoy,
     );
 
     if (seleccion != null) {
       final fechaNormalizada =
           DateTime(seleccion.year, seleccion.month, seleccion.day);
 
-      _controller.text = _formatter.format(fechaNormalizada);
+      setState(() {
+        _controller.text = _formatter.format(fechaNormalizada);
+        _useToday = _esMismaFecha(fechaNormalizada, hoy);
+      });
+
       ref.read(fichaEnCursoProvider.notifier).actualizarFechas({
-        'venta': fechaNormalizada,
+        FIELD_NAME__fecha_ficha_model__Fecha_De_Venta: fechaNormalizada,
       });
     }
   }
@@ -94,25 +99,29 @@ class _CustomWebCampoFechaConCheckboxState
   @override
   Widget build(BuildContext context) {
     return Row(
-      key: const Key('KEY__cliente_section__campo__fecha_de_venta'),
+      key: KEY__cliente_section__campo__fecha_de_venta,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        // Checkbox para usar la fecha de hoy
         Checkbox(
           value: _useToday,
           onChanged: (value) {
             if (value == null) return;
             setState(() => _useToday = value);
-            final DateTime today = DateTime.now();
 
+            final DateTime hoy = DateTime.now();
             if (value) {
-              _controller.text = _formatter.format(today);
+              // Si el usuario marca el checkbox, se usa la fecha de hoy
+              _controller.text = _formatter.format(hoy);
               ref.read(fichaEnCursoProvider.notifier).actualizarFechas({
-                'venta': today,
+                FIELD_NAME__fecha_ficha_model__Fecha_De_Venta: hoy,
               });
             }
           },
           activeColor: WebColors.checkboxHabilitado,
         ),
+
+        // Etiqueta "Fecha de venta"
         SizedBox(
           width: 120,
           child: Text(
@@ -123,7 +132,10 @@ class _CustomWebCampoFechaConCheckboxState
             ),
           ),
         ),
+
         const SizedBox(width: 15),
+
+        // Campo de texto + ícono calendario
         Expanded(
           child: Row(
             children: [
@@ -132,10 +144,11 @@ class _CustomWebCampoFechaConCheckboxState
                 height: 50,
                 child: TextField(
                   controller: _controller,
-                  readOnly: true,
-                  enabled: !_useToday,
+                  readOnly: true, // nunca editable manualmente
+                  enabled:
+                      !_useToday, // visualmente deshabilitado si se usa hoy
                   decoration: InputDecoration(
-                    hintText: TEXTO_ES__fichas_screen__campo__fecha_placeholder,
+                    hintText: TEXTO__fichas_screen__campo__fecha_placeholder,
                     contentPadding: const EdgeInsets.symmetric(
                         horizontal: 15, vertical: 12),
                     enabledBorder: OutlineInputBorder(
@@ -165,9 +178,9 @@ class _CustomWebCampoFechaConCheckboxState
                 color: !_useToday
                     ? WebColors.iconHabilitado
                     : WebColors.controlDeshabilitado,
+                tooltip: TEXTO__fichas_fechas_widget__campo__seleccionar_fecha,
                 onPressed:
                     !_useToday ? () => _mostrarSelectorDeFecha(context) : null,
-                tooltip: 'Seleccionar fecha',
               ),
             ],
           ),

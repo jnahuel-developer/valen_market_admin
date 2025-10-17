@@ -1,21 +1,7 @@
-/// custom_web_dropdown_clientes.dart
-///
-/// Descripción:
-/// - Muestra un Dropdown con la lista de clientes (recibida como List<String>).
-/// - No accede a sub-providers. Solo lee el FichaEnCursoProvider para mostrar
-///   el cliente actualmente cargado en la ficha (nombre + apellido).
-/// - Al cambiar selección, se delega la acción al callback `onChanged` provisto
-///   por el contenedor/parent (quien mantiene la lista completa y realizará el
-///   mapeo a Map<String,dynamic> y actualizará el provider con `actualizarCliente`).
-///
-/// Interactúa con:
-/// - CustomWebClienteSection (parent)
-/// - FichaEnCursoProvider (solo lectura: nombreCliente / apellidoCliente)
-library;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
+import 'package:valen_market_admin/constants/fieldNames.dart';
 import 'package:valen_market_admin/constants/values.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
 
@@ -45,8 +31,17 @@ class CustomWebDropdownClientes extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ficha = ref.watch(fichaEnCursoProvider);
-    final providerSelected =
-        _formatNombreFromProvider(ficha.nombreCliente, ficha.apellidoCliente);
+
+    // Se lee el Map del cliente cargado en la ficha
+    final cliente = ficha.obtenerCliente();
+
+    // Se obtiene la dirección del Map de datos del cliente
+    final nombre = cliente[FIELD_NAME__cliente_ficha_model__Nombre];
+
+    // Se obtiene la dirección del Map de datos del cliente
+    final apellido = cliente[FIELD_NAME__cliente_ficha_model__Apellido];
+
+    final providerSelected = _formatNombreFromProvider(nombre, apellido);
 
     // Use the explicit clienteSeleccionado if provided by parent; otherwise use provider.
     final valueToUse = clienteSeleccionado ?? providerSelected;

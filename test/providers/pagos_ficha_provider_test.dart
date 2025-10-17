@@ -1,5 +1,4 @@
-// ignore_for_file: avoid_print
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:valen_market_admin/constants/fieldNames.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/provider/pagos_ficha_provider.dart';
@@ -10,20 +9,20 @@ void main() {
 
     setUp(() {
       provider = PagosFichaProvider();
-      print(
+      debugPrint(
           '\n ***** Nuevo test iniciado — Se crea una instancia vacía del Provider ***** ');
     });
 
     test('\n1) Creación inicial - Bloque vacío', () {
       final pagos = provider.obtenerPagos();
-      print('Estado inicial: $pagos');
+      debugPrint('Estado inicial: $pagos');
       expect(pagos[FIELD_NAME__pago_ficha_model__Importe_Total], 0);
       expect(
           (pagos[FIELD_NAME__pago_ficha_model__Pagos_Realizados] as List)
               .isEmpty,
           true);
-      print('Bloque de pagos inicial correctamente vacío.');
-      print('\n**************************************************');
+      debugPrint('Bloque de pagos inicial correctamente vacío.');
+      debugPrint('\n**************************************************');
     });
 
     test('\n2) Actualizar datos globales del bloque', () {
@@ -34,11 +33,11 @@ void main() {
       };
       provider.actualizarPagos(nuevosDatos);
       final pagos = provider.obtenerPagos();
-      print('Bloque actualizado: $pagos');
+      debugPrint('Bloque actualizado: $pagos');
       expect(pagos[FIELD_NAME__pago_ficha_model__Importe_Total], 81000);
       expect(pagos[FIELD_NAME__pago_ficha_model__Importe_Cuota], 6750);
-      print('Datos globales actualizados correctamente.');
-      print('\n**************************************************');
+      debugPrint('Datos globales actualizados correctamente.');
+      debugPrint('\n**************************************************');
     });
 
     test('\n3) Agregar pagos individuales', () {
@@ -65,34 +64,34 @@ void main() {
       provider.agregarPago(pago1);
       provider.agregarPago(pago2);
       final pagos = provider.obtenerPagos();
-      print('Pagos luego de agregar dos: $pagos');
+      debugPrint('Pagos luego de agregar dos: $pagos');
       expect(
           (pagos[FIELD_NAME__pago_ficha_model__Pagos_Realizados] as List)
               .length,
           2);
-      print('Pago agregado correctamente.');
-      print('\n**************************************************');
+      debugPrint('Pago agregado correctamente.');
+      debugPrint('\n**************************************************');
     });
 
     test('\n4) Copiar bloque actual', () {
       final copia = provider.copiarPagos();
-      print('Bloque copiado: $copia');
+      debugPrint('Bloque copiado: $copia');
       expect(copia.isNotEmpty, true);
       expect(!identical(copia, provider.obtenerPagos()), true);
-      print('Copia realizada correctamente.');
-      print('\n**************************************************');
+      debugPrint('Copia realizada correctamente.');
+      debugPrint('\n**************************************************');
     });
 
     test('\n5) Limpieza completa', () {
       provider.limpiarPagos();
       final limpio = provider.obtenerPagos();
-      print('Estado después de limpiar: $limpio');
+      debugPrint('Estado después de limpiar: $limpio');
       expect(
           (limpio[FIELD_NAME__pago_ficha_model__Pagos_Realizados] as List)
               .isEmpty,
           true);
-      print('Bloque de pagos restablecido correctamente.');
-      print('\n**************************************************');
+      debugPrint('Bloque de pagos restablecido correctamente.');
+      debugPrint('\n**************************************************');
     });
   });
 }

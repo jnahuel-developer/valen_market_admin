@@ -1,33 +1,3 @@
-/// ---------------------------------------------------------------------------
-/// CUSTOM_WEB_CLIENTE_SECTION
-///
-/// 🔹 Rol:
-///   Desplegar los widgets relacionados al cliente dentro de la ficha: selección,
-///   edición de nombre / apellido / zona, visualización de dirección y teléfono.
-/// 🔹 Interactúa con:
-///   - [FichaEnCursoProvider] (a través de su Notifier):
-///       • Lectura del cliente actual (nombre, apellido, zona, dirección y teléfono)
-///       • Solicitar la carga de todos los clientes disponibles (Map<String,dynamic>)
-///       • Actualizar cliente actual mediante `actualizarCliente(Map<String, dynamic>)`
-///   - Widgets hijos:
-///       • `CustomWebDropdownClientes` → muestra lista filtrada de nombres completos
-///       • `CustomWebCampoConCheckboxTextField` → nombre / apellido con checkbox
-///       • `CustomWebCampoConCheckboxDropdown` → zona con checkbox
-///       • `CustomWebCampoSinCheckboxTextField` → dirección / teléfono (solo lectura)
-///
-/// 🔹 Lógica:
-///   - En initState, solicita al provider (o al notifier) la carga de la lista de clientes.
-///   - Se mantiene internamente la lista `_clientes` (Map) y una versión filtrada `_clientesFiltrados`.
-///   - Los filtros de nombre/apellido/zona se aplican sobre `_clientes`, generando `_clientesFiltrados`.
-///   - Se pasa la lista de nombres completos filtrados a `CustomWebDropdownClientes`.
-///   - Cuando el usuario selecciona un cliente, construye un Map con los campos correctos y llama
-///     `provider.notifier.actualizarCliente(clienteMap)`.
-///   - Los campos de edición y dropdown de zona solo envían sus cambios locales al contenedor, que reconstruye
-///     el `clienteMap` y llama de nuevo al Notifier.
-///
-/// ---------------------------------------------------------------------------
-library;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valen_market_admin/constants/fieldNames.dart';
@@ -146,9 +116,9 @@ class CustomWebClienteSectionState
 
       // Construir map para actualizar en el provider
       final mapToEnviar = <String, dynamic>{
-        FIELD_NAME__cliente_ficha_model__UID:
-            clienteMap[FIELD_NAME__cliente_ficha_model__UID] ??
-                clienteMap[FIELD_NAME__cliente_ficha_model__UID] ??
+        FIELD_NAME__cliente_ficha_model__ID:
+            clienteMap[FIELD_NAME__cliente_ficha_model__ID] ??
+                clienteMap[FIELD_NAME__cliente_ficha_model__ID] ??
                 '',
         FIELD_NAME__cliente_ficha_model__Nombre:
             clienteMap[FIELD_NAME__cliente_ficha_model__Nombre] ?? '',
@@ -188,9 +158,22 @@ class CustomWebClienteSectionState
   @override
   Widget build(BuildContext context) {
     final ficha = ref.watch(fichaEnCursoProvider);
+
+    // Se lee el Map del cliente cargado en la ficha
+    final cliente = ficha.obtenerCliente();
+
+    // Se obtiene la dirección del Map de datos del cliente
+    final nombre = cliente[FIELD_NAME__cliente_ficha_model__Nombre];
+
+    // Se obtiene la dirección del Map de datos del cliente
+    final apellido = cliente[FIELD_NAME__cliente_ficha_model__Apellido];
+
+    // Se obtiene la dirección del Map de datos del cliente
+    final zona = cliente[FIELD_NAME__cliente_ficha_model__Zona];
+
     // Asegurar que el controlador refleje los valores actuales del provider cuando no se esté editando
-    if (!_filterNombre) _nombreCtrl.text = ficha.nombreCliente ?? '';
-    if (!_filterApellido) _apellidoCtrl.text = ficha.apellidoCliente ?? '';
+    if (!_filterNombre) _nombreCtrl.text = nombre ?? '';
+    if (!_filterApellido) _apellidoCtrl.text = apellido ?? '';
 
     return CustomWebBloqueConTitulo(
       titulo: 'Datos del cliente',
@@ -236,7 +219,7 @@ class CustomWebClienteSectionState
           CustomWebCampoConCheckboxDropdown(
             label: FIELD_NAME__cliente_ficha_model__Zona,
             options: zonasDisponibles,
-            selectedOption: ficha.zonaCliente,
+            selectedOption: zona,
             isEditable: _filterZona,
             onCheckboxChanged: (v) {
               setState(() {
