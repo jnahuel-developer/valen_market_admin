@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:valen_market_admin/constants/fieldNames.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_top_bar.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_shop_item_description.dart';
 import 'package:valen_market_admin/constants/pantallas.dart';
@@ -72,35 +73,33 @@ class _WebVerCatalogoScreenState extends State<WebVerCatalogoScreen> {
                               spacing: 15,
                               runSpacing: 15,
                               children: _productos.map((producto) {
-/*
-                                final nombre =
-                                    producto['NombreDelProducto'] ?? '';
-                                final descCorta =
-                                    producto['DescripcionCorta'] ?? '';
-                                final descLarga = producto['DescripcionLarga'];
-                                final precio =
-                                    (producto['Precio'] ?? 0).toDouble();
-                                final cuotas =
-                                    (producto['CantidadDeCuotas'] ?? 0).toInt();
-                                final stock = (producto['Stock'] ?? 0).toInt();
-                                final imagenUrl =
-                                    producto['LinkDeLaFoto'] ?? '';
-*/
                                 return SizedBox(
                                   width: itemWidth,
                                   child: CustomShopItemDescription(
-                                    id: producto['id'],
-                                    nombre: producto['NombreDelProducto'] ?? '',
-                                    descripcionCorta:
-                                        producto['DescripcionCorta'] ?? '',
-                                    descripcionLarga:
-                                        producto['DescripcionLarga'],
-                                    precio:
-                                        (producto['Precio'] ?? 0).toDouble(),
-                                    cuotas: (producto['CantidadDeCuotas'] ?? 0)
+                                    id: producto['ID'],
+                                    nombre: producto[
+                                            FIELD_NAME__catalogo__Nombre_Del_Producto] ??
+                                        '',
+                                    descripcionCorta: producto[
+                                            FIELD_NAME__catalogo__Descripcion_Corta] ??
+                                        '',
+                                    descripcionLarga: producto[
+                                        FIELD_NAME__catalogoDescripcionCorta__Descripcion_Larga],
+                                    precio: (producto[
+                                                FIELD_NAME__catalogo__Precio_Unitario] ??
+                                            0)
+                                        .toDouble(),
+                                    cuotas: (producto[
+                                                FIELD_NAME__catalogo__Cantidad_De_Cuotas] ??
+                                            0)
                                         .toInt(),
-                                    stock: (producto['Stock'] ?? 0).toInt(),
-                                    imageUrl: producto['LinkDeLaFoto'] ?? '',
+                                    stock: (producto[
+                                                FIELD_NAME__catalogo__Stock] ??
+                                            0)
+                                        .toInt(),
+                                    imageUrl: producto[
+                                            FIELD_NAME__catalogo__Link_De_La_Foto] ??
+                                        '',
                                     onRefresh: _cargarProductos,
                                   ),
                                 );

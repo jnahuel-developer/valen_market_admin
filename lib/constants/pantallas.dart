@@ -36,7 +36,7 @@ const String PANTALLA_WEB__Dropbox__Auth = '/web_dropbox_auth_screen';
 const String PANTALLA_WEB__Dropbox__Check = '/web_dropbox_check_screen';
 
 // Pantallas web de Fichas
-const String PANTALLA_WEB__Fichas__Agregar_Buscar =
-    '/web_fichas_agregar_buscar_screen';
+const String PANTALLA_WEB__Fichas__Agregar = '/web_fichas_agregar_screen';
+const String PANTALLA_WEB__Fichas__Buscar = '/web_fichas_buscar_screen';
 const String PANTALLA_WEB__Fichas__Editar_Eliminar =
     '/web_fichas_editar_eliminar_screen';

@@ -258,7 +258,7 @@ Por implementar. No estará disponible en la primer versión productiva;
 ------------------------------------------------------------------------------------------
 
 
-## Estado actual del proyecto (mod0014)
+## Estado actual del proyecto
 
 Ya se cuenta con las colecciones en Firebase generadas y utilizadas correctamente.
 Se permite la creación de cuentas y el logueo correctamente.
@@ -298,6 +298,6 @@ Los entornos de desarrollo (Dev) y producción (Prod) ya se encuentran correctam
 ------------------------------------------------------------------------------------------
 
 
-Última revisión     ->  08/10/2025
-Rama en desarrollo  ->  mod0017
-Feature en proceso  ->  Agregado de opción para modificar los datos del producto al agregar o editar una ficha
+Última revisión     ->  11/10/2025
+Rama en desarrollo  ->  mod0020
+Feature en proceso  ->  Refactorización de la estructura de datos almacenadas en los documentos de las fichas

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:valen_market_admin/constants/textos.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_gradient_button.dart';
 
 class PopupSelectorCriterioBusqueda extends StatelessWidget {
@@ -16,13 +17,23 @@ class PopupSelectorCriterioBusqueda extends StatelessWidget {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildCriterioButton(context, 'Cliente seleccionado'),
+          _buildCriterioButton(context,
+              TEXTO__resultados_widget__criterio__cliente_seleccionado),
           const SizedBox(height: 12),
-          _buildCriterioButton(context, 'Nombre seleccionado'),
+          _buildCriterioButton(
+              context, TEXTO__resultados_widget__criterio__nombre_seleccionado),
           const SizedBox(height: 12),
-          _buildCriterioButton(context, 'Apellido seleccionado'),
+          _buildCriterioButton(context,
+              TEXTO__resultados_widget__criterio__apellido_seleccionado),
           const SizedBox(height: 12),
-          _buildCriterioButton(context, 'Zona seleccionada'),
+          _buildCriterioButton(
+              context, TEXTO__resultados_widget__criterio__zona_seleccionada),
+          const SizedBox(height: 12),
+          _buildCriterioButton(
+              context, TEXTO__resultados_widget__criterio__fecha_de_venta),
+          const SizedBox(height: 12),
+          _buildCriterioButton(
+              context, TEXTO__resultados_widget__criterio__fecha_de_aviso),
         ],
       ),
       actions: [
@@ -41,8 +52,8 @@ class PopupSelectorCriterioBusqueda extends StatelessWidget {
         onCriterioSeleccionado(criterio);
         Navigator.of(context).pop(); // Cerrar el popup
       },
-      width: 280,
-      height: 50,
+      width: 400,
+      height: 70,
     );
   }
 }

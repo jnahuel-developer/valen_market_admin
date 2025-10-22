@@ -14,7 +14,7 @@ class WebColors {
   static const Color plataTranslucida = Color(0xF0DDDEE3); // 94% de opacidad
 
   /// Rosa metálico claro (ligeramente más suave)
-  static const Color rosaMetalicoClaro = Color(0xFFE2BFC9);
+  static const Color rosaMetalicoClaro = Color.fromARGB(255, 255, 189, 208);
 
   /// Para textos en botones o títulos sobre fondo plata
   static const Color textoRosa = rosaMetalicoClaro;

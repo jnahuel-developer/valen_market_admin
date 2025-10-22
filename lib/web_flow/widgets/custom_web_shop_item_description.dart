@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:valen_market_admin/constants/fieldNames.dart';
 import 'package:valen_market_admin/constants/values.dart';
 import 'package:valen_market_admin/web_flow/features/catalogo/screens/web_editar_producto_screen.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
@@ -60,14 +61,15 @@ class CustomShopItemDescription extends StatelessWidget {
           break;
         case 'Editar':
           final producto = {
-            'id': id,
-            'NombreDelProducto': nombre,
-            'DescripcionCorta': descripcionCorta,
-            'DescripcionLarga': descripcionLarga,
-            'Precio': precio,
-            'CantidadDeCuotas': cuotas,
-            'Stock': stock,
-            'LinkDeLaFoto': imageUrl,
+            'ID': id,
+            FIELD_NAME__catalogo__Nombre_Del_Producto: nombre,
+            FIELD_NAME__catalogo__Descripcion_Corta: descripcionCorta,
+            FIELD_NAME__catalogoDescripcionCorta__Descripcion_Larga:
+                descripcionLarga,
+            FIELD_NAME__catalogo__Precio_Unitario: precio,
+            FIELD_NAME__catalogo__Cantidad_De_Cuotas: cuotas,
+            FIELD_NAME__catalogo__Stock: stock,
+            FIELD_NAME__catalogo__Link_De_La_Foto: imageUrl,
           };
           if (context.mounted) {
             final result = await Navigator.push(
@@ -188,11 +190,14 @@ class CustomShopItemDescription extends StatelessWidget {
                 if (descripcionLarga != null &&
                     descripcionLarga!.trim().isNotEmpty)
                   const SizedBox(height: 8),
-                _textItem('Precio', '\$${precio.toInt()}', fontSize: 16),
+                _textItem(FIELD_NAME__catalogo__Precio_Unitario,
+                    '\$${precio.toInt()}',
+                    fontSize: 16),
                 const SizedBox(height: 8),
                 _textItem('Cuotas', cuotas.toString(), fontSize: 16),
                 const SizedBox(height: 8),
-                _textItem('Stock', stock.toString(), fontSize: 16),
+                _textItem(FIELD_NAME__catalogo__Stock, stock.toString(),
+                    fontSize: 16),
                 const SizedBox(height: 10),
               ],
             ),

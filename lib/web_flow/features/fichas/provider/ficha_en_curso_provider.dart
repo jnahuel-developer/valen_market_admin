@@ -1,272 +1,379 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:valen_market_admin/web_flow/features/fichas/model/ficha_en_curso_model.dart';
-import 'package:valen_market_admin/services/firebase/clientes_servicios_firebase.dart';
+import 'package:valen_market_admin/constants/fieldNames.dart';
+import 'package:valen_market_admin/constants/textos.dart';
+import 'package:valen_market_admin/web_flow/features/fichas/provider/cliente_ficha_provider.dart';
+import 'package:valen_market_admin/web_flow/features/fichas/provider/fechas_ficha_provider.dart';
+import 'package:valen_market_admin/web_flow/features/fichas/provider/pagos_ficha_provider.dart';
+import 'package:valen_market_admin/services/firebase/fichas_servicios_firebase.dart';
+import 'package:valen_market_admin/web_flow/features/fichas/provider/producto_ficha_provider.dart';
 
 final fichaEnCursoProvider =
-    StateNotifierProvider<FichaEnCursoNotifier, FichaEnCurso>(
-  (ref) => FichaEnCursoNotifier(),
-);
+    ChangeNotifierProvider<FichaEnCursoProvider>((ref) {
+  return FichaEnCursoProvider();
+});
 
-class FichaEnCursoNotifier extends StateNotifier<FichaEnCurso> {
-  FichaEnCursoNotifier() : super(FichaEnCurso());
+class FichaEnCursoProvider extends ChangeNotifier {
+  final ClienteFichaProvider _cliente = ClienteFichaProvider();
+  final FechasFichaProvider _fechas = FechasFichaProvider();
+  final ProductosFichaProvider _productos = ProductosFichaProvider();
+  final PagosFichaProvider _pagos = PagosFichaProvider();
 
-  Future<void> seleccionarClientePorUID(String uidCliente) async {
+  String? _idFichaActual;
+  bool _hayFichaValida = false;
+
+  // Exponer si hay ficha cargada
+  bool get hayFichaValida => _hayFichaValida;
+  String? get idFichaActual => _idFichaActual;
+
+  // ---------- Lecturas de secciones ----------
+  Map<String, dynamic> obtenerCliente() => _cliente.obtenerCliente();
+  Map<String, dynamic> obtenerFechas() => _fechas.obtenerFechas();
+  List<Map<String, dynamic>> obtenerProductos() =>
+      _productos.obtenerProductos();
+  Map<String, dynamic> obtenerPagos() => _pagos.obtenerPagos();
+
+  // ---------- Inicializaciones ----------
+
+  /// Inicializa una ficha completamente vacía y carga listas base (clientes + catálogo).
+  Future<void> inicializarFichaLimpia() async {
     try {
-      final cliente =
-          await ClientesServiciosFirebase.obtenerClientePorId(uidCliente);
+      _idFichaActual = null;
+      _hayFichaValida = false;
 
-      if (cliente == null) return;
+      _cliente.limpiarCliente();
+      _fechas.limpiarFechas();
+      _productos.limpiarProductos();
+      _pagos.limpiarPagos();
 
-      state = state.copyWith(
-        uidCliente: uidCliente,
-        nombreCliente: cliente['Nombre'] ?? '',
-        apellidoCliente: cliente['Apellido'] ?? '',
-        zonaCliente: cliente['Zona'] ?? '',
-        direccionCliente: cliente['Dirección'] ?? '',
-        telefonoCliente: cliente['Teléfono'] ?? '',
-      );
-    } catch (_) {}
-  }
+      // Se setea la fecha de creación al iniciar una ficha nueva
+      final hoy = DateTime.now();
+      _fechas.actualizarFechas({
+        FIELD_NAME__fecha_ficha_model__Fecha_De_Creacion:
+            DateTime(hoy.year, hoy.month, hoy.day),
+      });
 
-  void agregarProducto(ProductoEnFicha producto) {
-    final indexExistente = state.productos
-        .indexWhere((p) => p.uidProducto == producto.uidProducto);
+      notifyListeners();
 
-    if (indexExistente != -1) {
-      final productoExistente = state.productos[indexExistente];
-      final nuevaCantidad = producto.unidades;
+      // Cargar listas desde servicios (delegados)
+      final clientes = await FichasServiciosFirebase.obtenerClientes();
+      final productosCatalogo =
+          await FichasServiciosFirebase.obtenerProductosCatalogo();
 
-      final productoActualizado = ProductoEnFicha(
-        uidProducto: producto.uidProducto,
-        unidades: nuevaCantidad,
-        precioUnitario: producto.precioUnitario,
-        cantidadDeCuotas: producto.cantidadDeCuotas,
-        precioDeLasCuotas: producto.precioDeLasCuotas,
-        saldado: productoExistente.saldado,
-        restante: nuevaCantidad * producto.precioDeLasCuotas,
-      );
+      // Exponer las listas para la UI sería responsabilidad de este provider o de otro provider
+      // por simplicidad puedes almacenarlas internamente si lo deseas:
+      _clientesCache = clientes;
+      _catalogoCache = productosCatalogo;
 
-      final productosActualizados = [...state.productos];
-      productosActualizados[indexExistente] = productoActualizado;
-
-      state = state.copyWith(productos: productosActualizados);
-    } else {
-      final productoConRestante = ProductoEnFicha(
-        uidProducto: producto.uidProducto,
-        unidades: producto.unidades,
-        precioUnitario: producto.precioUnitario,
-        cantidadDeCuotas: producto.cantidadDeCuotas,
-        precioDeLasCuotas: producto.precioDeLasCuotas,
-        saldado: producto.saldado,
-        restante: producto.unidades * producto.precioDeLasCuotas,
-      );
-
-      state =
-          state.copyWith(productos: [...state.productos, productoConRestante]);
+      notifyListeners();
+    } catch (e) {
+      rethrow;
     }
   }
 
-  void actualizarValoresDelProducto({
-    required String uidProducto,
-    required double precioUnitario,
-    required int cantidadDeCuotas,
-    required double precioDeLasCuotas,
-  }) {
-    final index =
-        state.productos.indexWhere((p) => p.uidProducto == uidProducto);
-    if (index == -1) {
-      // Si por alguna razón no existe, no hacemos nada (la UI impide editar si cantidad == 0)
-      return;
+  /// Inicializa solo clientes y fechas (para pantalla de búsqueda)
+  Future<void> inicializarClientesYFechas() async {
+    try {
+      _cliente.limpiarCliente();
+      _fechas.limpiarFechas();
+      notifyListeners();
+
+      _clientesCache = await FichasServiciosFirebase.obtenerClientes();
+
+      notifyListeners();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Inicializa el provider desde un Map de ficha (obtenido desde Firestore)
+  Future<void> inicializarDesdeFichaExistente(
+      Map<String, dynamic> fichaMap) async {
+    try {
+      _idFichaActual =
+          fichaMap[FIELD_NAME__ficha_model__ID_De_Ficha]?.toString();
+      _hayFichaValida = _idFichaActual != null && _idFichaActual!.isNotEmpty;
+
+      final clienteMap = (fichaMap[FIELD_NAME__ficha_model__Cliente]
+              as Map<String, dynamic>?) ??
+          {};
+      final fechasMap = (fichaMap[FIELD_NAME__ficha_model__Fechas]
+              as Map<String, dynamic>?) ??
+          {};
+      final productosList =
+          (fichaMap[FIELD_NAME__ficha_model__Productos] as List<dynamic>?) ??
+              [];
+      final pagosMap =
+          (fichaMap[FIELD_NAME__ficha_model__Pagos] as Map<String, dynamic>?) ??
+              {};
+
+      _cliente.actualizarCliente(clienteMap);
+      _fechas.actualizarFechas(fechasMap);
+      _productos.limpiarProductos();
+      for (final p in productosList) {
+        if (p is Map<String, dynamic>) {
+          _productos.agregarProducto(p);
+        }
+      }
+      _pagos.actualizarPagos(pagosMap);
+
+      notifyListeners();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // ---------- Mutadores (desde UI) ----------
+
+  void actualizarCliente(Map<String, dynamic> nuevoCliente) {
+    _cliente.actualizarCliente(nuevoCliente);
+    notifyListeners();
+  }
+
+  void actualizarFechas(Map<String, dynamic> nuevasFechas) {
+    _fechas.actualizarFechas(nuevasFechas);
+    notifyListeners();
+  }
+
+  /// Cuando se agrega un producto desde UI, el producto debe traer el campo ID del catálogo.
+  /// El provider sólo delega al subprovider; la lógica de incrementar/decrementar (0->1 agregar, 1->0 eliminar)
+  /// la controla el FichaEnCursoProvider o la UI según tu diseño. Aquí agregamos producto directamente.
+  void agregarProducto(Map<String, dynamic> producto) {
+    // Asegurar que tenga ID (FIELD_NAME__producto_ficha_model__ID)
+    final id = producto[FIELD_NAME__producto_ficha_model__ID]?.toString() ?? '';
+    if (id.isEmpty) {
+      throw Exception('Producto sin ID no puede ser agregado');
     }
 
-    final existente = state.productos[index];
-
-    final actualizado = ProductoEnFicha(
-      uidProducto: existente.uidProducto,
-      unidades: existente.unidades,
-      precioUnitario: precioUnitario,
-      cantidadDeCuotas: cantidadDeCuotas,
-      precioDeLasCuotas: precioDeLasCuotas,
-      saldado: existente.saldado,
-      restante: existente.unidades * precioDeLasCuotas,
-    );
-
-    final productosActualizados = [...state.productos];
-    productosActualizados[index] = actualizado;
-
-    state = state.copyWith(productos: productosActualizados);
+    _productos.agregarProducto(producto);
+    notifyListeners();
   }
 
-  void eliminarProductoPorUID(String uidProducto) {
-    final nuevosProductos =
-        state.productos.where((p) => p.uidProducto != uidProducto).toList();
-    state = state.copyWith(productos: nuevosProductos);
+  void actualizarProducto(String id, Map<String, dynamic> datosActualizados) {
+    _productos.actualizarProducto(id, datosActualizados);
+    notifyListeners();
   }
 
+  void eliminarProducto(String id) {
+    _productos.eliminarProducto(id);
+    notifyListeners();
+  }
+
+  /// Actualiza datos globales del bloque de pagos (por ejemplo: importeTotal, cantidadDeCuotas)
+  void actualizarPagos(Map<String, dynamic> pagosGlobales) {
+    _pagos.actualizarPagos(pagosGlobales);
+    notifyListeners();
+  }
+
+  /// Registra un pago: actualiza el subprovider de pagos y persiste en Firebase si existe ID.
+  Future<void> registrarPago(Map<String, dynamic> pagoItem) async {
+    try {
+      // 1) actualizar local
+      _pagos.agregarPago(pagoItem);
+      notifyListeners();
+
+      // 2) persistir en Firebase si la ficha ya tiene ID
+      if (_idFichaActual != null && _idFichaActual!.isNotEmpty) {
+        await FichasServiciosFirebase.registrarPagoEnFicha(
+            _idFichaActual!, pagoItem);
+      } else {
+        // Si no existe id, lanzar error o decidir guardar la ficha primero
+        throw Exception(
+            'No hay ficha persistida: registrar pago requiere guardar la ficha primero.');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // ---------- Persistencia completa ----------
+
+  /// Construye el Map unificado de la ficha
+  Map<String, dynamic> obtenerFichaCompleta() {
+    return {
+      FIELD_NAME__ficha_model__ID_De_Ficha: _idFichaActual,
+      FIELD_NAME__ficha_model__Cliente: _cliente.obtenerCliente(),
+      FIELD_NAME__ficha_model__Fechas: _fechas.obtenerFechas(),
+      FIELD_NAME__ficha_model__Productos: _productos.obtenerProductos(),
+      FIELD_NAME__ficha_model__Pagos: _pagos.obtenerPagos(),
+    };
+  }
+
+  /// Indica si la ficha tiene datos mínimos para guardarse (cliente y productos)
+  bool esFichaValidaParaGuardar() {
+    final cliente = _cliente.obtenerCliente();
+    final productos = _productos.obtenerProductos();
+
+    final clienteTieneID =
+        cliente[FIELD_NAME__cliente_ficha_model__ID]?.toString().isNotEmpty ??
+            false;
+    final hayProductos = productos.isNotEmpty;
+
+    return clienteTieneID && hayProductos;
+  }
+
+  /// Guarda la ficha en Firebase (crea si no hay ID, actualiza si ya existe)
+  Future<void> guardarFichaEnFirebase() async {
+    try {
+      // --- Paso 1: sincronizar bloque de pagos con los productos actuales ---
+      final productos = _productos.obtenerProductos();
+
+      if (productos.isNotEmpty) {
+        // Determinar la cantidad de cuotas mayor entre los productos
+        final cantidadMaxCuotas = productos.fold<int>(
+          0,
+          (max, p) => (p[FIELD_NAME__catalogo__Cantidad_De_Cuotas] ?? 0) > max
+              ? p[FIELD_NAME__catalogo__Cantidad_De_Cuotas]
+              : max,
+        );
+
+        // Recalcular precio de las cuotas y totales
+        double importeCuotaTotal = 0;
+        double importeTotal = 0;
+
+        for (final producto in productos) {
+          final unidades =
+              (producto[FIELD_NAME__producto_ficha_model__Unidades] ?? 0)
+                  .toDouble();
+          final precioUnitario =
+              (producto[FIELD_NAME__producto_ficha_model__Precio_Unitario] ?? 0)
+                  .toDouble();
+
+          // Si este producto tiene menos cuotas, se recalcula su precio de cuota
+          double precioCuotaProducto =
+              producto[FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas]
+                      ?.toDouble() ??
+                  0;
+
+          final cuotasProducto =
+              (producto[FIELD_NAME__catalogo__Cantidad_De_Cuotas] ?? 0).toInt();
+
+          if (cuotasProducto < cantidadMaxCuotas && cantidadMaxCuotas > 0) {
+            // Recalcular precio de cuota proporcional
+            precioCuotaProducto =
+                (precioUnitario / cantidadMaxCuotas).ceilToDouble();
+
+            // Actualizamos el producto con estos nuevos valores
+            producto[FIELD_NAME__catalogo__Cantidad_De_Cuotas] =
+                cantidadMaxCuotas;
+            producto[FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas] =
+                precioCuotaProducto;
+          }
+
+          importeCuotaTotal += precioCuotaProducto * unidades;
+          importeTotal += precioUnitario * unidades;
+        }
+
+        // Actualizar el bloque de pagos en base a los cálculos
+        _pagos.actualizarPagos({
+          FIELD_NAME__pago_ficha_model__Cantidad_De_Cuotas: cantidadMaxCuotas,
+          FIELD_NAME__pago_ficha_model__Importe_Cuota: importeCuotaTotal,
+          FIELD_NAME__pago_ficha_model__Importe_Total: importeTotal,
+          FIELD_NAME__pago_ficha_model__Restante: importeTotal,
+          FIELD_NAME__pago_ficha_model__Importe_Saldado: 0,
+          FIELD_NAME__pago_ficha_model__Saldado: false,
+          FIELD_NAME__pago_ficha_model__Cuotas_Pagas: 0,
+        });
+      }
+
+      // --- Paso 2: construir el mapa completo y persistir ---
+      final fichaMap = obtenerFichaCompleta();
+
+      if (_hayFichaValida &&
+          _idFichaActual != null &&
+          _idFichaActual!.isNotEmpty) {
+        await FichasServiciosFirebase.actualizarFicha(
+            _idFichaActual!, fichaMap);
+      } else {
+        final nuevoId = await FichasServiciosFirebase.crearFicha(fichaMap);
+        _idFichaActual = nuevoId;
+        _hayFichaValida = true;
+      }
+
+      notifyListeners();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Busca fichas en Firebase según el criterio de búsqueda actual.
+  /// El criterio se corresponde con los textos del widget PopupResultadosBusqueda.
+  Future<List<Map<String, dynamic>>> buscarFichasPorCriterio(
+      String criterio) async {
+    try {
+      String campo = '';
+      dynamic valor;
+
+      final clienteActual = _cliente.obtenerCliente();
+      final fechasActuales = _fechas.obtenerFechas();
+
+      switch (criterio) {
+        case TEXTO__resultados_widget__criterio__cliente_seleccionado:
+          campo = 'Cliente.$FIELD_NAME__cliente_ficha_model__ID';
+          valor = clienteActual[FIELD_NAME__cliente_ficha_model__ID];
+          break;
+
+        case TEXTO__resultados_widget__criterio__nombre_seleccionado:
+          campo = 'Cliente.$FIELD_NAME__cliente_ficha_model__Nombre';
+          valor = clienteActual[FIELD_NAME__cliente_ficha_model__Nombre];
+          break;
+
+        case TEXTO__resultados_widget__criterio__apellido_seleccionado:
+          campo = 'Cliente.$FIELD_NAME__cliente_ficha_model__Apellido';
+          valor = clienteActual[FIELD_NAME__cliente_ficha_model__Apellido];
+          break;
+
+        case TEXTO__resultados_widget__criterio__zona_seleccionada:
+          campo = 'Cliente.$FIELD_NAME__cliente_ficha_model__Zona';
+          valor = clienteActual[FIELD_NAME__cliente_ficha_model__Zona];
+          break;
+
+        case TEXTO__resultados_widget__criterio__fecha_de_venta:
+          campo = 'Fechas.$FIELD_NAME__fecha_ficha_model__Fecha_De_Venta';
+          valor = fechasActuales[FIELD_NAME__fecha_ficha_model__Fecha_De_Venta];
+          break;
+
+        case TEXTO__resultados_widget__criterio__fecha_de_aviso:
+          campo =
+              'Fechas.$FIELD_NAME__fecha_ficha_model__Fecha_De_Proximo_Aviso';
+          valor = fechasActuales[
+              FIELD_NAME__fecha_ficha_model__Fecha_De_Proximo_Aviso];
+          break;
+
+        default:
+          return [];
+      }
+
+      if (valor == null || (valor is String && valor.isEmpty)) {
+        return [];
+      }
+
+      final fichas =
+          await FichasServiciosFirebase.buscarFichasPorParametro(campo, valor);
+
+      return fichas;
+    } catch (e) {
+      throw Exception('Error al buscar fichas por criterio: $e');
+    }
+  }
+
+  /// Limpia todo el estado
   void limpiarFicha() {
-    state = FichaEnCurso();
+    _idFichaActual = null;
+    _hayFichaValida = false;
+    _cliente.limpiarCliente();
+    _fechas.limpiarFechas();
+    _productos.limpiarProductos();
+    _pagos.limpiarPagos();
+    notifyListeners();
   }
 
-  void actualizarFechaDeVenta(DateTime? fecha) {
-    state = state.copyWith(fechaDeVenta: fecha);
-  }
+  // ---------- Caches opcionales para UI ----------
+  List<Map<String, dynamic>> _clientesCache = [];
+  List<Map<String, dynamic>> _catalogoCache = [];
 
-  void actualizarFrecuenciaDeAviso(String frecuencia) {
-    state = state.copyWith(frecuenciaDeAviso: frecuencia);
-  }
-
-  void actualizarProximoAviso(DateTime fecha) {
-    state = state.copyWith(proximoAviso: fecha);
-  }
-
-  void cargarFichaDesdeMapa(Map<String, dynamic> ficha,
-      {required String fichaId}) {
-    final uidCliente = ficha['UID_Cliente'] as String?;
-    final nombreCliente = ficha['Nombre'] as String?;
-    final apellidoCliente = ficha['Apellido'] as String?;
-    final zonaCliente = ficha['Zona'] as String?;
-    final direccionCliente = ficha['Dirección'] as String?;
-    final telefonoCliente = ficha['Teléfono'] as String?;
-
-    DateTime? fechaDeVenta;
-    DateTime? fechaDeAviso;
-
-    // Se maneja de forma flexible el tipo de dato recibido para evitar errores
-    final dynamic fechaVentaRaw = ficha['Fecha_de_venta'];
-    final dynamic proximoAvisoRaw = ficha['Proximo_aviso'];
-
-    if (fechaVentaRaw != null) {
-      if (fechaVentaRaw is String) {
-        try {
-          fechaDeVenta = DateTime.parse(fechaVentaRaw);
-        } catch (_) {}
-      } else if (fechaVentaRaw is DateTime) {
-        fechaDeVenta = fechaVentaRaw;
-      } else if (fechaVentaRaw is Timestamp) {
-        fechaDeVenta = fechaVentaRaw.toDate();
-      }
-    }
-
-    if (proximoAvisoRaw != null) {
-      if (proximoAvisoRaw is String) {
-        try {
-          fechaDeAviso = DateTime.parse(proximoAvisoRaw);
-        } catch (_) {}
-      } else if (proximoAvisoRaw is DateTime) {
-        fechaDeAviso = proximoAvisoRaw;
-      } else if (proximoAvisoRaw is Timestamp) {
-        fechaDeAviso = proximoAvisoRaw.toDate();
-      }
-    }
-
-    final int cantidadProductos = ficha['Cantidad_de_Productos'] ?? 0;
-    final List<ProductoEnFicha> productos = [];
-
-    for (int i = 0; i < cantidadProductos; i++) {
-      productos.add(
-        ProductoEnFicha(
-          uidProducto: ficha['UID_Producto_$i'] ?? '',
-          unidades: ficha['Unidades_Producto_$i'] ?? 0,
-          precioUnitario: (ficha['Precio_Producto_$i'] ?? 0).toDouble(),
-          cantidadDeCuotas: ficha['Cantidad_de_cuotas_Producto_$i'] ?? 0,
-          precioDeLasCuotas:
-              (ficha['Precio_de_las_cuotas_Producto_$i'] ?? 0).toDouble(),
-          saldado: ficha['Saldado_Producto_$i'] ?? false,
-          restante: (ficha['Restante_Producto_$i'] ?? 0).toDouble(),
-        ),
-      );
-    }
-
-    state = FichaEnCurso(
-      id: fichaId,
-      uidCliente: uidCliente,
-      nombreCliente: nombreCliente,
-      apellidoCliente: apellidoCliente,
-      zonaCliente: zonaCliente,
-      direccionCliente: direccionCliente,
-      telefonoCliente: telefonoCliente,
-      productos: productos,
-      fechaDeVenta: fechaDeVenta,
-      frecuenciaDeAviso: ficha['Frecuencia_de_aviso'] as String?,
-      proximoAviso: fechaDeAviso,
-    );
-  }
-
-  void actualizarDatosCliente({
-    required String uidCliente,
-    required String nombre,
-    required String apellido,
-    required String zona,
-    required String direccion,
-    required String telefono,
-  }) {
-    state = state.copyWith(
-      uidCliente: uidCliente,
-      nombreCliente: nombre,
-      apellidoCliente: apellido,
-      zonaCliente: zona,
-      direccionCliente: direccion,
-      telefonoCliente: telefono,
-    );
-  }
-
-  void cargarSoloDatosDeFichaYProductos(Map<String, dynamic> ficha,
-      {required String fichaId}) {
-    final int cantidadProductos = ficha['Cantidad_de_Productos'] ?? 0;
-    List<ProductoEnFicha> productos = [];
-
-    for (int i = 0; i < cantidadProductos; i++) {
-      productos.add(
-        ProductoEnFicha(
-          uidProducto: ficha['UID_Producto_$i'] ?? '',
-          unidades: ficha['Unidades_Producto_$i'] ?? 0,
-          precioUnitario: (ficha['Precio_Producto_$i'] ?? 0).toDouble(),
-          cantidadDeCuotas: ficha['Cantidad_de_cuotas_Producto_$i'] ?? 0,
-          precioDeLasCuotas:
-              (ficha['Precio_de_las_cuotas_Producto_$i'] ?? 0).toDouble(),
-          saldado: ficha['Saldado_Producto_$i'] ?? false,
-          restante: (ficha['Restante_Producto_$i'] ?? 0).toDouble(),
-        ),
-      );
-    }
-
-    final dynamic fechaVentaRaw = ficha['Fecha_de_venta'];
-    DateTime? fechaDeVenta;
-
-    if (fechaVentaRaw != null) {
-      if (fechaVentaRaw is String) {
-        try {
-          fechaDeVenta = DateTime.parse(fechaVentaRaw);
-        } catch (_) {}
-      } else if (fechaVentaRaw is DateTime) {
-        fechaDeVenta = fechaVentaRaw;
-      } else if (fechaVentaRaw is Timestamp) {
-        fechaDeVenta = fechaVentaRaw.toDate();
-      }
-    }
-
-    final dynamic fechaAvisoRaw = ficha['Proximo_aviso'];
-    DateTime? fechaDeAviso;
-
-    if (fechaAvisoRaw != null) {
-      if (fechaAvisoRaw is String) {
-        try {
-          fechaDeAviso = DateTime.parse(fechaAvisoRaw);
-        } catch (_) {}
-      } else if (fechaAvisoRaw is DateTime) {
-        fechaDeAviso = fechaAvisoRaw;
-      } else if (fechaAvisoRaw is Timestamp) {
-        fechaDeAviso = fechaAvisoRaw.toDate();
-      }
-    }
-
-    state = state.copyWith(
-      id: fichaId,
-      productos: productos,
-      fechaDeVenta: fechaDeVenta,
-      proximoAviso: fechaDeAviso,
-    );
-  }
+  List<Map<String, dynamic>> get clientesCache =>
+      List.unmodifiable(_clientesCache);
+  List<Map<String, dynamic>> get catalogoCache =>
+      List.unmodifiable(_catalogoCache);
 }

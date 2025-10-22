@@ -96,8 +96,17 @@ valen_market_admin/
 │   │   │   │
 │   │   │   │── fichas/
 │   │   │   │   │── Models/
-│   │   │   │   │   └── ficha_en_curso_model.dart
+│   │   │   │   │   |── cliente_ficha_model.dart
+│   │   │   │   │   |── fechas_ficha_model.dart
+│   │   │   │   │   |── producto_ficha_model.dart
+│   │   │   │   │   |── pago_item_model.dart
+│   │   │   │   │   |── pagos_ficha_model.dart
+│   │   │   │   │   └── ficha_model.dart
 │   │   │   │   │── Provider/
+│   │   │   │   │   |── cliente_ficha_provider.dart
+│   │   │   │   │   |── fechas_ficha_provider.dart
+│   │   │   │   │   |── producto_ficha_provider.dart
+│   │   │   │   │   |── pagos_ficha_provider.dart
 │   │   │   │   │   └── ficha_en_curso_provider.dart
 │   │   │   │   └── screens/
 │   │   │   │       │── web_fichas_agregar_buscar_screen.dart

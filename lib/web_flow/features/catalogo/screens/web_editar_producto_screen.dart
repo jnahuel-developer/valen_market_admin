@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
+import 'package:valen_market_admin/constants/fieldNames.dart';
 import 'package:web/web.dart' as web;
 import 'package:valen_market_admin/web_flow/widgets/custom_web_text_field.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_gradient_button.dart';
@@ -41,13 +42,17 @@ class _WebEditarProductoScreenState extends State<WebEditarProductoScreen> {
   void initState() {
     super.initState();
     final p = widget.producto;
-    _nombreController.text = p['NombreDelProducto'] ?? '';
-    _descCortaController.text = p['DescripcionCorta'] ?? '';
-    _descLargaController.text = p['DescripcionLarga'] ?? '';
-    _precioController.text = (p['Precio'] ?? 0).toString();
-    _cuotasController.text = (p['CantidadDeCuotas'] ?? 1).toString();
-    _stockController.text = (p['Stock'] ?? 0).toString();
-    _urlImagen = p['LinkDeLaFoto'];
+    _nombreController.text = p[FIELD_NAME__catalogo__Nombre_Del_Producto] ?? '';
+    _descCortaController.text =
+        p[FIELD_NAME__catalogo__Descripcion_Corta] ?? '';
+    _descLargaController.text =
+        p[FIELD_NAME__catalogoDescripcionCorta__Descripcion_Larga] ?? '';
+    _precioController.text =
+        (p[FIELD_NAME__catalogo__Precio_Unitario] ?? 0).toString();
+    _cuotasController.text =
+        (p[FIELD_NAME__catalogo__Cantidad_De_Cuotas] ?? 1).toString();
+    _stockController.text = (p[FIELD_NAME__catalogo__Stock] ?? 0).toString();
+    _urlImagen = p[FIELD_NAME__catalogo__Link_De_La_Foto];
   }
 
   Future<void> _seleccionarImagen() async {
@@ -101,16 +106,20 @@ class _WebEditarProductoScreenState extends State<WebEditarProductoScreen> {
       }
 
       await _catalogoService.actualizarProducto(
-        productoId: widget.producto['id'],
+        productoId: widget.producto['ID'],
         nuevosDatos: {
-          'NombreDelProducto': _nombreController.text.trim(),
-          'DescripcionCorta': _descCortaController.text.trim(),
-          'DescripcionLarga': _descLargaController.text.trim(),
-          'Precio': double.parse(
+          FIELD_NAME__catalogo__Nombre_Del_Producto:
+              _nombreController.text.trim(),
+          FIELD_NAME__catalogo__Descripcion_Corta:
+              _descCortaController.text.trim(),
+          FIELD_NAME__catalogoDescripcionCorta__Descripcion_Larga:
+              _descLargaController.text.trim(),
+          FIELD_NAME__catalogo__Precio_Unitario: double.parse(
               _precioController.text.replaceAll('.', '').replaceAll(',', '')),
-          'CantidadDeCuotas': int.parse(_cuotasController.text),
-          'Stock': int.parse(_stockController.text),
-          'LinkDeLaFoto': nuevaUrl ?? 'No disponible',
+          FIELD_NAME__catalogo__Cantidad_De_Cuotas:
+              int.parse(_cuotasController.text),
+          FIELD_NAME__catalogo__Stock: int.parse(_stockController.text),
+          FIELD_NAME__catalogo__Link_De_La_Foto: nuevaUrl ?? 'No disponible',
         },
       );
 
@@ -169,7 +178,7 @@ class _WebEditarProductoScreenState extends State<WebEditarProductoScreen> {
                           ),
                           const SizedBox(height: 20),
                           CustomTextField(
-                            label: 'Precio',
+                            label: FIELD_NAME__catalogo__Precio_Unitario,
                             controller: _precioController,
                             keyboardType: TextInputType.number,
                             isRequired: true,
@@ -184,7 +193,7 @@ class _WebEditarProductoScreenState extends State<WebEditarProductoScreen> {
                           ),
                           const SizedBox(height: 20),
                           CustomTextField(
-                            label: 'Stock',
+                            label: FIELD_NAME__catalogo__Stock,
                             controller: _stockController,
                             keyboardType: TextInputType.number,
                             isRequired: true,

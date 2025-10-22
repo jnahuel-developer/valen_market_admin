@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
 import 'package:valen_market_admin/constants/values.dart';
 
-class CustomWebCampoConCheckboxTextField extends StatelessWidget {
+class CustomWebCampoConCheckboxTextField extends StatefulWidget {
   final String label;
   final TextEditingController controller;
   final bool isEditable;
   final ValueChanged<bool> onCheckboxChanged;
-  final ValueChanged<String>? onTextChanged; // Nuevo parámetro opcional
+  final ValueChanged<String>? onTextChanged;
 
   const CustomWebCampoConCheckboxTextField({
     super.key,
@@ -19,22 +19,30 @@ class CustomWebCampoConCheckboxTextField extends StatelessWidget {
   });
 
   @override
+  State<CustomWebCampoConCheckboxTextField> createState() =>
+      _CustomWebCampoConCheckboxTextFieldState();
+}
+
+class _CustomWebCampoConCheckboxTextFieldState
+    extends State<CustomWebCampoConCheckboxTextField> {
+  @override
   Widget build(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Checkbox(
-          value: isEditable,
+          value: widget.isEditable,
           onChanged: (value) {
-            if (value != null) onCheckboxChanged(value);
+            if (value != null) widget.onCheckboxChanged(value);
+            setState(
+                () {}); // permit visual update if parent changes isEditable
           },
-          // Se define el color para cuando el Checkbox esté habilitado
           activeColor: WebColors.checkboxHabilitado,
         ),
         SizedBox(
           width: 90,
           child: Text(
-            label,
+            widget.label,
             style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
           ),
         ),
@@ -43,27 +51,24 @@ class CustomWebCampoConCheckboxTextField extends StatelessWidget {
           child: SizedBox(
             height: 50,
             child: TextField(
-              controller: controller,
-              enabled: isEditable,
+              controller: widget.controller,
+              enabled: widget.isEditable,
               style: TextStyle(
-                fontStyle: isEditable ? FontStyle.normal : FontStyle.italic,
+                fontStyle:
+                    widget.isEditable ? FontStyle.normal : FontStyle.italic,
                 color: WebColors.negro,
                 fontSize: 16,
               ),
-              onSubmitted: isEditable
-                  ? onTextChanged
-                  : null, // Ejecutar al presionar Enter
+              onSubmitted: widget.isEditable ? widget.onTextChanged : null,
               decoration: InputDecoration(
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
-                // Se definen los bordes cuando esté habilitado
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(
                       VALUE__general_widget__campo__big_border_radius),
                   borderSide:
                       BorderSide(color: WebColors.bordeControlHabilitado),
                 ),
-                // Se definen los bordes cuando esté deshabilitado
                 disabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(
                       VALUE__general_widget__campo__big_border_radius),

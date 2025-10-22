@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
+import 'package:valen_market_admin/constants/fieldNames.dart';
 import 'package:valen_market_admin/constants/textos.dart';
 import 'package:valen_market_admin/constants/values.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
@@ -17,11 +18,8 @@ class CustomWebCampoFrecuenciaAviso extends ConsumerStatefulWidget {
 class _CustomWebCampoFrecuenciaAvisoState
     extends ConsumerState<CustomWebCampoFrecuenciaAviso> {
   final DateFormat _formatter = DateFormat('dd/MM/yyyy');
-
-  String _textSelectedRadioButton =
-      TEXTO_ES__frecuencia_aviso_widget__campo__opcion_1;
-
-  final TextEditingController _dateController = TextEditingController();
+  final TextEditingController _controller = TextEditingController();
+  String _opcionSeleccionada = TEXTO__frecuencia_aviso_widget__campo__opcion_1;
 
   @override
   void initState() {
@@ -29,39 +27,33 @@ class _CustomWebCampoFrecuenciaAvisoState
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final ficha = ref.read(fichaEnCursoProvider);
-      final DateTime today = DateTime.now();
+      final today = DateTime.now();
 
-      // Se evalúa si existe una fecha de aviso previa
-      if (ficha.proximoAviso != null) {
-        final DateTime aviso = ficha.proximoAviso!;
-        final int diffDays = aviso.difference(today).inDays + 1;
+      // Se lee el Map de fechas cargadas en la ficha
+      final fechas = ficha.obtenerFechas();
 
-        // Se evalúan las diferencias predefinidas para determinar el RadioButton
-        if (diffDays == VALUE__frecuencia_aviso_widget__campo__opcion_1) {
-          _textSelectedRadioButton =
-              TEXTO_ES__frecuencia_aviso_widget__campo__opcion_1;
-        } else if (diffDays ==
-            VALUE__frecuencia_aviso_widget__campo__opcion_2) {
-          _textSelectedRadioButton =
-              TEXTO_ES__frecuencia_aviso_widget__campo__opcion_2;
-        } else if (diffDays ==
-            VALUE__frecuencia_aviso_widget__campo__opcion_3) {
-          _textSelectedRadioButton =
-              TEXTO_ES__frecuencia_aviso_widget__campo__opcion_3;
+      // Se obtiene la fecha de venta del Map de fechas
+      final fechaProximoAviso =
+          fechas[FIELD_NAME__fecha_ficha_model__Fecha_De_Proximo_Aviso]
+              as DateTime?;
+
+      if (fechaProximoAviso != null) {
+        final aviso = fechaProximoAviso;
+        final diff = aviso.difference(today).inDays;
+
+        if (diff == VALUE__frecuencia_aviso_widget__campo__opcion_1) {
+          _opcionSeleccionada = TEXTO__frecuencia_aviso_widget__campo__opcion_1;
+        } else if (diff == VALUE__frecuencia_aviso_widget__campo__opcion_2) {
+          _opcionSeleccionada = TEXTO__frecuencia_aviso_widget__campo__opcion_2;
+        } else if (diff == VALUE__frecuencia_aviso_widget__campo__opcion_3) {
+          _opcionSeleccionada = TEXTO__frecuencia_aviso_widget__campo__opcion_3;
         } else {
-          _textSelectedRadioButton =
-              TEXTO_ES__frecuencia_aviso_widget__campo__opcion_4;
+          _opcionSeleccionada = TEXTO__frecuencia_aviso_widget__campo__opcion_4;
         }
 
-        // Se carga la fecha existente en el control
-        _dateController.text = _formatter.format(aviso);
+        _controller.text = _formatter.format(aviso);
       } else {
-        // Si no existe, se usa la opción por defecto (7 días)
-        final DateTime newDate = today.add(
-          const Duration(days: VALUE__frecuencia_aviso_widget__campo__opcion_1),
-        );
-        _dateController.text = _formatter.format(newDate);
-        ref.read(fichaEnCursoProvider.notifier).actualizarProximoAviso(newDate);
+        _actualizarFecha(); // Inicializa con +7 días por defecto
       }
 
       setState(() {});
@@ -69,29 +61,29 @@ class _CustomWebCampoFrecuenciaAvisoState
   }
 
   void _actualizarFecha() {
-    DateTime newDate;
-    switch (_textSelectedRadioButton) {
-      case TEXTO_ES__frecuencia_aviso_widget__campo__opcion_1:
-        newDate = DateTime.now().add(const Duration(
+    DateTime fecha;
+    switch (_opcionSeleccionada) {
+      case TEXTO__frecuencia_aviso_widget__campo__opcion_1:
+        fecha = DateTime.now().add(const Duration(
             days: VALUE__frecuencia_aviso_widget__campo__opcion_1));
         break;
-      case TEXTO_ES__frecuencia_aviso_widget__campo__opcion_2:
-        newDate = DateTime.now().add(const Duration(
+      case TEXTO__frecuencia_aviso_widget__campo__opcion_2:
+        fecha = DateTime.now().add(const Duration(
             days: VALUE__frecuencia_aviso_widget__campo__opcion_2));
         break;
-      case TEXTO_ES__frecuencia_aviso_widget__campo__opcion_3:
-        newDate = DateTime.now().add(const Duration(
+      case TEXTO__frecuencia_aviso_widget__campo__opcion_3:
+        fecha = DateTime.now().add(const Duration(
             days: VALUE__frecuencia_aviso_widget__campo__opcion_3));
         break;
       default:
-        newDate = DateTime.now().add(const Duration(
-            days: VALUE__frecuencia_aviso_widget__campo__opcion_1));
+        fecha = DateTime.now();
     }
 
-    _dateController.text = _formatter.format(newDate);
+    final fechaNormalizada = DateTime(fecha.year, fecha.month, fecha.day);
+    _controller.text = _formatter.format(fechaNormalizada);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(fichaEnCursoProvider.notifier).actualizarProximoAviso(newDate);
+    ref.read(fichaEnCursoProvider.notifier).actualizarFechas({
+      FIELD_NAME__fecha_ficha_model__Fecha_De_Proximo_Aviso: fechaNormalizada,
     });
   }
 
@@ -112,16 +104,17 @@ class _CustomWebCampoFrecuenciaAvisoState
     );
 
     if (selectedDate != null) {
-      _dateController.text = _formatter.format(selectedDate);
-      ref.read(fichaEnCursoProvider.notifier).actualizarFrecuenciaDeAviso(
-          TEXTO_ES__frecuencia_aviso_widget__campo__opcion_4);
-      ref
-          .read(fichaEnCursoProvider.notifier)
-          .actualizarProximoAviso(selectedDate);
+      final fechaNormalizada =
+          DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
+
+      _controller.text = _formatter.format(fechaNormalizada);
+
+      ref.read(fichaEnCursoProvider.notifier).actualizarFechas({
+        FIELD_NAME__fecha_ficha_model__Fecha_De_Proximo_Aviso: fechaNormalizada,
+      });
 
       setState(() {
-        _textSelectedRadioButton =
-            TEXTO_ES__frecuencia_aviso_widget__campo__opcion_4;
+        _opcionSeleccionada = TEXTO__frecuencia_aviso_widget__campo__opcion_4;
       });
     }
   }
@@ -129,10 +122,10 @@ class _CustomWebCampoFrecuenciaAvisoState
   @override
   Widget build(BuildContext context) {
     final opciones = [
-      TEXTO_ES__frecuencia_aviso_widget__campo__opcion_1,
-      TEXTO_ES__frecuencia_aviso_widget__campo__opcion_2,
-      TEXTO_ES__frecuencia_aviso_widget__campo__opcion_3,
-      TEXTO_ES__frecuencia_aviso_widget__campo__opcion_4
+      TEXTO__frecuencia_aviso_widget__campo__opcion_1,
+      TEXTO__frecuencia_aviso_widget__campo__opcion_2,
+      TEXTO__frecuencia_aviso_widget__campo__opcion_3,
+      TEXTO__frecuencia_aviso_widget__campo__opcion_4,
     ];
 
     return Row(
@@ -141,7 +134,7 @@ class _CustomWebCampoFrecuenciaAvisoState
         const SizedBox(
           width: 150,
           child: Text(
-            TEXTO_ES__frecuencia_aviso_widget__campo__titulo,
+            TEXTO__frecuencia_aviso_widget__campo__titulo,
             style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
           ),
         ),
@@ -150,18 +143,18 @@ class _CustomWebCampoFrecuenciaAvisoState
             children: [
               for (var opcion in opciones)
                 Row(
-                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Radio<String>(
                       value: opcion,
-                      groupValue: _textSelectedRadioButton,
+                      groupValue: _opcionSeleccionada,
                       activeColor: WebColors.radioButtonHabilitado,
-                      onChanged: (value) {
-                        if (value == null) return;
-                        setState(() {
-                          _textSelectedRadioButton = value;
-                        });
-                        _actualizarFecha();
+                      onChanged: (v) {
+                        if (v == null) return;
+                        setState(() => _opcionSeleccionada = v);
+                        if (v !=
+                            TEXTO__frecuencia_aviso_widget__campo__opcion_4) {
+                          _actualizarFecha();
+                        }
                       },
                     ),
                     Text(opcion),
@@ -173,10 +166,10 @@ class _CustomWebCampoFrecuenciaAvisoState
                 width: 140,
                 height: 45,
                 child: TextField(
-                  controller: _dateController,
+                  controller: _controller,
                   readOnly: true,
-                  enabled: _textSelectedRadioButton ==
-                      TEXTO_ES__frecuencia_aviso_widget__campo__opcion_4,
+                  enabled: _opcionSeleccionada ==
+                      TEXTO__frecuencia_aviso_widget__campo__opcion_4,
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.symmetric(
                         horizontal: 15, vertical: 12),
@@ -204,12 +197,12 @@ class _CustomWebCampoFrecuenciaAvisoState
               const SizedBox(width: 20),
               IconButton(
                 icon: const Icon(Icons.calendar_month),
-                color: _textSelectedRadioButton ==
-                        TEXTO_ES__frecuencia_aviso_widget__campo__opcion_4
+                color: _opcionSeleccionada ==
+                        TEXTO__frecuencia_aviso_widget__campo__opcion_4
                     ? WebColors.iconHabilitado
                     : WebColors.controlDeshabilitado,
-                onPressed: _textSelectedRadioButton ==
-                        TEXTO_ES__frecuencia_aviso_widget__campo__opcion_4
+                onPressed: _opcionSeleccionada ==
+                        TEXTO__frecuencia_aviso_widget__campo__opcion_4
                     ? () => _mostrarSelectorDeFecha(context)
                     : null,
               ),

@@ -1,8 +1,40 @@
+/// ---------------------------------------------------------------------------
+/// CATALOGO_SERVICIOS_FIREBASE
+///
+/// 🔹 Rol general:
+/// Gestiona la colección `BDD_Catalogo` en Firestore, encargándose de las
+/// operaciones CRUD sobre los productos disponibles en el sistema.
+///
+/// 🔹 Forma de uso:
+///   - Utilizado por widgets y providers que necesiten mostrar o actualizar
+///     el catálogo de productos (por ejemplo, en la selección de productos
+///     dentro de la ficha).
+///
+/// 🔹 Interactúa con:
+///   - Firestore (`FirebaseFirestore`): colección `BDD_Catalogo`.
+///   - Constantes de `fieldNames.dart` para garantizar nombres uniformes.
+///
+/// 🔹 Lógica principal:
+///   - Agrega nuevos productos con timestamp de creación.
+///   - Obtiene productos por ID o todos los registros.
+///   - Actualiza y elimina registros existentes.
+///
+/// 🔹 Métodos disponibles:
+///   • `Future<void> agregarProducto({...})`
+///   • `Future<List<Map<String, dynamic>>> obtenerTodosLosProductos()`
+///   • `Future<Map<String, dynamic>?> obtenerProductoPorId(String id)`
+///   • `Future<void> actualizarProducto({...})`
+///   • `Future<void> eliminarProducto(String id)`
+///
+/// ---------------------------------------------------------------------------
+library;
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:valen_market_admin/constants/fieldNames.dart';
 
 class CatalogoServiciosFirebase {
-  final CollectionReference _catalogoCollection =
-      FirebaseFirestore.instance.collection('BDD_Catalogo');
+  final CollectionReference _catalogoCollection = FirebaseFirestore.instance
+      .collection(FIELD_NAME__catalogo__Nombre_De_La_Coleccion);
 
   /* ---------------------------------------------------------------------------------------- */
   //                            METODOS PARA AGREGAR REGISTROS                                */
@@ -20,14 +52,15 @@ class CatalogoServiciosFirebase {
   }) async {
     try {
       await _catalogoCollection.add({
-        'NombreDelProducto': nombreDelProducto,
-        'DescripcionCorta': descripcionCorta,
-        'DescripcionLarga': descripcionLarga,
-        'Precio': precio,
-        'CantidadDeCuotas': cantidadDeCuotas,
-        'Stock': stock,
-        'LinkDeLaFoto': linkDeLaFoto,
-        'FechaDeCreacion': FieldValue.serverTimestamp(),
+        FIELD_NAME__catalogo__Nombre_Del_Producto: nombreDelProducto,
+        FIELD_NAME__catalogo__Descripcion_Corta: descripcionCorta,
+        FIELD_NAME__catalogoDescripcionCorta__Descripcion_Larga:
+            descripcionLarga,
+        FIELD_NAME__catalogo__Precio_Unitario: precio,
+        FIELD_NAME__catalogo__Cantidad_De_Cuotas: cantidadDeCuotas,
+        FIELD_NAME__catalogo__Stock: stock,
+        FIELD_NAME__catalogo__Link_De_La_Foto: linkDeLaFoto,
+        FIELD_NAME__catalogo__Fecha_De_Creacion: FieldValue.serverTimestamp(),
       });
     } catch (e) {
       throw Exception('Error al agregar el producto: $e');
@@ -44,7 +77,8 @@ class CatalogoServiciosFirebase {
       final querySnapshot = await _catalogoCollection.get();
       return querySnapshot.docs.map((doc) {
         final data = doc.data() as Map<String, dynamic>;
-        data['id'] = doc.id; // Añadir el ID del documento al map
+        data[FIELD_NAME__catalogo__ID_Del_Producto] =
+            doc.id; // Añadir el ID del documento al map
         return data;
       }).toList();
     } catch (e) {
@@ -60,7 +94,7 @@ class CatalogoServiciosFirebase {
       final docSnapshot = await _catalogoCollection.doc(productoId).get();
       if (docSnapshot.exists) {
         final data = docSnapshot.data() as Map<String, dynamic>;
-        data['id'] = docSnapshot.id;
+        data[FIELD_NAME__catalogo__ID_Del_Producto] = docSnapshot.id;
         return data;
       } else {
         return null;

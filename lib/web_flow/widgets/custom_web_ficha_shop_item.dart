@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
+import 'package:valen_market_admin/constants/fieldNames.dart';
 import 'package:valen_market_admin/constants/values.dart';
 
 class CustomWebFichaShopItem extends StatelessWidget {
@@ -9,9 +10,6 @@ class CustomWebFichaShopItem extends StatelessWidget {
   final VoidCallback onIncrement;
   final VoidCallback onDecrement;
   final VoidCallback? onEdit;
-  final double? precioPorFicha;
-  final double? precioDeCuotaPorFicha;
-  final int? cantidadDeCuotas;
 
   const CustomWebFichaShopItem({
     super.key,
@@ -20,27 +18,34 @@ class CustomWebFichaShopItem extends StatelessWidget {
     required this.onIncrement,
     required this.onDecrement,
     this.onEdit,
-    this.precioPorFicha,
-    this.precioDeCuotaPorFicha,
-    this.cantidadDeCuotas,
   });
 
   @override
   Widget build(BuildContext context) {
     final String nombre =
-        producto['NombreDelProducto'] ?? producto['Nombre'] ?? '';
+        producto[FIELD_NAME__catalogo__Nombre_Del_Producto] ?? 'Producto';
     final double precio =
-        (precioPorFicha ?? producto['Precio'] ?? 0).toDouble();
-    final int stock = (producto['Stock'] ?? 0).toInt();
-    final String imageUrl = producto['LinkDeLaFoto'] ?? '';
+        ((producto[FIELD_NAME__producto_ficha_model__Precio_Unitario] ??
+                producto[FIELD_NAME__producto_ficha_model__Precio_Unitario] ??
+                0))
+            .toDouble();
+    final int stock = (producto[FIELD_NAME__catalogo__Stock] ?? 0).toInt();
+    final String imageUrl =
+        producto[FIELD_NAME__catalogo__Link_De_La_Foto] ?? '';
 
     final String precioFormateado =
         NumberFormat('#,###', 'es_AR').format(precio);
 
-    final double precioCuota = (precioDeCuotaPorFicha ??
-            (producto['Precio'] ?? 0) / (producto['CantidadDeCuotas'] ?? 1))
-        .toDouble();
-    final int cuotas = cantidadDeCuotas ?? (producto['CantidadDeCuotas'] ?? 1);
+    // calcular precio por cuota: primero mirar si producto en ficha trajo precioDeLasCuotas
+    final double precioCuota =
+        ((producto[FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas] ??
+                ((producto[FIELD_NAME__producto_ficha_model__Precio_Unitario] ??
+                        0) /
+                    (producto[FIELD_NAME__catalogo__Cantidad_De_Cuotas] ?? 1))))
+            .toDouble();
+
+    final int cuotas =
+        (producto[FIELD_NAME__catalogo__Cantidad_De_Cuotas] ?? 1);
 
     final String precioCuotaFormateado =
         NumberFormat('#,###', 'es_AR').format(precioCuota);
@@ -56,7 +61,7 @@ class CustomWebFichaShopItem extends StatelessWidget {
           ),
           padding: const EdgeInsets.all(12),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisSize: MainAxisSize.max,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Imagen
@@ -69,12 +74,14 @@ class CustomWebFichaShopItem extends StatelessWidget {
                   border: Border.all(color: WebColors.bordeRosa),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Image.network(
-                  imageUrl,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) =>
-                      const Icon(Icons.broken_image, size: 50),
-                ),
+                child: imageUrl.isNotEmpty
+                    ? Image.network(
+                        imageUrl,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) =>
+                            const Icon(Icons.broken_image, size: 50),
+                      )
+                    : const Icon(Icons.image_not_supported, size: 50),
               ),
               const SizedBox(height: 10),
 
@@ -90,23 +97,30 @@ class CustomWebFichaShopItem extends StatelessWidget {
               const SizedBox(height: 8),
 
               // Precio y cuotas
-              Text(
-                'Precio: \$ $precioFormateado',
-                style: const TextStyle(fontSize: 14),
-                textAlign: TextAlign.left,
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Precio: \$ $precioFormateado',
+                  style: const TextStyle(fontSize: 14),
+                ),
               ),
 
               if (cuotas > 1)
-                Text(
-                  '$cuotas cuotas de \$ $precioCuotaFormateado',
-                  style: const TextStyle(fontSize: 13, color: Colors.black87),
-                  textAlign: TextAlign.left,
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '$cuotas cuotas de \$ $precioCuotaFormateado',
+                    style:
+                        const TextStyle(fontSize: 13, color: WebColors.negro),
+                  ),
                 ),
 
-              Text(
-                'Stock: $stock',
-                style: const TextStyle(fontSize: 14),
-                textAlign: TextAlign.left,
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Stock: $stock',
+                  style: const TextStyle(fontSize: 14),
+                ),
               ),
               const SizedBox(height: 12),
 
@@ -147,7 +161,7 @@ class CustomWebFichaShopItem extends StatelessWidget {
           ),
         ),
 
-        // Botón de edición
+        // Botón de edición (visible sólo si onEdit != null y cantidad > 0)
         if (onEdit != null && cantidadSeleccionada > 0)
           Positioned(
             right: 6,
@@ -156,7 +170,7 @@ class CustomWebFichaShopItem extends StatelessWidget {
               color: Colors.transparent,
               child: IconButton(
                 key: Key(
-                    'KEY__custom_web_ficha_shop_item__boton__editar__${producto['id'] ?? producto['UID'] ?? ''}'),
+                    'KEY__custom_web_ficha_shop_item__boton__editar__${producto['ID'] ?? ''}'),
                 icon: Icon(Icons.edit, size: 20, color: WebColors.textoRosa),
                 onPressed: onEdit,
                 tooltip: 'Editar producto en ficha',

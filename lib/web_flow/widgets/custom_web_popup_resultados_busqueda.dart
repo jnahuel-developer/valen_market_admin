@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:valen_market_admin/web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
-import 'package:valen_market_admin/services/firebase/fichas_servicios_firebase.dart';
+import 'package:valen_market_admin/constants/fieldNames.dart';
+import 'package:valen_market_admin/constants/textos.dart';
 import 'package:valen_market_admin/services/firebase/clientes_servicios_firebase.dart';
+import 'package:valen_market_admin/web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
 import 'package:valen_market_admin/constants/pantallas.dart';
 
 class PopupResultadosBusqueda extends ConsumerStatefulWidget {
   final String criterio;
-  final Function(Map<String, dynamic> fichaSeleccionada) onFichaSeleccionada;
+  final Function(Map<String, dynamic>) onFichaSeleccionada;
 
   const PopupResultadosBusqueda({
     super.key,
@@ -34,106 +35,48 @@ class _PopupResultadosBusquedaState
   }
 
   Future<void> _cargarFichas() async {
-    final fichasService = FichasServiciosFirebase();
-
-    if (widget.criterio == 'Cliente seleccionado') {
-      final uidCliente = ref.read(fichaEnCursoProvider).uidCliente;
-
-      if (uidCliente == null || uidCliente.isEmpty) {
-        Navigator.of(context).pop();
-        return;
-      }
-
+    try {
+      final fichaProvider = ref.read(fichaEnCursoProvider);
       final resultados =
-          await fichasService.buscarFichasPorClienteId(uidCliente);
+          await fichaProvider.buscarFichasPorCriterio(widget.criterio);
 
       if (!mounted) return;
       setState(() {
         _resultados = resultados;
         _cargando = false;
+        _fichaSeleccionadaId = null;
       });
-    } else if (widget.criterio == 'Nombre seleccionado') {
-      final nombre = ref.read(fichaEnCursoProvider).nombreCliente;
-
-      if (nombre == null || nombre.isEmpty) {
-        Navigator.of(context).pop();
-        return;
-      }
-
-      final resultados = await fichasService.buscarFichasPorNombre(nombre);
-
+    } catch (e) {
       if (!mounted) return;
       setState(() {
-        _resultados = resultados;
+        _resultados = [];
         _cargando = false;
       });
-    } else if (widget.criterio == 'Apellido seleccionado') {
-      final apellido = ref.read(fichaEnCursoProvider).apellidoCliente;
-
-      if (apellido == null || apellido.isEmpty) {
-        Navigator.of(context).pop();
-        return;
-      }
-
-      final resultados = await fichasService.buscarFichasPorApellido(apellido);
-
-      if (!mounted) return;
-      setState(() {
-        _resultados = resultados;
-        _cargando = false;
-      });
-    } else if (widget.criterio == 'Zona seleccionada') {
-      final zona = ref.read(fichaEnCursoProvider).zonaCliente;
-
-      if (zona == null || zona.isEmpty) {
-        Navigator.of(context).pop();
-        return;
-      }
-
-      final resultados = await fichasService.buscarFichasPorZona(zona);
-
-      if (!mounted) return;
-      setState(() {
-        _resultados = resultados;
-        _cargando = false;
-      });
-    } else {
-      if (!mounted) return;
-      setState(() {
-        _cargando = false;
-      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al cargar fichas: $e')),
+      );
     }
   }
 
   Future<void> _confirmarSeleccion() async {
     if (_fichaSeleccionadaId == null) return;
 
-    final ficha = _resultados.firstWhere(
-      (f) => f['id'] == _fichaSeleccionadaId,
+    final fichaMap = _resultados.firstWhere(
+      (f) => f[FIELD_NAME__ficha_model__ID_De_Ficha] == _fichaSeleccionadaId,
+      orElse: () => {},
     );
 
-    if (widget.criterio == 'Cliente seleccionado') {
-      ref.read(fichaEnCursoProvider.notifier).cargarSoloDatosDeFichaYProductos(
-            ficha,
-            fichaId: ficha['id'],
-          );
-    } else {
-      final String? uidCliente = ficha['UID_Cliente'];
-      if (uidCliente != null && uidCliente.isNotEmpty) {
+    if (fichaMap.isEmpty) return;
+
+    // Si el criterio no fue "Cliente seleccionado", completar los datos del cliente
+    if (widget.criterio !=
+        TEXTO__resultados_widget__criterio__cliente_seleccionado) {
+      final uidCliente = fichaMap[FIELD_NAME__cliente_ficha_model__ID];
+      if (uidCliente != null && (uidCliente as String).isNotEmpty) {
         final clienteData =
             await ClientesServiciosFirebase.obtenerClientePorId(uidCliente);
-
         if (clienteData != null) {
-          ficha['Nombre'] = clienteData['Nombre'];
-          ficha['Apellido'] = clienteData['Apellido'];
-          ficha['Zona'] = clienteData['Zona'];
-          ficha['Dirección'] = clienteData['Dirección'];
-          ficha['Teléfono'] = clienteData['Teléfono'];
-
-          ref.read(fichaEnCursoProvider.notifier).cargarFichaDesdeMapa(
-                ficha,
-                fichaId: ficha['id'],
-              );
+          fichaMap[FIELD_NAME__ficha_model__Cliente] = clienteData;
         } else {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -144,16 +87,89 @@ class _PopupResultadosBusquedaState
       }
     }
 
-    widget.onFichaSeleccionada(ficha);
+    // Cargar la ficha seleccionada en el Provider
+    await ref
+        .read(fichaEnCursoProvider)
+        .inicializarDesdeFichaExistente(fichaMap);
+
+    widget.onFichaSeleccionada(fichaMap);
 
     Future.delayed(const Duration(milliseconds: 200), () {
       if (context.mounted) {
-        Navigator.pushNamed(
-          context,
-          PANTALLA_WEB__Fichas__Editar_Eliminar,
-        );
+        Navigator.pushNamed(context, PANTALLA_WEB__Fichas__Editar_Eliminar);
       }
     });
+  }
+
+  String _formatearFecha(dynamic fecha) {
+    if (fecha == null) return '';
+    try {
+      if (fecha is Timestamp) {
+        final dt = fecha.toDate();
+        return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+      } else if (fecha is DateTime) {
+        return '${fecha.day.toString().padLeft(2, '0')}/${fecha.month.toString().padLeft(2, '0')}/${fecha.year}';
+      } else if (fecha is String) {
+        final dt = DateTime.tryParse(fecha);
+        if (dt != null) {
+          return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+        }
+      }
+    } catch (_) {}
+    return '';
+  }
+
+  Widget _buildTablaResultados() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: DataTable(
+        columns: const [
+          DataColumn(label: Text('')),
+          DataColumn(label: Text(FIELD_NAME__cliente_ficha_model__Nombre)),
+          DataColumn(label: Text(FIELD_NAME__cliente_ficha_model__Apellido)),
+          DataColumn(label: Text(FIELD_NAME__cliente_ficha_model__Zona)),
+          DataColumn(
+              label: Text(FIELD_NAME__fecha_ficha_model__Fecha_De_Venta)),
+          DataColumn(
+              label:
+                  Text(FIELD_NAME__fecha_ficha_model__Fecha_De_Proximo_Aviso)),
+          DataColumn(
+              label: Text(FIELD_NAME__pago_ficha_model__Importe_Saldado)),
+        ],
+        rows: _resultados.map((ficha) {
+          return DataRow(
+            cells: [
+              DataCell(Radio<String>(
+                value: ficha[FIELD_NAME__ficha_model__ID_De_Ficha],
+                groupValue: _fichaSeleccionadaId,
+                onChanged: (value) {
+                  setState(() {
+                    _fichaSeleccionadaId = value;
+                  });
+                },
+              )),
+              DataCell(Text(ficha['Cliente']
+                      ?[FIELD_NAME__cliente_ficha_model__Nombre] ??
+                  '')),
+              DataCell(Text(ficha['Cliente']
+                      ?[FIELD_NAME__cliente_ficha_model__Apellido] ??
+                  '')),
+              DataCell(Text(ficha['Cliente']
+                      ?[FIELD_NAME__cliente_ficha_model__Zona] ??
+                  '')),
+              DataCell(Text(_formatearFecha(ficha['Fechas']
+                  ?[FIELD_NAME__fecha_ficha_model__Fecha_De_Venta]))),
+              DataCell(Text(_formatearFecha(ficha['Fechas']
+                  ?[FIELD_NAME__fecha_ficha_model__Fecha_De_Proximo_Aviso]))),
+              DataCell(Text(ficha['Pagos']
+                          ?[FIELD_NAME__pago_ficha_model__Importe_Saldado]
+                      ?.toString() ??
+                  '0')),
+            ],
+          );
+        }).toList(),
+      ),
+    );
   }
 
   @override
@@ -161,7 +177,7 @@ class _PopupResultadosBusquedaState
     return AlertDialog(
       title: Text('Fichas para: ${widget.criterio}'),
       content: SizedBox(
-        width: 1200,
+        width: 1000,
         height: 500,
         child: _cargando
             ? const Center(child: CircularProgressIndicator())
@@ -180,70 +196,5 @@ class _PopupResultadosBusquedaState
         ),
       ],
     );
-  }
-
-  Widget _buildTablaResultados() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: DataTable(
-        columns: const [
-          DataColumn(label: Text('')),
-          DataColumn(label: Text('Nombre')),
-          DataColumn(label: Text('Apellido')),
-          DataColumn(label: Text('Zona')),
-          DataColumn(label: Text('Ficha')),
-          DataColumn(label: Text('Venta')),
-          DataColumn(label: Text('Aviso')),
-          DataColumn(label: Text('Productos')),
-          DataColumn(label: Text('Cuotas pagas')),
-          DataColumn(label: Text('Restante')),
-        ],
-        rows: _resultados.map((ficha) {
-          return DataRow(
-            cells: [
-              DataCell(Radio<String>(
-                value: ficha['id'],
-                groupValue: _fichaSeleccionadaId,
-                onChanged: (value) {
-                  setState(() {
-                    _fichaSeleccionadaId = value;
-                  });
-                },
-              )),
-              DataCell(Text(ficha['Nombre'] ?? '')),
-              DataCell(Text(ficha['Apellido'] ?? '')),
-              DataCell(Text(ficha['Zona'] ?? '')),
-              DataCell(Text(ficha['Nro_de_ficha']?.toString() ?? '')),
-              DataCell(Text(_formatearFecha(ficha['Fecha_de_venta']))),
-              DataCell(Text(_formatearFecha(ficha['Proximo_aviso']))),
-              DataCell(Text(ficha['Cantidad_de_Productos']?.toString() ?? '')),
-              DataCell(Text(ficha['Nro_de_cuotas_pagadas']?.toString() ?? '0')),
-              DataCell(Text(ficha['Restante']?.toString() ?? '0')),
-            ],
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  String _formatearFecha(dynamic fecha) {
-    if (fecha == null) return '';
-
-    try {
-      if (fecha is Timestamp) {
-        final dt = fecha.toDate();
-        return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
-      } else if (fecha is DateTime) {
-        return '${fecha.day.toString().padLeft(2, '0')}/${fecha.month.toString().padLeft(2, '0')}/${fecha.year}';
-      } else if (fecha is String) {
-        // Si por algún motivo viene como string (ej: ISO8601), intentamos parsearlo
-        final dt = DateTime.tryParse(fecha);
-        if (dt != null) {
-          return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
-        }
-      }
-    } catch (e) {}
-
-    return '';
   }
 }

@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:valen_market_admin/constants/app_colors.dart';
+import 'package:valen_market_admin/constants/fieldNames.dart';
+import 'package:valen_market_admin/constants/pantallas.dart';
+import 'package:valen_market_admin/constants/textos.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_ficha_cliente_section.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_ficha_fechas_section.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_ficha_productos_section.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_gradient_button.dart';
+import 'package:valen_market_admin/web_flow/widgets/custom_web_popup_informar_pago.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_top_bar.dart';
-import 'package:valen_market_admin/constants/pantallas.dart';
-import 'package:valen_market_admin/services/firebase/fichas_servicios_firebase.dart';
 
+/// Pantalla utilizada para editar fichas ya existentes.
+/// Presenta los datos del cliente, fechas y productos de la ficha en curso.
+/// Permite editar los campos visibles y registrar nuevos pagos.
+/// No se realiza eliminación de fichas.
 class WebFichasEditarEliminarScreen extends ConsumerStatefulWidget {
   const WebFichasEditarEliminarScreen({super.key});
 
@@ -19,179 +26,175 @@ class WebFichasEditarEliminarScreen extends ConsumerStatefulWidget {
 
 class _WebFichasEditarEliminarScreenState
     extends ConsumerState<WebFichasEditarEliminarScreen> {
-  final fichasService = FichasServiciosFirebase();
   bool _cargando = false;
 
+  // ─────────────────────────────────────────────────────────────
+  // MÉTODO: Confirmar Actualización
+  // ─────────────────────────────────────────────────────────────
   Future<void> _confirmarActualizacionFicha() async {
     final bool? confirmar = await _mostrarPopupConfirmacion(
-      '¿Deseas actualizar la ficha?',
+      TEXTO__editar_fichas_screen__mensaje__confirmar_actualizacion,
     );
 
     if (confirmar == true) {
       setState(() => _cargando = true);
-
       try {
-        final ficha = ref.read(fichaEnCursoProvider);
-        await fichasService.actualizarFichaPorID(
-          fichaId: ficha.id!,
-          nuevosDatos: ficha.toMap(),
-        );
+        final fichaProvider = ref.read(fichaEnCursoProvider);
 
-        ref.read(fichaEnCursoProvider.notifier).limpiarFicha();
+        final String? idFicha = fichaProvider.idFichaActual;
+        if (idFicha == null || idFicha.isEmpty) {
+          throw Exception(
+            TEXTO__editar_fichas_screen__mensaje__ID_no_definido,
+          );
+        }
+
+        // Guardar la ficha actualizada directamente desde el provider
+        await fichaProvider.guardarFichaEnFirebase();
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ficha actualizada correctamente')),
+          const SnackBar(
+            content: Text(
+              TEXTO__editar_fichas_screen__mensaje__ficha_actualizada,
+            ),
+          ),
         );
-
-        // Después de editar volvemos a la pantalla de agregar/buscar
-        Navigator.pushReplacementNamed(
-            context, PANTALLA_WEB__Fichas__Agregar_Buscar);
       } catch (e) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al actualizar ficha: $e')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error al actualizar ficha: $e')),
+          );
+        }
       } finally {
         if (mounted) setState(() => _cargando = false);
       }
     }
   }
 
-  Future<void> _confirmarEliminacionFicha() async {
-    final bool? confirmar = await _mostrarPopupConfirmacion(
-      '¿Deseas eliminar la ficha?',
-    );
+  // ─────────────────────────────────────────────────────────────
+  // MÉTODO: Informar Pago
+  // ─────────────────────────────────────────────────────────────
+  Future<void> _informarPago() async {
+    final fichaProvider = ref.read(fichaEnCursoProvider);
+    final String? idFicha = fichaProvider.idFichaActual;
 
-    if (confirmar == true) {
-      setState(() => _cargando = true);
-
-      try {
-        final ficha = ref.read(fichaEnCursoProvider);
-        await fichasService.eliminarFichaPorID(ficha.id!);
-
-        ref.read(fichaEnCursoProvider.notifier).limpiarFicha();
-
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ficha eliminada exitosamente')),
-        );
-
-        // Después de eliminar volvemos a la pantalla de agregar/buscar
-        Navigator.pushReplacementNamed(
-            context, PANTALLA_WEB__Fichas__Agregar_Buscar);
-      } catch (e) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al eliminar ficha: $e')),
-        );
-      } finally {
-        if (mounted) setState(() => _cargando = false);
-      }
+    if (idFicha == null || idFicha.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            TEXTO__editar_fichas_screen__mensaje__ID_no_definido,
+          ),
+        ),
+      );
+      return;
     }
+
+    showDialog(
+      context: context,
+      builder: (_) => CustomWebPopupInformarPago(
+        onConfirmar: (double montoPagado, DateTime nuevaFechaAviso) async {
+          try {
+            final pagoMap = {
+              FIELD_NAME__pago_item_model__Monto: montoPagado,
+              FIELD_NAME__pago_item_model__Fecha: nuevaFechaAviso,
+            };
+
+            // Registrar pago en el Provider
+            await fichaProvider.registrarPago(pagoMap);
+
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  TEXTO__editar_fichas_screen__mensaje__pago_registrado,
+                ),
+              ),
+            );
+          } catch (e) {
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error al registrar pago: $e'),
+              ),
+            );
+          }
+        },
+      ),
+    );
   }
 
+  // ─────────────────────────────────────────────────────────────
+  // POPUP Confirmación genérico
+  // ─────────────────────────────────────────────────────────────
   Future<bool?> _mostrarPopupConfirmacion(String mensaje) {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirmación'),
+        title: const Text(TEXTO__editar_fichas_screen__boton__confirmacion),
         content: Text(mensaje),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
+            child: const Text(TEXTO__editar_fichas_screen__boton__cancelar),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Confirmar'),
+            child: const Text(TEXTO__editar_fichas_screen__boton__confirmar),
           ),
         ],
       ),
     );
   }
 
+  // ─────────────────────────────────────────────────────────────
+  // BUILD
+  // ─────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    final fichaEnCurso = ref.watch(fichaEnCursoProvider);
-
-    final Map<String, dynamic> clienteCargado = {
-      'UID': fichaEnCurso.uidCliente ?? '',
-      'Nombre': fichaEnCurso.nombreCliente ?? '',
-      'Apellido': fichaEnCurso.apellidoCliente ?? '',
-      'Zona': fichaEnCurso.zonaCliente ?? '',
-      'Dirección': fichaEnCurso.direccionCliente ?? '',
-      'Teléfono': fichaEnCurso.telefonoCliente ?? '',
-    };
-
     return Scaffold(
       body: Stack(
         children: [
           Column(
             children: [
               const CustomWebTopBar(
-                titulo: 'Editar o eliminar ficha',
-                pantallaPadreRouteName: PANTALLA_WEB__Fichas__Agregar_Buscar,
+                titulo: TEXTO__editar_fichas_screen__titulo,
+                pantallaPadreRouteName: PANTALLA_WEB__Home,
               ),
               Expanded(
                 child: Row(
                   children: [
-                    // Lado izquierdo - Cliente
+                    // Columna izquierda: cliente + fechas
                     Expanded(
                       flex: 1,
                       child: Padding(
                         padding: const EdgeInsets.all(20),
                         child: Column(
-                          children: [
-                            // Datos del cliente
+                          children: const [
                             Expanded(
                               flex: 2,
-                              child: CustomWebClienteSection(
-                                clienteCargado: clienteCargado,
-                              ),
+                              child: CustomWebClienteSection(),
                             ),
-
-                            const SizedBox(height: 20),
-
-                            // Fechas de control
+                            SizedBox(height: 20),
                             Expanded(
                               flex: 1,
                               child: CustomWebFichaFechasSection(),
-                            ),
-                            const SizedBox(height: 20),
-
-                            // Botón para editar ficha
-                            SizedBox(
-                              width: double.infinity,
-                              child: CustomGradientButton(
-                                text: 'Editar',
-                                onPressed: _confirmarActualizacionFicha,
-                              ),
                             ),
                           ],
                         ),
                       ),
                     ),
-                    // Lado derecho - Productos
-                    Expanded(
+
+                    // Columna derecha: productos
+                    const Expanded(
                       flex: 1,
                       child: Padding(
-                        padding: const EdgeInsets.all(20),
+                        padding: EdgeInsets.all(20),
                         child: Column(
                           children: [
                             Expanded(
-                              child: CustomWebProductosSection(
-                                productosDeFicha: fichaEnCurso.productos,
-                              ),
+                              child: CustomWebProductosSection(),
                             ),
-                            const SizedBox(height: 15),
-                            SizedBox(
-                              width: double.infinity,
-                              child: CustomGradientButton(
-                                text: 'Eliminar',
-                                onPressed: _confirmarEliminacionFicha,
-                              ),
-                            ),
+                            SizedBox(height: 15),
                           ],
                         ),
                       ),
@@ -199,14 +202,36 @@ class _WebFichasEditarEliminarScreenState
                   ],
                 ),
               ),
+
+              // Botones inferiores: editar e informar pago
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: CustomGradientButton(
+                        text: TEXTO__editar_fichas_screen__boton__editar,
+                        onPressed: _confirmarActualizacionFicha,
+                      ),
+                    ),
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: CustomGradientButton(
+                        text: TEXTO__editar_fichas_screen__boton__informar_pago,
+                        onPressed: _informarPago,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
+
+          // Indicador de carga
           if (_cargando)
             Container(
-              color: Colors.black45,
-              child: const Center(
-                child: CircularProgressIndicator(),
-              ),
+              color: WebColors.negro,
+              child: const Center(child: CircularProgressIndicator()),
             ),
         ],
       ),
