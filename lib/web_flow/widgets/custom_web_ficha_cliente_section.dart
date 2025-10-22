@@ -44,19 +44,51 @@ class CustomWebClienteSectionState
     _cargarClientesDesdeFirebase();
   }
 
+  // ---------------------- CARGA INICIAL ----------------------
   Future<void> _cargarClientesDesdeFirebase() async {
     try {
+      debugPrint('🔹 Cargando lista de clientes desde Firebase...');
       final lista = await ClientesServiciosFirebase.obtenerTodosLosClientes();
       setState(() {
         _clientes = lista;
         _aplicarFiltros();
       });
+
+      // Si la ficha actual tiene datos, preseleccionar el cliente
+      final ficha = ref.read(fichaEnCursoProvider);
+      final clienteFicha = ficha.obtenerCliente();
+      final idFicha = clienteFicha[FIELD_NAME__cliente_ficha_model__ID];
+
+      if (idFicha != null && idFicha.toString().isNotEmpty) {
+        debugPrint('🔹 Ficha tiene cliente preexistente: ID=$idFicha');
+        final clienteCoincidente = lista.firstWhere(
+          (c) =>
+              c[FIELD_NAME__cliente_ficha_model__ID].toString() ==
+              idFicha.toString(),
+          orElse: () => {},
+        );
+        if (clienteCoincidente.isNotEmpty) {
+          final nombreCompleto = _formatNombreCompleto(clienteCoincidente);
+          debugPrint('🔹 Seleccionando cliente en dropdown: $nombreCompleto');
+          setState(() {
+            _clienteSeleccionadoNombreCompleto = nombreCompleto;
+            _nombreCtrl.text = _capitalizar(
+                clienteCoincidente[FIELD_NAME__cliente_ficha_model__Nombre] ??
+                    '');
+            _apellidoCtrl.text = _capitalizar(
+                clienteCoincidente[FIELD_NAME__cliente_ficha_model__Apellido] ??
+                    '');
+          });
+        }
+      }
     } catch (e) {
-      debugPrint('Error al cargar clientes: $e');
+      debugPrint('❌ Error al cargar clientes: $e');
     }
   }
 
+  // ---------------------- FILTROS ----------------------
   void _aplicarFiltros() {
+    debugPrint('🔹 Aplicando filtros...');
     var filtrados = _clientes;
 
     if (_filterNombre && _textoNombreFiltro.isNotEmpty) {
@@ -89,8 +121,11 @@ class CustomWebClienteSectionState
     setState(() {
       _clientesFiltrados = filtrados;
     });
+
+    debugPrint('🔹 Clientes filtrados: ${_clientesFiltrados.length}');
   }
 
+  // ---------------------- SELECCIÓN ----------------------
   String _formatNombreCompleto(Map<String, dynamic> c) {
     final n = (c[FIELD_NAME__cliente_ficha_model__Nombre] ?? '').toString();
     final a = (c[FIELD_NAME__cliente_ficha_model__Apellido] ?? '').toString();
@@ -98,10 +133,12 @@ class CustomWebClienteSectionState
   }
 
   String _capitalizar(String s) =>
-      s.isEmpty ? '' : s[0].toUpperCase() + s.substring(1);
+      s.isEmpty ? '' : s[0].toUpperCase() + s.substring(1).toLowerCase();
 
   void _onDropdownChanged(String? nombreCompleto) {
     if (nombreCompleto == null) return;
+
+    debugPrint('🔹 Cliente seleccionado: $nombreCompleto');
 
     final clienteMap = _clientesFiltrados.firstWhere(
       (c) => _formatNombreCompleto(c) == nombreCompleto,
@@ -109,17 +146,17 @@ class CustomWebClienteSectionState
     );
 
     if (clienteMap.isNotEmpty) {
-      // Guarda selección local
       setState(() {
         _clienteSeleccionadoNombreCompleto = nombreCompleto;
+        _nombreCtrl.text = _capitalizar(
+            clienteMap[FIELD_NAME__cliente_ficha_model__Nombre] ?? '');
+        _apellidoCtrl.text = _capitalizar(
+            clienteMap[FIELD_NAME__cliente_ficha_model__Apellido] ?? '');
       });
 
-      // Construir map para actualizar en el provider
-      final mapToEnviar = <String, dynamic>{
+      final mapToEnviar = {
         FIELD_NAME__cliente_ficha_model__ID:
-            clienteMap[FIELD_NAME__cliente_ficha_model__ID] ??
-                clienteMap[FIELD_NAME__cliente_ficha_model__ID] ??
-                '',
+            clienteMap[FIELD_NAME__cliente_ficha_model__ID] ?? '',
         FIELD_NAME__cliente_ficha_model__Nombre:
             clienteMap[FIELD_NAME__cliente_ficha_model__Nombre] ?? '',
         FIELD_NAME__cliente_ficha_model__Apellido:
@@ -127,26 +164,25 @@ class CustomWebClienteSectionState
         FIELD_NAME__cliente_ficha_model__Zona:
             clienteMap[FIELD_NAME__cliente_ficha_model__Zona] ?? '',
         FIELD_NAME__cliente_ficha_model__Direccion:
-            clienteMap[FIELD_NAME__cliente_ficha_model__Direccion] ??
-                clienteMap[FIELD_NAME__cliente_ficha_model__Direccion] ??
-                '',
+            clienteMap[FIELD_NAME__cliente_ficha_model__Direccion] ?? '',
         FIELD_NAME__cliente_ficha_model__Telefono:
-            clienteMap[FIELD_NAME__cliente_ficha_model__Telefono] ??
-                clienteMap[FIELD_NAME__cliente_ficha_model__Telefono] ??
-                '',
+            clienteMap[FIELD_NAME__cliente_ficha_model__Telefono] ?? '',
       };
 
+      debugPrint('🔹 Enviando cliente al provider: $mapToEnviar');
       ref.read(fichaEnCursoProvider.notifier).actualizarCliente(mapToEnviar);
+    } else {
+      debugPrint('⚠️ No se encontró coincidencia para $nombreCompleto');
     }
   }
 
   void _onNombreFiltroChanged(String nuevo) {
-    _textoNombreFiltro = nuevo.trim();
+    _textoNombreFiltro = _capitalizar(nuevo.trim());
     _aplicarFiltros();
   }
 
   void _onApellidoFiltroChanged(String nuevo) {
-    _textoApellidoFiltro = nuevo.trim();
+    _textoApellidoFiltro = _capitalizar(nuevo.trim());
     _aplicarFiltros();
   }
 
@@ -155,25 +191,21 @@ class CustomWebClienteSectionState
     _aplicarFiltros();
   }
 
+  // ---------------------- UI ----------------------
   @override
   Widget build(BuildContext context) {
     final ficha = ref.watch(fichaEnCursoProvider);
-
-    // Se lee el Map del cliente cargado en la ficha
     final cliente = ficha.obtenerCliente();
 
-    // Se obtiene la dirección del Map de datos del cliente
-    final nombre = cliente[FIELD_NAME__cliente_ficha_model__Nombre];
-
-    // Se obtiene la dirección del Map de datos del cliente
-    final apellido = cliente[FIELD_NAME__cliente_ficha_model__Apellido];
-
-    // Se obtiene la dirección del Map de datos del cliente
+    final nombre = cliente[FIELD_NAME__cliente_ficha_model__Nombre] ?? '';
+    final apellido = cliente[FIELD_NAME__cliente_ficha_model__Apellido] ?? '';
     final zona = cliente[FIELD_NAME__cliente_ficha_model__Zona];
 
-    // Asegurar que el controlador refleje los valores actuales del provider cuando no se esté editando
-    if (!_filterNombre) _nombreCtrl.text = nombre ?? '';
-    if (!_filterApellido) _apellidoCtrl.text = apellido ?? '';
+    if (!_filterNombre) _nombreCtrl.text = _capitalizar(nombre);
+    if (!_filterApellido) _apellidoCtrl.text = _capitalizar(apellido);
+
+    debugPrint(
+        '🔹 Construyendo UI de cliente. Cliente actual en ficha: $cliente');
 
     return CustomWebBloqueConTitulo(
       titulo: 'Datos del cliente',
@@ -186,14 +218,13 @@ class CustomWebClienteSectionState
             onChanged: _onDropdownChanged,
           ),
           const SizedBox(height: 20),
+
           CustomWebCampoConCheckboxTextField(
             label: FIELD_NAME__cliente_ficha_model__Nombre,
             controller: _nombreCtrl,
             isEditable: _filterNombre,
             onCheckboxChanged: (v) {
-              setState(() {
-                _filterNombre = v;
-              });
+              setState(() => _filterNombre = v);
               _aplicarFiltros();
             },
             onTextChanged: (s) {
@@ -201,14 +232,13 @@ class CustomWebClienteSectionState
             },
           ),
           const SizedBox(height: 20),
+
           CustomWebCampoConCheckboxTextField(
             label: FIELD_NAME__cliente_ficha_model__Apellido,
             controller: _apellidoCtrl,
             isEditable: _filterApellido,
             onCheckboxChanged: (v) {
-              setState(() {
-                _filterApellido = v;
-              });
+              setState(() => _filterApellido = v);
               _aplicarFiltros();
             },
             onTextChanged: (s) {
@@ -216,27 +246,28 @@ class CustomWebClienteSectionState
             },
           ),
           const SizedBox(height: 20),
+
           CustomWebCampoConCheckboxDropdown(
             label: FIELD_NAME__cliente_ficha_model__Zona,
             options: zonasDisponibles,
             selectedOption: zona,
             isEditable: _filterZona,
             onCheckboxChanged: (v) {
-              setState(() {
-                _filterZona = v;
-              });
+              setState(() => _filterZona = v);
               _aplicarFiltros();
             },
-            onChanged: (zona) {
-              _onZonaFiltroChanged(zona);
-            },
+            onChanged: _onZonaFiltroChanged,
           ),
           const SizedBox(height: 20),
+
+          // Dirección
           const CustomWebCampoSinCheckboxTextField(
             label: FIELD_NAME__cliente_ficha_model__Direccion,
             isDireccion: true,
           ),
           const SizedBox(height: 20),
+
+          // Teléfono
           const CustomWebCampoSinCheckboxTextField(
             label: FIELD_NAME__cliente_ficha_model__Telefono,
             isDireccion: false,

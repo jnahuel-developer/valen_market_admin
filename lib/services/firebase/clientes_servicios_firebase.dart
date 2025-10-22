@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:valen_market_admin/constants/fieldNames.dart';
 
 class ClientesServiciosFirebase {
-  static final CollectionReference _clientesRef =
-      FirebaseFirestore.instance.collection('BDD_Clientes');
+  static final CollectionReference _clientesRef = FirebaseFirestore.instance
+      .collection(FIELD_NAME__clientes__Nombre_De_La_Coleccion);
 
   /* ---------------------------------------------------------------------------------------- */
   //                            METODOS PARA AGREGAR REGISTROS                                */
@@ -17,12 +18,14 @@ class ClientesServiciosFirebase {
   }) async {
     try {
       await _clientesRef.add({
-        'Nombre': nombre.trim().toLowerCase(),
-        'Apellido': apellido.trim().toLowerCase(),
-        'Zona': 'Norte',
-        'Dirección': direccion.trim().toLowerCase(),
-        'Teléfono': telefono.trim().toLowerCase(),
-        'CantidadDeProductosComprados': 0,
+        FIELD_NAME__clientes__Nombre_Del_Cliente: nombre.trim().toLowerCase(),
+        FIELD_NAME__clientes__Apellido_Del_Cliente:
+            apellido.trim().toLowerCase(),
+        FIELD_NAME__clientes__Zona_Del_Cliente: 'Norte',
+        FIELD_NAME__clientes__Direccion_Del_Cliente:
+            direccion.trim().toLowerCase(),
+        FIELD_NAME__clientes__Telefono_Del_Cliente:
+            telefono.trim().toLowerCase(),
       });
     } catch (e) {
       throw Exception('Error al agregar cliente: $e');
@@ -39,7 +42,8 @@ class ClientesServiciosFirebase {
       final snapshot = await _clientesRef.get();
       return snapshot.docs.map((doc) {
         final data = doc.data() as Map<String, dynamic>;
-        data['ID'] = doc.id; // Aseguramos incluir el ID de Firebase
+        data[FIELD_NAME__clientes__ID_Del_Cliente] =
+            doc.id; // Aseguramos incluir el ID de Firebase
         return data;
       }).toList();
     } catch (e) {
@@ -58,15 +62,18 @@ class ClientesServiciosFirebase {
       return snapshot.docs.where((doc) {
         final data = doc.data() as Map<String, dynamic>?;
         return data != null &&
-            data.containsKey('Nombre') &&
-            data.containsKey('Apellido');
+            data.containsKey(FIELD_NAME__clientes__Nombre_Del_Cliente) &&
+            data.containsKey(FIELD_NAME__clientes__Apellido_Del_Cliente);
       }).map((doc) {
         final data = doc.data() as Map<String, dynamic>;
-        final nombre = (data['Nombre'] as String).trim();
-        final apellido = (data['Apellido'] as String).trim();
+        final nombre =
+            (data[FIELD_NAME__clientes__Nombre_Del_Cliente] as String).trim();
+        final apellido =
+            (data[FIELD_NAME__clientes__Apellido_Del_Cliente] as String).trim();
         return {
-          'ID': doc.id,
-          'nombreCompleto': '$nombre $apellido',
+          FIELD_NAME__clientes__ID_Del_Cliente: doc.id,
+          FIELD_NAME__clientes__Nombre_Compuesto_Del_Cliente:
+              '$nombre $apellido',
         };
       }).toList();
     } catch (e) {
@@ -83,11 +90,11 @@ class ClientesServiciosFirebase {
       final data = doc.data() as Map<String, dynamic>?;
 
       if (data != null &&
-          data.containsKey('Nombre') &&
-          data.containsKey('Apellido') &&
-          data.containsKey('Zona') &&
-          data.containsKey('Dirección') &&
-          data.containsKey('Teléfono')) {
+          data.containsKey(FIELD_NAME__clientes__Nombre_Del_Cliente) &&
+          data.containsKey(FIELD_NAME__clientes__Apellido_Del_Cliente) &&
+          data.containsKey(FIELD_NAME__clientes__Zona_Del_Cliente) &&
+          data.containsKey(FIELD_NAME__cliente_ficha_model__Direccion) &&
+          data.containsKey(FIELD_NAME__clientes__Telefono_Del_Cliente)) {
         return data;
       }
       return null;
@@ -102,18 +109,19 @@ class ClientesServiciosFirebase {
   static Future<Map<String, dynamic>?> obtenerClientePorNombre(
       String nombre) async {
     try {
-      final snapshot =
-          await _clientesRef.where('Nombre', isEqualTo: nombre).get();
+      final snapshot = await _clientesRef
+          .where(FIELD_NAME__clientes__Nombre_Del_Cliente, isEqualTo: nombre)
+          .get();
 
       for (final doc in snapshot.docs) {
         final data = doc.data() as Map<String, dynamic>?;
 
         if (data != null &&
-            data.containsKey('Nombre') &&
-            data.containsKey('Apellido') &&
-            data.containsKey('Zona') &&
-            data.containsKey('Dirección') &&
-            data.containsKey('Teléfono')) {
+            data.containsKey(FIELD_NAME__clientes__Nombre_Del_Cliente) &&
+            data.containsKey(FIELD_NAME__clientes__Apellido_Del_Cliente) &&
+            data.containsKey(FIELD_NAME__clientes__Zona_Del_Cliente) &&
+            data.containsKey(FIELD_NAME__cliente_ficha_model__Direccion) &&
+            data.containsKey(FIELD_NAME__clientes__Telefono_Del_Cliente)) {
           return data;
         }
       }
@@ -132,8 +140,10 @@ class ClientesServiciosFirebase {
   }) async {
     try {
       final snapshot = await _clientesRef
-          .where('Nombre', isEqualTo: nombre.trim().toLowerCase())
-          .where('Apellido', isEqualTo: apellido.trim().toLowerCase())
+          .where(FIELD_NAME__clientes__Nombre_Del_Cliente,
+              isEqualTo: nombre.trim().toLowerCase())
+          .where(FIELD_NAME__clientes__Apellido_Del_Cliente,
+              isEqualTo: apellido.trim().toLowerCase())
           .limit(1)
           .get();
 
@@ -160,11 +170,11 @@ class ClientesServiciosFirebase {
   }) async {
     try {
       await _clientesRef.doc(id).update({
-        'Nombre': nombre,
-        'Apellido': apellido,
-        'Zona': 'Sur',
-        'Dirección': direccion,
-        'Teléfono': telefono,
+        FIELD_NAME__clientes__Nombre_Del_Cliente: nombre,
+        FIELD_NAME__clientes__Apellido_Del_Cliente: apellido,
+        FIELD_NAME__clientes__Zona_Del_Cliente: 'Sur',
+        FIELD_NAME__cliente_ficha_model__Direccion: direccion,
+        FIELD_NAME__clientes__Telefono_Del_Cliente: telefono,
       });
     } catch (e) {
       throw Exception('Error al actualizar cliente: $e');

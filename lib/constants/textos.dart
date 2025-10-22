@@ -101,3 +101,17 @@ const String TEXTO__editar_fichas_screen__mensaje__ficha_eliminada =
     'Ficha eliminada exitosamente';
 const String TEXTO__editar_fichas_screen__mensaje__pago_registrado =
     'Pago registrado correctamente';
+
+// Pantalla Editar fichas
+const String TEXTO__resultados_widget__criterio__cliente_seleccionado =
+    'Cliente seleccionado';
+const String TEXTO__resultados_widget__criterio__nombre_seleccionado =
+    'Nombre seleccionado';
+const String TEXTO__resultados_widget__criterio__apellido_seleccionado =
+    'Apellido seleccionado';
+const String TEXTO__resultados_widget__criterio__zona_seleccionada =
+    'Zona seleccionada';
+const String TEXTO__resultados_widget__criterio__fecha_de_venta =
+    'Fecha de venta';
+const String TEXTO__resultados_widget__criterio__fecha_de_aviso =
+    'Fecha de aviso';

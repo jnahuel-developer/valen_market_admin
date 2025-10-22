@@ -61,7 +61,7 @@ class CustomWebFichaShopItem extends StatelessWidget {
           ),
           padding: const EdgeInsets.all(12),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisSize: MainAxisSize.max,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Imagen

@@ -46,8 +46,8 @@ class _AgregarClienteScreenState extends State<AgregarClienteScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-              TEXTO_ES__agregar_clientes_screen__snackbar__datos_invalidos),
+          content:
+              Text(TEXTO__agregar_clientes_screen__snackbar__datos_invalidos),
         ),
       );
       return;
@@ -67,8 +67,8 @@ class _AgregarClienteScreenState extends State<AgregarClienteScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-              TEXTO_ES__agregar_clientes_screen__snackbar__error_al_guardar),
+          content:
+              Text(TEXTO__agregar_clientes_screen__snackbar__error_al_guardar),
         ),
       );
     }
@@ -88,7 +88,7 @@ class _AgregarClienteScreenState extends State<AgregarClienteScreen> {
               height: double.infinity,
             ),
           ),
-          const CustomTopBar(title: TEXTO_ES__agregar_clientes_screen__titulo),
+          const CustomTopBar(title: TEXTO__agregar_clientes_screen__titulo),
           Padding(
             padding: const EdgeInsets.only(top: 130, bottom: 80),
             child: SingleChildScrollView(
@@ -98,34 +98,34 @@ class _AgregarClienteScreenState extends State<AgregarClienteScreen> {
                   Center(
                     child: CustomInfoCard(
                       title:
-                          TEXTO_ES__agregar_clientes_screen__custom_info_card__titulo,
+                          TEXTO__agregar_clientes_screen__custom_info_card__titulo,
                       height: 550,
                       width: 400,
                       children: [
                         CustomSimpleInformation(
                           label:
-                              TEXTO_ES__agregar_clientes_screen__ingreso_datos__nombre,
+                              TEXTO__agregar_clientes_screen__ingreso_datos__nombre,
                           controller: nombreController,
                           fieldKey:
                               KEY__agregar_clientes_screen__ingreso_datos__nombre,
                         ),
                         CustomSimpleInformation(
                           label:
-                              TEXTO_ES__agregar_clientes_screen__ingreso_datos__apellido,
+                              TEXTO__agregar_clientes_screen__ingreso_datos__apellido,
                           controller: apellidoController,
                           fieldKey:
                               KEY__agregar_clientes_screen__ingreso_datos__apellido,
                         ),
                         CustomSimpleInformation(
                           label:
-                              TEXTO_ES__agregar_clientes_screen__ingreso_datos__direccion,
+                              TEXTO__agregar_clientes_screen__ingreso_datos__direccion,
                           controller: direccionController,
                           fieldKey:
                               KEY__agregar_clientes_screen__ingreso_datos__direccion,
                         ),
                         CustomSimpleInformation(
                           label:
-                              TEXTO_ES__agregar_clientes_screen__ingreso_datos__telefono,
+                              TEXTO__agregar_clientes_screen__ingreso_datos__telefono,
                           controller: telefonoController,
                           fieldKey:
                               KEY__agregar_clientes_screen__ingreso_datos__telefono,
@@ -137,7 +137,7 @@ class _AgregarClienteScreenState extends State<AgregarClienteScreen> {
                   Center(
                     child: CustomBigButton(
                       text:
-                          TEXTO_ES__agregar_clientes_screen__boton__agregar_cliente,
+                          TEXTO__agregar_clientes_screen__boton__agregar_cliente,
                       onTap: _handleAgregar,
                       fieldKey:
                           KEY__agregar_clientes_screen__boton__agregar_cliente,

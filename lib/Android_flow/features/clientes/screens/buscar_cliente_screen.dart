@@ -6,6 +6,7 @@ import 'package:valen_market_admin/Android_flow/widgets/custom_bottom_navbar.dar
 import 'package:valen_market_admin/Android_flow/widgets/custom_info_card.dart';
 import 'package:valen_market_admin/Android_flow/widgets/custom_simple_information.dart';
 import 'package:valen_market_admin/Android_flow/widgets/custom_top_bar.dart';
+import 'package:valen_market_admin/constants/fieldNames.dart';
 import 'package:valen_market_admin/constants/values.dart';
 import 'package:valen_market_admin/services/firebase/clientes_servicios_firebase.dart';
 
@@ -48,8 +49,11 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
       setState(() {
         clientes = data
             .map((e) => {
-                  'ID': e['ID'].toString(),
-                  'nombreCompleto': e['nombreCompleto'].toString(),
+                  FIELD_NAME__clientes__ID_Del_Cliente:
+                      e[FIELD_NAME__clientes__ID_Del_Cliente].toString(),
+                  FIELD_NAME__clientes__Nombre_Compuesto_Del_Cliente:
+                      e[FIELD_NAME__clientes__Nombre_Compuesto_Del_Cliente]
+                          .toString(),
                 })
             .toList();
       });
@@ -64,11 +68,16 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
       if (!mounted || datos == null) return;
 
       setState(() {
-        nombreClienteController.text = datos['Nombre'];
-        apellidoClienteController.text = datos['Apellido'];
-        direccionClienteController.text = datos['Dirección'];
-        telefonoClienteController.text = datos['Teléfono'];
-        zonaClienteController.text = datos['Zona'] ?? '';
+        nombreClienteController.text =
+            datos[FIELD_NAME__clientes__Nombre_Del_Cliente];
+        apellidoClienteController.text =
+            datos[FIELD_NAME__clientes__Apellido_Del_Cliente];
+        direccionClienteController.text =
+            datos[FIELD_NAME__clientes__Direccion_Del_Cliente];
+        telefonoClienteController.text =
+            datos[FIELD_NAME__clientes__Telefono_Del_Cliente];
+        zonaClienteController.text =
+            datos[FIELD_NAME__clientes__Zona_Del_Cliente] ?? '';
       });
     } catch (e) {
       // Nada por ahora
@@ -221,19 +230,19 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
                       height: 300,
                       children: [
                         CustomSimpleInformation(
-                          label: 'Nombre',
+                          label: FIELD_NAME__clientes__Nombre_Del_Cliente,
                           controller: nombreClienteController,
                         ),
                         CustomSimpleInformation(
-                          label: 'Apellido',
+                          label: FIELD_NAME__clientes__Apellido_Del_Cliente,
                           controller: apellidoClienteController,
                         ),
                         CustomSimpleInformation(
-                          label: 'Dirección',
+                          label: FIELD_NAME__clientes__Direccion_Del_Cliente,
                           controller: direccionClienteController,
                         ),
                         CustomSimpleInformation(
-                          label: 'Teléfono',
+                          label: FIELD_NAME__clientes__Telefono_Del_Cliente,
                           controller: telefonoClienteController,
                         ),
                       ],
@@ -287,10 +296,11 @@ class _BuscarClienteScreenState extends State<BuscarClienteScreen> {
           },
           items: clientes.map((cliente) {
             return DropdownMenuItem<String>(
-              value: cliente['ID'],
+              value: cliente[FIELD_NAME__clientes__ID_Del_Cliente],
               child: Center(
                 child: Text(
-                  cliente['nombreCompleto']!.toUpperCase(),
+                  cliente[FIELD_NAME__clientes__Nombre_Compuesto_Del_Cliente]!
+                      .toUpperCase(),
                   style: const TextStyle(color: Colors.white),
                 ),
               ),

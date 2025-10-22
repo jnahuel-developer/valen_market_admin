@@ -4,6 +4,7 @@ import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import 'package:valen_market_admin/constants/fieldNames.dart';
 import 'package:valen_market_admin/services/firebase/clientes_servicios_firebase.dart';
 
 class ClientesServiciosGoogleSheetsWeb {
@@ -47,15 +48,20 @@ class ClientesServiciosGoogleSheetsWeb {
       if (clientes.isEmpty) return null;
 
       final List<List<Object>> datos = [
-        ['Nombre', 'Apellido', 'Dirección', 'Teléfono'],
+        [
+          FIELD_NAME__clientes__Nombre_Del_Cliente,
+          FIELD_NAME__clientes__Apellido_Del_Cliente,
+          FIELD_NAME__clientes__Direccion_Del_Cliente,
+          FIELD_NAME__clientes__Telefono_Del_Cliente
+        ],
       ];
 
       for (final cliente in clientes) {
         datos.add([
-          cliente['Nombre'] ?? '',
-          cliente['Apellido'] ?? '',
-          cliente['Dirección'] ?? '',
-          cliente['Teléfono'] ?? '',
+          cliente[FIELD_NAME__clientes__Nombre_Del_Cliente] ?? '',
+          cliente[FIELD_NAME__clientes__Apellido_Del_Cliente] ?? '',
+          cliente[FIELD_NAME__clientes__Direccion_Del_Cliente] ?? '',
+          cliente[FIELD_NAME__clientes__Telefono_Del_Cliente] ?? '',
         ]);
       }
 

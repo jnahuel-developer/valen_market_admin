@@ -27,36 +27,6 @@ class _WebFichasAgregarScreenState
   @override
   void initState() {
     super.initState();
-    // Limpiar ficha en curso apenas se construye la pantalla
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(fichaEnCursoProvider).limpiarFicha();
-    });
-  }
-
-  // ---------------------------------------------------------------------------
-  // 🔹 Diálogo de búsqueda (aún activo por compatibilidad)
-  // ---------------------------------------------------------------------------
-
-  Future<String?> _mostrarSelectorDeCriterio(BuildContext context) {
-    return showDialog<String>(
-      context: context,
-      builder: (_) => PopupSelectorCriterioBusqueda(
-        onCriterioSeleccionado: (criterio) {
-          Navigator.of(context).pop(criterio);
-        },
-      ),
-    );
-  }
-
-  Future<Map<String, dynamic>?> _mostrarFichasParaCriterio(
-      BuildContext context, String criterio) {
-    return showDialog<Map<String, dynamic>>(
-      context: context,
-      builder: (_) => PopupResultadosBusqueda(
-        criterio: criterio,
-        onFichaSeleccionada: (_) {},
-      ),
-    );
   }
 
   // ---------------------------------------------------------------------------
@@ -66,7 +36,7 @@ class _WebFichasAgregarScreenState
   Future<void> _agregarFicha() async {
     final ficha = ref.read(fichaEnCursoProvider);
 
-    if (!ficha.hayFichaValida) {
+    if (!ficha.esFichaValidaParaGuardar()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Debes seleccionar un cliente y al menos un producto.'),
@@ -137,21 +107,24 @@ class _WebFichasAgregarScreenState
                             key: _clienteKey,
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 10),
 
                         // Sección fechas
                         const Expanded(
                           flex: 1,
                           child: CustomWebFichaFechasSection(),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 10),
 
-                        // Botón "Agregar"
-                        SizedBox(
-                          width: double.infinity,
-                          child: CustomGradientButton(
-                            text: TEXTO__editar_fichas_screen__boton__agregar,
-                            onPressed: _agregarFicha,
+                        // 🔹 Botón "Agregar" centrado
+                        Align(
+                          alignment: Alignment.center,
+                          child: SizedBox(
+                            width: 250,
+                            child: CustomGradientButton(
+                              text: TEXTO__editar_fichas_screen__boton__agregar,
+                              onPressed: _agregarFicha,
+                            ),
                           ),
                         ),
                       ],
@@ -159,36 +132,13 @@ class _WebFichasAgregarScreenState
                   ),
                 ),
 
-                // LADO DERECHO → Productos + botón buscar (provisorio)
+                // LADO DERECHO → Solo productos (sin botón buscar)
                 Expanded(
                   flex: 1,
                   child: Padding(
                     padding: const EdgeInsets.all(20),
-                    child: Column(
-                      children: [
-                        Expanded(
-                          child: CustomWebProductosSection(
-                            key: _productosKey,
-                          ),
-                        ),
-                        const SizedBox(height: 15),
-                        SizedBox(
-                          width: double.infinity,
-                          child: CustomGradientButton(
-                            text: TEXTO__editar_fichas_screen__boton__buscar,
-                            onPressed: () async {
-                              final criterioSeleccionado =
-                                  await _mostrarSelectorDeCriterio(context);
-                              if (criterioSeleccionado == null) return;
-
-                              final fichaSeleccionada =
-                                  await _mostrarFichasParaCriterio(
-                                      context, criterioSeleccionado);
-                              if (fichaSeleccionada == null) return;
-                            },
-                          ),
-                        ),
-                      ],
+                    child: CustomWebProductosSection(
+                      key: _productosKey,
                     ),
                   ),
                 ),

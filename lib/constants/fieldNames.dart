@@ -8,8 +8,8 @@ const String FIELD_NAME__clientes__ID_Del_Cliente = 'ID';
 const String FIELD_NAME__clientes__Nombre_Del_Cliente = 'Nombre';
 const String FIELD_NAME__clientes__Apellido_Del_Cliente = 'Apellido';
 const String FIELD_NAME__clientes__Zona_Del_Cliente = 'Zona';
-const String FIELD_NAME__clientes__Direccion_Del_Cliente = 'Direccion';
-const String FIELD_NAME__clientes__Telefono_Del_Cliente = 'Telefono';
+const String FIELD_NAME__clientes__Direccion_Del_Cliente = 'Dirección';
+const String FIELD_NAME__clientes__Telefono_Del_Cliente = 'Teléfono';
 const String FIELD_NAME__clientes__Nombre_Compuesto_Del_Cliente =
     'NombreCompleto';
 
@@ -30,11 +30,11 @@ const String FIELD_NAME__catalogo__Nombre_De_La_Coleccion = 'BDD_Catalogo';
 
 // Datos de la colección del cliente
 const String FIELD_NAME__catalogo__ID_Del_Producto = 'ID';
-const String FIELD_NAME__catalogo__Nombre_Del_Producto = 'Nombre';
+const String FIELD_NAME__catalogo__Nombre_Del_Producto = 'NombreDelProducto';
 const String FIELD_NAME__catalogo__Descripcion_Corta = 'DescripcionCorta';
 const String FIELD_NAME__catalogoDescripcionCorta__Descripcion_Larga =
     'DescripcionLarga';
-const String FIELD_NAME__catalogo__Precio_Unitario = 'PrecioUnitario';
+const String FIELD_NAME__catalogo__Precio_Unitario = 'Precio';
 const String FIELD_NAME__catalogo__Cantidad_De_Cuotas = 'CantidadDeCuotas';
 const String FIELD_NAME__catalogo__Precio_De_Las_Cuotas = 'PrecioDeLasCuotas';
 const String FIELD_NAME__catalogo__Stock = 'Stock';

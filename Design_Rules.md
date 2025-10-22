@@ -59,15 +59,15 @@ Este documento resume todas las directrices acordadas durante el desarrollo, par
 
 - Prohibido usar textos hardcodeados directamente en widgets.
 - Todos los textos visibles para el usuario deben definirse en un archivo de constantes, por ejemplo: `constants/textos.dart`.
-- Las claves de los textos deben seguir el formato: TEXTO_ES__nombre_de_la_pantalla__tipo_de_widget__funcion
+- Las claves de los textos deben seguir el formato: TEXTO__nombre_de_la_pantalla__tipo_de_widget__funcion
 
 Ejemplo en el archivo de constantes:
 ```dart
-const String TEXTO_ES__clientes_screen__boton__agregar_cliente = 'Agregar cliente';
+const String TEXTO__clientes_screen__boton__agregar_cliente = 'Agregar cliente';
 
 Y en el widget:
 ```dart
-Text(TEXTO_ES__clientes_screen__boton__agregar_cliente)
+Text(TEXTO__clientes_screen__boton__agregar_cliente)
 
 ------------------------------------------------------------------------------------------
 

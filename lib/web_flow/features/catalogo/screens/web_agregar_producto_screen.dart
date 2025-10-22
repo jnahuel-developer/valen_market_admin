@@ -167,7 +167,7 @@ class _WebAgregarProductoScreenState extends State<WebAgregarProductoScreen> {
                           child: Column(
                             children: [
                               CustomTextField(
-                                label: FIELD_NAME__catalogo__Precio,
+                                label: FIELD_NAME__catalogo__Precio_Unitario,
                                 controller: _precioController,
                                 isRequired: true,
                                 isMoney: true,

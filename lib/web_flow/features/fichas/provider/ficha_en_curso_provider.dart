@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valen_market_admin/constants/fieldNames.dart';
+import 'package:valen_market_admin/constants/textos.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/provider/cliente_ficha_provider.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/provider/fechas_ficha_provider.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/provider/pagos_ficha_provider.dart';
@@ -45,6 +46,13 @@ class FichaEnCursoProvider extends ChangeNotifier {
       _productos.limpiarProductos();
       _pagos.limpiarPagos();
 
+      // Se setea la fecha de creación al iniciar una ficha nueva
+      final hoy = DateTime.now();
+      _fechas.actualizarFechas({
+        FIELD_NAME__fecha_ficha_model__Fecha_De_Creacion:
+            DateTime(hoy.year, hoy.month, hoy.day),
+      });
+
       notifyListeners();
 
       // Cargar listas desde servicios (delegados)
@@ -56,11 +64,6 @@ class FichaEnCursoProvider extends ChangeNotifier {
       // por simplicidad puedes almacenarlas internamente si lo deseas:
       _clientesCache = clientes;
       _catalogoCache = productosCatalogo;
-
-      if (kDebugMode) {
-        print(
-            'FichaEnCursoProvider: inicializarFichaLimpia -> clientes: ${clientes.length}, catalogo: ${productosCatalogo.length}');
-      }
 
       notifyListeners();
     } catch (e) {
@@ -77,10 +80,6 @@ class FichaEnCursoProvider extends ChangeNotifier {
 
       _clientesCache = await FichasServiciosFirebase.obtenerClientes();
 
-      if (kDebugMode) {
-        print(
-            'FichaEnCursoProvider: inicializarClientesYFechas -> clientes: ${_clientesCache.length}');
-      }
       notifyListeners();
     } catch (e) {
       rethrow;
@@ -117,10 +116,6 @@ class FichaEnCursoProvider extends ChangeNotifier {
         }
       }
       _pagos.actualizarPagos(pagosMap);
-
-      if (kDebugMode) {
-        print('FichaEnCursoProvider: ficha cargada ID=$_idFichaActual');
-      }
 
       notifyListeners();
     } catch (e) {
@@ -204,9 +199,84 @@ class FichaEnCursoProvider extends ChangeNotifier {
     };
   }
 
+  /// Indica si la ficha tiene datos mínimos para guardarse (cliente y productos)
+  bool esFichaValidaParaGuardar() {
+    final cliente = _cliente.obtenerCliente();
+    final productos = _productos.obtenerProductos();
+
+    final clienteTieneID =
+        cliente[FIELD_NAME__cliente_ficha_model__ID]?.toString().isNotEmpty ??
+            false;
+    final hayProductos = productos.isNotEmpty;
+
+    return clienteTieneID && hayProductos;
+  }
+
   /// Guarda la ficha en Firebase (crea si no hay ID, actualiza si ya existe)
   Future<void> guardarFichaEnFirebase() async {
     try {
+      // --- Paso 1: sincronizar bloque de pagos con los productos actuales ---
+      final productos = _productos.obtenerProductos();
+
+      if (productos.isNotEmpty) {
+        // Determinar la cantidad de cuotas mayor entre los productos
+        final cantidadMaxCuotas = productos.fold<int>(
+          0,
+          (max, p) => (p[FIELD_NAME__catalogo__Cantidad_De_Cuotas] ?? 0) > max
+              ? p[FIELD_NAME__catalogo__Cantidad_De_Cuotas]
+              : max,
+        );
+
+        // Recalcular precio de las cuotas y totales
+        double importeCuotaTotal = 0;
+        double importeTotal = 0;
+
+        for (final producto in productos) {
+          final unidades =
+              (producto[FIELD_NAME__producto_ficha_model__Unidades] ?? 0)
+                  .toDouble();
+          final precioUnitario =
+              (producto[FIELD_NAME__producto_ficha_model__Precio_Unitario] ?? 0)
+                  .toDouble();
+
+          // Si este producto tiene menos cuotas, se recalcula su precio de cuota
+          double precioCuotaProducto =
+              producto[FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas]
+                      ?.toDouble() ??
+                  0;
+
+          final cuotasProducto =
+              (producto[FIELD_NAME__catalogo__Cantidad_De_Cuotas] ?? 0).toInt();
+
+          if (cuotasProducto < cantidadMaxCuotas && cantidadMaxCuotas > 0) {
+            // Recalcular precio de cuota proporcional
+            precioCuotaProducto =
+                (precioUnitario / cantidadMaxCuotas).ceilToDouble();
+
+            // Actualizamos el producto con estos nuevos valores
+            producto[FIELD_NAME__catalogo__Cantidad_De_Cuotas] =
+                cantidadMaxCuotas;
+            producto[FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas] =
+                precioCuotaProducto;
+          }
+
+          importeCuotaTotal += precioCuotaProducto * unidades;
+          importeTotal += precioUnitario * unidades;
+        }
+
+        // Actualizar el bloque de pagos en base a los cálculos
+        _pagos.actualizarPagos({
+          FIELD_NAME__pago_ficha_model__Cantidad_De_Cuotas: cantidadMaxCuotas,
+          FIELD_NAME__pago_ficha_model__Importe_Cuota: importeCuotaTotal,
+          FIELD_NAME__pago_ficha_model__Importe_Total: importeTotal,
+          FIELD_NAME__pago_ficha_model__Restante: importeTotal,
+          FIELD_NAME__pago_ficha_model__Importe_Saldado: 0,
+          FIELD_NAME__pago_ficha_model__Saldado: false,
+          FIELD_NAME__pago_ficha_model__Cuotas_Pagas: 0,
+        });
+      }
+
+      // --- Paso 2: construir el mapa completo y persistir ---
       final fichaMap = obtenerFichaCompleta();
 
       if (_hayFichaValida &&
@@ -218,10 +288,72 @@ class FichaEnCursoProvider extends ChangeNotifier {
         final nuevoId = await FichasServiciosFirebase.crearFicha(fichaMap);
         _idFichaActual = nuevoId;
         _hayFichaValida = true;
-        notifyListeners();
       }
+
+      notifyListeners();
     } catch (e) {
       rethrow;
+    }
+  }
+
+  /// Busca fichas en Firebase según el criterio de búsqueda actual.
+  /// El criterio se corresponde con los textos del widget PopupResultadosBusqueda.
+  Future<List<Map<String, dynamic>>> buscarFichasPorCriterio(
+      String criterio) async {
+    try {
+      String campo = '';
+      dynamic valor;
+
+      final clienteActual = _cliente.obtenerCliente();
+      final fechasActuales = _fechas.obtenerFechas();
+
+      switch (criterio) {
+        case TEXTO__resultados_widget__criterio__cliente_seleccionado:
+          campo = 'Cliente.$FIELD_NAME__cliente_ficha_model__ID';
+          valor = clienteActual[FIELD_NAME__cliente_ficha_model__ID];
+          break;
+
+        case TEXTO__resultados_widget__criterio__nombre_seleccionado:
+          campo = 'Cliente.$FIELD_NAME__cliente_ficha_model__Nombre';
+          valor = clienteActual[FIELD_NAME__cliente_ficha_model__Nombre];
+          break;
+
+        case TEXTO__resultados_widget__criterio__apellido_seleccionado:
+          campo = 'Cliente.$FIELD_NAME__cliente_ficha_model__Apellido';
+          valor = clienteActual[FIELD_NAME__cliente_ficha_model__Apellido];
+          break;
+
+        case TEXTO__resultados_widget__criterio__zona_seleccionada:
+          campo = 'Cliente.$FIELD_NAME__cliente_ficha_model__Zona';
+          valor = clienteActual[FIELD_NAME__cliente_ficha_model__Zona];
+          break;
+
+        case TEXTO__resultados_widget__criterio__fecha_de_venta:
+          campo = 'Fechas.$FIELD_NAME__fecha_ficha_model__Fecha_De_Venta';
+          valor = fechasActuales[FIELD_NAME__fecha_ficha_model__Fecha_De_Venta];
+          break;
+
+        case TEXTO__resultados_widget__criterio__fecha_de_aviso:
+          campo =
+              'Fechas.$FIELD_NAME__fecha_ficha_model__Fecha_De_Proximo_Aviso';
+          valor = fechasActuales[
+              FIELD_NAME__fecha_ficha_model__Fecha_De_Proximo_Aviso];
+          break;
+
+        default:
+          return [];
+      }
+
+      if (valor == null || (valor is String && valor.isEmpty)) {
+        return [];
+      }
+
+      final fichas =
+          await FichasServiciosFirebase.buscarFichasPorParametro(campo, valor);
+
+      return fichas;
+    } catch (e) {
+      throw Exception('Error al buscar fichas por criterio: $e');
     }
   }
 

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:valen_market_admin/constants/fieldNames.dart';
+import 'package:valen_market_admin/constants/app_colors.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_bloque_con_titulo.dart';
-import 'package:valen_market_admin/web_flow/widgets/custom_web_ficha_shop_item.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_popup_editar_producto.dart';
-import 'package:valen_market_admin/services/firebase/catalogo_servicios_firebase.dart';
+import 'package:valen_market_admin/web_flow/widgets/custom_web_ficha_shop_item.dart';
 
 class CustomWebProductosSection extends ConsumerStatefulWidget {
   const CustomWebProductosSection({super.key});
@@ -17,90 +17,130 @@ class CustomWebProductosSection extends ConsumerStatefulWidget {
 
 class CustomWebProductosSectionState
     extends ConsumerState<CustomWebProductosSection> {
-  final CatalogoServiciosFirebase _catalogoService =
-      CatalogoServiciosFirebase();
-
+  late List<Map<String, dynamic>> _productosVisibles;
   bool _cargando = true;
-  List<Map<String, dynamic>> _productosCatalogo = [];
 
   @override
   void initState() {
     super.initState();
-    _cargarCatalogoInicial();
+    _productosVisibles = [];
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _inicializarLista();
+    });
   }
 
-  Future<void> _cargarCatalogoInicial() async {
-    // Solo carga catálogo si el provider está vacío (modo agregar)
-    final ficha = ref.read(fichaEnCursoProvider);
-    if (!ficha.hayFichaValida) {
-      // No cargar catálogo ahora, ya hay productos en la ficha
-      setState(() => _cargando = false);
-      return;
-    }
+  Future<void> _inicializarLista() async {
+    final fichaProvider = ref.read(fichaEnCursoProvider);
 
     try {
-      final catalogo = await _catalogoService.obtenerTodosLosProductos();
+      if (fichaProvider.hayFichaValida) {
+        _productosVisibles = fichaProvider.obtenerProductos();
+      } else {
+        _productosVisibles = fichaProvider.catalogoCache;
+      }
+    } catch (e, st) {
+      debugPrint('⚠️ [ProductosSection] Error al cargar productos: $e');
+      debugPrintStack(stackTrace: st);
+    } finally {
       setState(() {
-        _productosCatalogo = catalogo;
         _cargando = false;
       });
-    } catch (e) {
-      if (mounted) {
-        setState(() => _cargando = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error cargando catálogo: $e')),
-        );
-      }
     }
   }
 
-  void _onIncrementar(Map<String, dynamic> productoMap) {
-    final uid = productoMap[FIELD_NAME__producto_ficha_model__ID].toString();
-    if (uid.isEmpty) return;
-
-    // Llamar al provider para incrementar
-    ref.read(fichaEnCursoProvider.notifier).modificarCantidadDeProducto(
-          uidProducto: uid,
-          incrementar: true,
-          datosCatalogo: productoMap,
-        );
+  int _cantidadSeleccionada(String idProducto) {
+    final fichaProvider = ref.read(fichaEnCursoProvider);
+    final productosFicha = fichaProvider.obtenerProductos();
+    final existente = productosFicha.firstWhere(
+      (p) =>
+          p[FIELD_NAME__producto_ficha_model__ID]?.toString() ==
+          idProducto.toString(),
+      orElse: () => {},
+    );
+    if (existente.isEmpty) return 0;
+    return (existente[FIELD_NAME__producto_ficha_model__Unidades] ?? 0).toInt();
   }
 
-  void _onDecrementar(Map<String, dynamic> productoMap) {
-    final uid = productoMap[FIELD_NAME__producto_ficha_model__ID].toString();
-    if (uid.isEmpty) return;
+  void _incrementar(String idProducto) {
+    final fichaProvider = ref.read(fichaEnCursoProvider);
+    final productosFicha = fichaProvider.obtenerProductos();
+    final existente = productosFicha.firstWhere(
+      (p) =>
+          p[FIELD_NAME__producto_ficha_model__ID]?.toString() ==
+          idProducto.toString(),
+      orElse: () => {},
+    );
 
-    // Llamar al provider para decrementar
-    ref.read(fichaEnCursoProvider.notifier).modificarCantidadDeProducto(
-          uidProducto: uid,
-          incrementar: false,
-          datosCatalogo: productoMap,
-        );
+    if (existente.isEmpty) {
+      final nuevo = Map<String, dynamic>.from(
+        _productosVisibles.firstWhere(
+          (p) =>
+              p[FIELD_NAME__producto_ficha_model__ID]?.toString() ==
+              idProducto.toString(),
+        ),
+      );
+      nuevo[FIELD_NAME__producto_ficha_model__Unidades] = 1;
+      fichaProvider.agregarProducto(nuevo);
+    } else {
+      final nuevaCantidad =
+          (existente[FIELD_NAME__producto_ficha_model__Unidades] ?? 0) + 1;
+      fichaProvider.actualizarProducto(idProducto, {
+        FIELD_NAME__producto_ficha_model__Unidades: nuevaCantidad,
+      });
+    }
+
+    setState(() {});
   }
 
-  void _onEditarProducto(Map<String, dynamic> productoMap, int cantidad) async {
-    final uid = productoMap[FIELD_NAME__producto_ficha_model__ID].toString();
-    if (uid.isEmpty) return;
+  void _decrementar(String idProducto) {
+    final fichaProvider = ref.read(fichaEnCursoProvider);
+    final productosFicha = fichaProvider.obtenerProductos();
+    final existente = productosFicha.firstWhere(
+      (p) =>
+          p[FIELD_NAME__producto_ficha_model__ID]?.toString() ==
+          idProducto.toString(),
+      orElse: () => {},
+    );
 
-    await showDialog<Map<String, dynamic>>(
+    if (existente.isEmpty) return;
+
+    final cantidadActual =
+        (existente[FIELD_NAME__producto_ficha_model__Unidades] ?? 0).toInt();
+
+    if (cantidadActual <= 1) {
+      fichaProvider.eliminarProducto(idProducto);
+    } else {
+      fichaProvider.actualizarProducto(idProducto, {
+        FIELD_NAME__producto_ficha_model__Unidades: cantidadActual - 1,
+      });
+    }
+
+    setState(() {});
+  }
+
+  Future<void> _editarProducto(
+      Map<String, dynamic> producto, int cantidad) async {
+    await showDialog(
       context: context,
-      builder: (_) => CustomWebPopupEditarProducto(
-        productoCatalogo: productoMap,
+      builder: (context) => CustomWebPopupEditarProducto(
+        productoCatalogo: producto,
         cantidadSeleccionada: cantidad,
-        onAceptar: (resultadoMap) {
-          final nuevoPrecio =
-              (resultadoMap['nuevoPrecioUnitario'] as double?) ?? 0.0;
-          final nuevasCuotas =
-              (resultadoMap['nuevaCantidadDeCuotas'] as int?) ?? 1;
-          final nuevoImporteCuotas =
-              (resultadoMap['nuevoPrecioDeCuotas'] as double?) ?? 0.0;
+        onAceptar: (resultado) {
+          final fichaProvider = ref.read(fichaEnCursoProvider);
+          final idProducto =
+              producto[FIELD_NAME__producto_ficha_model__ID].toString();
 
-          ref.read(fichaEnCursoProvider.notifier).actualizarValoresDelProducto(
-                uidProducto: uid,
-                nuevoPrecioUnitario: nuevoPrecio,
-                nuevaCantidadDeCuotas: nuevasCuotas,
-                nuevoImporteDeLasCuotas: nuevoImporteCuotas,
-              );
+          fichaProvider.actualizarProducto(idProducto, {
+            FIELD_NAME__producto_ficha_model__Precio_Unitario:
+                resultado[FIELD_NAME__producto_ficha_model__Precio_Unitario],
+            FIELD_NAME__catalogo__Cantidad_De_Cuotas:
+                resultado[FIELD_NAME__catalogo__Cantidad_De_Cuotas],
+            FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas: resultado[
+                FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas],
+          });
+
+          setState(() {});
         },
       ),
     );
@@ -108,64 +148,63 @@ class CustomWebProductosSectionState
 
   @override
   Widget build(BuildContext context) {
-    final ficha = ref.watch(fichaEnCursoProvider);
+    if (_cargando) {
+      return CustomWebBloqueConTitulo(
+        titulo: 'Productos',
+        child: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final fichaProvider = ref.watch(fichaEnCursoProvider);
+    _productosVisibles = fichaProvider.hayFichaValida
+        ? fichaProvider.obtenerProductos()
+        : fichaProvider.catalogoCache;
+
+    if (_productosVisibles.isEmpty) {
+      return CustomWebBloqueConTitulo(
+        titulo: 'Productos',
+        child: const Center(
+          child: Text(
+            'No hay productos disponibles',
+            style: TextStyle(color: WebColors.textoRosa, fontSize: 16),
+          ),
+        ),
+      );
+    }
 
     return CustomWebBloqueConTitulo(
-      titulo: 'Datos de los productos',
-      child: _cargando
-          ? const Center(child: CircularProgressIndicator())
-          : LayoutBuilder(
-              builder: (context, constraints) {
-                final productosAMostrar = ficha.hayFichaValida
-                    ? _productosCatalogo
-                    : ficha.productos
-                        .map((prodModel) => prodModel.toMap())
-                        .toList();
+      titulo: 'Productos',
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: _productosVisibles.length,
+          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 300,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 0.75,
+          ),
+          itemBuilder: (context, index) {
+            final producto = _productosVisibles[index];
+            final idProducto =
+                producto[FIELD_NAME__producto_ficha_model__ID]?.toString() ??
+                    '';
+            final cantidadSeleccionada = _cantidadSeleccionada(idProducto);
 
-                return GridView.builder(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 300,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    childAspectRatio: 0.75,
-                  ),
-                  itemCount: productosAMostrar.length,
-                  itemBuilder: (context, index) {
-                    final productoMap = productosAMostrar[index];
-
-                    // UID seguro (compatibilidad con catálogo o ficha)
-                    final uid =
-                        productoMap[FIELD_NAME__producto_ficha_model__ID]
-                            .toString();
-
-                    int cantidadActual = 0;
-
-                    if (uid.isNotEmpty && !ficha.hayFichaValida) {
-                      final existente = ficha
-                          .obtenerProductos()
-                          .where((p) => p.id == uid)
-                          .toList(); // devuelve lista (vacía si no hay coincidencias)
-
-                      if (existente.isNotEmpty) {
-                        cantidadActual = existente.first.unidades;
-                      }
-                    }
-
-                    return CustomWebFichaShopItem(
-                      producto: productoMap,
-                      cantidadSeleccionada: cantidadActual,
-                      onIncrement: () => _onIncrementar(productoMap),
-                      onDecrement: () => _onDecrementar(productoMap),
-                      onEdit: cantidadActual > 0
-                          ? () => _onEditarProducto(productoMap, cantidadActual)
-                          : null,
-                    );
-                  },
-                );
-              },
-            ),
+            return CustomWebFichaShopItem(
+              producto: producto,
+              cantidadSeleccionada: cantidadSeleccionada,
+              onIncrement: () => _incrementar(idProducto),
+              onDecrement: () => _decrementar(idProducto),
+              onEdit: cantidadSeleccionada > 0
+                  ? () => _editarProducto(producto, cantidadSeleccionada)
+                  : null,
+            );
+          },
+        ),
+      ),
     );
   }
 }

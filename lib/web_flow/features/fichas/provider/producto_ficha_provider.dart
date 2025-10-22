@@ -1,36 +1,3 @@
-/// ---------------------------------------------------------------------------
-/// PRODUCTO_FICHA_PROVIDER
-///
-/// 🔹 Rol general:
-/// Gestiona la lista de productos asociados a la ficha en curso.
-/// Es responsable de mantener coherencia en unidades, precios y cuotas.
-///
-/// 🔹 Forma de uso:
-///   - Se utiliza solo dentro de [FichaEnCursoProvider].
-///   - No debe ser accedido directamente por los Widgets.
-///
-/// 🔹 Interactúa con:
-///   - [FichaEnCursoProvider]: mediante sus métodos de alto nivel:
-///       • `modificarCantidadDeProducto()`
-///       • `actualizarValoresDelProducto()`
-///   - [ProductoFichaModel]: modelo individual de producto.
-///
-/// 🔹 Lógica principal:
-///   - Permite agregar, actualizar o eliminar productos.
-///   - Actualiza cantidades y datos financieros de forma controlada.
-///   - Mantiene la lista en estado inmutable hacia el exterior.
-///
-/// 🔹 Métodos disponibles:
-///   • `List<ProductoFichaModel> get productos`
-///   • `void agregarProducto(ProductoFichaModel producto)`uid
-///   • `void eliminarProductoPorUID(String uidProducto)`
-///   • `void actualizarCantidadDeProducto(String uidProducto, int nuevaCantidad)`
-///   • `void actualizarValoresDelProducto({ ... })`
-///   • `void limpiarProductos()`
-///
-/// ---------------------------------------------------------------------------
-library;
-
 import 'package:flutter/foundation.dart';
 import 'package:valen_market_admin/constants/fieldNames.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/model/producto_ficha_model.dart';

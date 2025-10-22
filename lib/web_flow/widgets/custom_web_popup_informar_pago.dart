@@ -9,6 +9,8 @@ import 'package:valen_market_admin/web_flow/widgets/custom_web_campo_con_checkbo
 import 'package:valen_market_admin/web_flow/widgets/custom_web_ficha_fechas_section.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
 
+/// Popup utilizado para registrar un pago dentro de una ficha en curso.
+/// Muestra los productos asociados, un resumen financiero y los campos para informar un nuevo pago.
 class CustomWebPopupInformarPago extends ConsumerStatefulWidget {
   final void Function(double montoPagado, DateTime nuevaFechaAviso)?
       onConfirmar;
@@ -54,13 +56,19 @@ class _CustomWebPopupInformarPagoState
     super.dispose();
   }
 
+  /// Calcula el valor estándar de la cuota según los productos de la ficha actual.
   void _calcularMontoEstandar() {
     final ficha = ref.read(fichaEnCursoProvider);
     final productos = ficha.obtenerProductos();
 
     double sumaCuotas = 0.0;
     for (final p in productos) {
-      sumaCuotas += (p.precioDeLasCuotas ?? 0).toDouble();
+      final precioCuota =
+          (p[FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas] ?? 0)
+              .toDouble();
+      final unidades =
+          (p[FIELD_NAME__producto_ficha_model__Unidades] ?? 1).toDouble();
+      sumaCuotas += precioCuota * unidades;
     }
 
     setState(() {
@@ -69,6 +77,7 @@ class _CustomWebPopupInformarPagoState
     });
   }
 
+  /// Convierte el texto del campo de monto a valor numérico.
   double _parseMonto(String text) {
     final sanitized = text
         .replaceAll('.', '')
@@ -78,10 +87,14 @@ class _CustomWebPopupInformarPagoState
     return double.tryParse(sanitized) ?? 0.0;
   }
 
+  /// Normaliza una fecha para que sólo contenga año, mes y día.
   DateTime _normalizarSoloFecha(DateTime dt) =>
       DateTime(dt.year, dt.month, dt.day);
 
+  /// Ejecuta el proceso de registro del pago en el Provider y Firebase.
   Future<void> _onRegistrarPago() async {
+    final ficha = ref.read(fichaEnCursoProvider);
+
     final monto = _parseMonto(_montoController.text);
     if (monto <= 0) {
       if (mounted) {
@@ -98,16 +111,22 @@ class _CustomWebPopupInformarPagoState
     final pagoMap = <String, dynamic>{
       FIELD_NAME__pago_item_model__Fecha: Timestamp.fromDate(fechaPago),
       FIELD_NAME__pago_item_model__Medio: _medioSeleccionado,
-      FIELD_NAME__pago_item_model__Monto: monto.round(),
+      FIELD_NAME__pago_item_model__Monto: monto,
     };
 
     try {
-      ref.read(fichaEnCursoProvider.notifier).registrarPago(pagoMap);
+      await ficha.registrarPago(pagoMap);
 
-      final proximoAviso = ref.read(fichaEnCursoProvider).proximoAviso;
-      final fechaAvisoFinal = proximoAviso != null
-          ? _normalizarSoloFecha(proximoAviso)
-          : _normalizarSoloFecha(DateTime.now());
+      // Se obtienen las fechas actualizadas desde el provider
+      final fechasMap = ficha.obtenerFechas();
+      final fechaAviso =
+          fechasMap[FIELD_NAME__fecha_ficha_model__Fecha_De_Proximo_Aviso];
+
+      final DateTime fechaAvisoFinal = (fechaAviso is Timestamp)
+          ? fechaAviso.toDate()
+          : (fechaAviso is DateTime
+              ? fechaAviso
+              : _normalizarSoloFecha(DateTime.now()));
 
       widget.onConfirmar?.call(monto, fechaAvisoFinal);
 
@@ -127,15 +146,23 @@ class _CustomWebPopupInformarPagoState
 
     // Datos provenientes del Provider central
     final productos = ficha.obtenerProductos();
-    final pagos = ficha.obtenerPagos();
+    final pagosMap = ficha.obtenerPagos();
 
-    // Datos de resumen
-    final double totalFicha = pagos.importeTotal.toDouble();
-    final double totalSaldado = pagos.importeSaldado.toDouble();
-    final double restante = pagos.restante.toDouble();
-    final double valorCuota = pagos.importeCuota.toDouble();
-    final int cuotasPagas = pagos.cuotasPagas;
-    final int cantidadDeCuotas = pagos.cantidadDeCuotas;
+    // Extracción segura de campos numéricos
+    final double totalFicha =
+        (pagosMap[FIELD_NAME__pago_ficha_model__Importe_Total] ?? 0).toDouble();
+    final double totalSaldado =
+        (pagosMap[FIELD_NAME__pago_ficha_model__Importe_Saldado] ?? 0)
+            .toDouble();
+    final double restante =
+        (pagosMap[FIELD_NAME__pago_ficha_model__Restante] ?? 0).toDouble();
+    final double valorCuota =
+        (pagosMap[FIELD_NAME__pago_ficha_model__Importe_Cuota] ?? 0).toDouble();
+    final int cuotasPagas =
+        (pagosMap[FIELD_NAME__pago_ficha_model__Cuotas_Pagas] ?? 0).toInt();
+    final int cantidadDeCuotas =
+        (pagosMap[FIELD_NAME__pago_ficha_model__Cantidad_De_Cuotas] ?? 0)
+            .toInt();
 
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 50, vertical: 30),
@@ -178,14 +205,28 @@ class _CustomWebPopupInformarPagoState
                     DataColumn(label: Text('Precio cuota')),
                   ],
                   rows: productos.map((p) {
+                    final nombre =
+                        (p[FIELD_NAME__producto_ficha_model__Nombre] ?? '')
+                            .toString();
+                    final precioUnitario =
+                        (p[FIELD_NAME__producto_ficha_model__Precio_Unitario] ??
+                                0)
+                            .toDouble();
+                    final unidades =
+                        (p[FIELD_NAME__producto_ficha_model__Unidades] ?? 1)
+                            .toInt();
+                    final precioCuota =
+                        (p[FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas] ??
+                                0)
+                            .toDouble();
+
                     return DataRow(
                       cells: [
-                        DataCell(Text(p.nombre ?? '')),
-                        DataCell(Text(
-                            _currencyFormatter.format(p.precioUnitario ?? 0))),
-                        DataCell(Text('${p.unidades ?? 1}')),
-                        DataCell(Text(_currencyFormatter
-                            .format(p.precioDeLasCuotas ?? 0))),
+                        DataCell(Text(nombre)),
+                        DataCell(
+                            Text(_currencyFormatter.format(precioUnitario))),
+                        DataCell(Text(unidades.toString())),
+                        DataCell(Text(_currencyFormatter.format(precioCuota))),
                       ],
                     );
                   }).toList(),

@@ -11,8 +11,11 @@ import 'package:valen_market_admin/web_flow/widgets/custom_web_ficha_productos_s
 import 'package:valen_market_admin/web_flow/widgets/custom_web_gradient_button.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_popup_informar_pago.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_top_bar.dart';
-import 'package:valen_market_admin/services/firebase/fichas_servicios_firebase.dart';
 
+/// Pantalla utilizada para editar fichas ya existentes.
+/// Presenta los datos del cliente, fechas y productos de la ficha en curso.
+/// Permite editar los campos visibles y registrar nuevos pagos.
+/// No se realiza eliminación de fichas.
 class WebFichasEditarEliminarScreen extends ConsumerStatefulWidget {
   const WebFichasEditarEliminarScreen({super.key});
 
@@ -23,7 +26,6 @@ class WebFichasEditarEliminarScreen extends ConsumerStatefulWidget {
 
 class _WebFichasEditarEliminarScreenState
     extends ConsumerState<WebFichasEditarEliminarScreen> {
-  final FichasServiciosFirebase fichasService = FichasServiciosFirebase();
   bool _cargando = false;
 
   // ─────────────────────────────────────────────────────────────
@@ -37,26 +39,26 @@ class _WebFichasEditarEliminarScreenState
     if (confirmar == true) {
       setState(() => _cargando = true);
       try {
-        final ficha = ref.read(fichaEnCursoProvider);
-        final String? idFicha = ficha.id;
+        final fichaProvider = ref.read(fichaEnCursoProvider);
 
-        if (idFicha == null) {
-          throw Exception(TEXTO__editar_fichas_screen__mensaje__ID_no_definido);
+        final String? idFicha = fichaProvider.idFichaActual;
+        if (idFicha == null || idFicha.isEmpty) {
+          throw Exception(
+            TEXTO__editar_fichas_screen__mensaje__ID_no_definido,
+          );
         }
 
-        final FichaModel fichaActualizada = ficha.construirFichaCompleta();
-        await fichasService.ActualizarFichaEnFirebase(
-            idFicha, fichaActualizada);
-
-        ref.read(fichaEnCursoProvider.notifier).limpiarFicha();
+        // Guardar la ficha actualizada directamente desde el provider
+        await fichaProvider.guardarFichaEnFirebase();
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text(
-                  TEXTO__editar_fichas_screen__mensaje__ficha_actualizada)),
+            content: Text(
+              TEXTO__editar_fichas_screen__mensaje__ficha_actualizada,
+            ),
+          ),
         );
-        Navigator.pushReplacementNamed(context, PANTALLA_WEB__Home);
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -70,53 +72,13 @@ class _WebFichasEditarEliminarScreenState
   }
 
   // ─────────────────────────────────────────────────────────────
-  // MÉTODO: Confirmar Eliminación
+  // MÉTODO: Informar Pago
   // ─────────────────────────────────────────────────────────────
-  Future<void> _confirmarEliminacionFicha() async {
-    final bool? confirmar = await _mostrarPopupConfirmacion(
-      TEXTO__editar_fichas_screen__mensaje__confirmar_eliminacion,
-    );
-
-    if (confirmar == true) {
-      setState(() => _cargando = true);
-      try {
-        final ficha = ref.read(fichaEnCursoProvider);
-        final String? idFicha = ficha.id;
-
-        if (idFicha == null) {
-          throw Exception(TEXTO__editar_fichas_screen__mensaje__ID_no_definido);
-        }
-
-        await fichasService.EliminarFichaEnFirebase(idFicha);
-        ref.read(fichaEnCursoProvider.notifier).limpiarFicha();
-
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content:
-                  Text(TEXTO__editar_fichas_screen__mensaje__ficha_eliminada)),
-        );
-        Navigator.pushReplacementNamed(context, PANTALLA_WEB__Home);
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error al eliminar ficha: $e')),
-          );
-        }
-      } finally {
-        if (mounted) setState(() => _cargando = false);
-      }
-    }
-  }
-
-// ─────────────────────────────────────────────────────────────
-// MÉTODO: Informar Pago (versión definitiva)
-// ─────────────────────────────────────────────────────────────
   Future<void> _informarPago() async {
-    final ficha = ref.read(fichaEnCursoProvider);
-    final String? idFicha = ficha.id;
+    final fichaProvider = ref.read(fichaEnCursoProvider);
+    final String? idFicha = fichaProvider.idFichaActual;
 
-    if (idFicha == null) {
+    if (idFicha == null || idFicha.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -127,25 +89,18 @@ class _WebFichasEditarEliminarScreenState
       return;
     }
 
-    // Mostrar popup para ingresar el pago
     showDialog(
       context: context,
       builder: (_) => CustomWebPopupInformarPago(
         onConfirmar: (double montoPagado, DateTime nuevaFechaAviso) async {
           try {
-            // Construir mapa del pago
             final pagoMap = {
               FIELD_NAME__pago_item_model__Monto: montoPagado,
               FIELD_NAME__pago_item_model__Fecha: nuevaFechaAviso,
             };
 
-            // Registrar el pago en el Provider (NO directamente en Firebase)
-            ref.read(fichaEnCursoProvider.notifier).registrarPago(pagoMap);
-
-            // Actualizar la ficha en Firebase con el nuevo estado de pagos
-            await ref
-                .read(fichaEnCursoProvider.notifier)
-                .actualizarFichaMedianteID();
+            // Registrar pago en el Provider
+            await fichaProvider.registrarPago(pagoMap);
 
             if (!mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
@@ -248,7 +203,7 @@ class _WebFichasEditarEliminarScreenState
                 ),
               ),
 
-              // Botones inferiores
+              // Botones inferiores: editar e informar pago
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                 child: Row(
@@ -264,13 +219,6 @@ class _WebFichasEditarEliminarScreenState
                       child: CustomGradientButton(
                         text: TEXTO__editar_fichas_screen__boton__informar_pago,
                         onPressed: _informarPago,
-                      ),
-                    ),
-                    const SizedBox(width: 15),
-                    Expanded(
-                      child: CustomGradientButton(
-                        text: TEXTO__editar_fichas_screen__boton__eliminar,
-                        onPressed: _confirmarEliminacionFicha,
                       ),
                     ),
                   ],

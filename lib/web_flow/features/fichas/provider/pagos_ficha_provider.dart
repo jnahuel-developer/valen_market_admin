@@ -1,34 +1,3 @@
-/// ---------------------------------------------------------------------------
-/// PAGOS_FICHA_PROVIDER
-///
-/// 🔹 Rol general:
-/// Administra el registro y control de pagos realizados en una ficha.
-/// Calcula automáticamente los valores dependientes: restante, cuotas pagas,
-/// importe saldado y estado “saldado”.
-///
-/// 🔹 Forma de uso:
-///   - Solo se accede desde [FichaEnCursoProvider].
-///   - No debe ser accedido directamente por los Widgets.
-///
-/// 🔹 Interactúa con:
-///   - [FichaEnCursoProvider]: a través de `registrarPago()` y `actualizarFichaMedianteID()`.
-///   - [PagosFichaModel] y [PagoItemModel]: modelos de estructura de pagos.
-///
-/// 🔹 Lógica principal:
-///   - Registra nuevos pagos, recalculando automáticamente totales.
-///   - Admite registro desde objetos (`agregarPago()`) o mapas (`registrarPagoDesdeMapa()`).
-///   - Permite limpiar completamente el historial de pagos.
-///
-/// 🔹 Métodos disponibles:
-///   • `PagosFichaModel get pagos`
-///   • `void setPagos(PagosFichaModel nuevosPagos)`
-///   • `void agregarPago(PagoItemModel nuevoPago)`
-///   • `void registrarPagoDesdeMapa(Map<String, dynamic> pagoMap)`
-///   • `void limpiarPagos()`
-///
-/// ---------------------------------------------------------------------------
-library;
-
 import 'package:flutter/foundation.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/model/pagos_ficha_model.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/model/pago_item_model.dart';

@@ -7,7 +7,6 @@ import 'package:valen_market_admin/web_flow/widgets/custom_web_ficha_fechas_sect
 import 'package:valen_market_admin/web_flow/widgets/custom_web_gradient_button.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_popup_selector_criterio_busqueda.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_popup_resultados_busqueda.dart';
-import 'package:valen_market_admin/web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
 
 class WebFichasBuscarScreen extends ConsumerStatefulWidget {
   const WebFichasBuscarScreen({super.key});
@@ -23,9 +22,6 @@ class _WebFichasBuscarScreenState extends ConsumerState<WebFichasBuscarScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(fichaEnCursoProvider.notifier).limpiarFicha();
-    });
   }
 
   Future<String?> _mostrarSelectorDeCriterio(BuildContext context) {

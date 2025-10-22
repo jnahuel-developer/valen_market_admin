@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:valen_market_admin/constants/fieldNames.dart';
 import 'package:valen_market_admin/main_dev.dart' as app;
 import 'package:valen_market_admin/services/firebase/clientes_servicios_firebase.dart';
 
@@ -55,8 +56,10 @@ void main() {
       final clienteActualizado =
           await ClientesServiciosFirebase.obtenerClientePorId(id);
       expect(clienteActualizado, isNotNull);
-      expect(clienteActualizado!['Dirección'], nuevaDireccion);
-      expect(clienteActualizado['Teléfono'], nuevoTelefono);
+      expect(clienteActualizado![FIELD_NAME__clientes__Direccion_Del_Cliente],
+          nuevaDireccion);
+      expect(clienteActualizado[FIELD_NAME__clientes__Telefono_Del_Cliente],
+          nuevoTelefono);
 
       // 7) Eliminar el registro por ID
       await ClientesServiciosFirebase.eliminarClientePorId(id);

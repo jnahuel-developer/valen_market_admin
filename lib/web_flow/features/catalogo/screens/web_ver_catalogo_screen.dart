@@ -73,20 +73,6 @@ class _WebVerCatalogoScreenState extends State<WebVerCatalogoScreen> {
                               spacing: 15,
                               runSpacing: 15,
                               children: _productos.map((producto) {
-/*
-                                final nombre =
-                                    producto[FIELD_NAME__catalogo__Nombre_Del_Producto] ?? '';
-                                final descCorta =
-                                    producto[FIELD_NAME__catalogo__Descripcion_Corta] ?? '';
-                                final descLarga = producto[FIELD_NAME__catalogoDescripcionCorta__Descripcion_Larga];
-                                final precio =
-                                    (producto[FIELD_NAME__catalogo__Precio] ?? 0).toDouble();
-                                final cuotas =
-                                    (producto[FIELD_NAME__catalogo__Cantidad_De_Cuotas] ?? 0).toInt();
-                                final stock = (producto[FIELD_NAME__catalogo__Stock] ?? 0).toInt();
-                                final imagenUrl =
-                                    producto[FIELD_NAME__catalogo__Link_De_La_Foto] ?? '';
-*/
                                 return SizedBox(
                                   width: itemWidth,
                                   child: CustomShopItemDescription(
@@ -100,7 +86,7 @@ class _WebVerCatalogoScreenState extends State<WebVerCatalogoScreen> {
                                     descripcionLarga: producto[
                                         FIELD_NAME__catalogoDescripcionCorta__Descripcion_Larga],
                                     precio: (producto[
-                                                FIELD_NAME__catalogo__Precio] ??
+                                                FIELD_NAME__catalogo__Precio_Unitario] ??
                                             0)
                                         .toDouble(),
                                     cuotas: (producto[

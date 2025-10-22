@@ -47,7 +47,8 @@ class _WebEditarProductoScreenState extends State<WebEditarProductoScreen> {
         p[FIELD_NAME__catalogo__Descripcion_Corta] ?? '';
     _descLargaController.text =
         p[FIELD_NAME__catalogoDescripcionCorta__Descripcion_Larga] ?? '';
-    _precioController.text = (p[FIELD_NAME__catalogo__Precio] ?? 0).toString();
+    _precioController.text =
+        (p[FIELD_NAME__catalogo__Precio_Unitario] ?? 0).toString();
     _cuotasController.text =
         (p[FIELD_NAME__catalogo__Cantidad_De_Cuotas] ?? 1).toString();
     _stockController.text = (p[FIELD_NAME__catalogo__Stock] ?? 0).toString();
@@ -113,7 +114,7 @@ class _WebEditarProductoScreenState extends State<WebEditarProductoScreen> {
               _descCortaController.text.trim(),
           FIELD_NAME__catalogoDescripcionCorta__Descripcion_Larga:
               _descLargaController.text.trim(),
-          FIELD_NAME__catalogo__Precio: double.parse(
+          FIELD_NAME__catalogo__Precio_Unitario: double.parse(
               _precioController.text.replaceAll('.', '').replaceAll(',', '')),
           FIELD_NAME__catalogo__Cantidad_De_Cuotas:
               int.parse(_cuotasController.text),
@@ -177,7 +178,7 @@ class _WebEditarProductoScreenState extends State<WebEditarProductoScreen> {
                           ),
                           const SizedBox(height: 20),
                           CustomTextField(
-                            label: FIELD_NAME__catalogo__Precio,
+                            label: FIELD_NAME__catalogo__Precio_Unitario,
                             controller: _precioController,
                             keyboardType: TextInputType.number,
                             isRequired: true,
