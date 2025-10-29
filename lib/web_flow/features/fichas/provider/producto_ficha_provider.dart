@@ -58,8 +58,6 @@ class ProductosFichaProvider extends ChangeNotifier {
     final index = _productos
         .indexWhere((p) => p[FIELD_NAME__producto_ficha_model__ID] == id);
 
-    debugPrint('List completa antes del cambio: $_productos');
-
     // Se verifica si existe para actualizarlo
     if (index != -1) {
       // Se obtienen los datos del producto a almacenar
@@ -68,8 +66,6 @@ class ProductosFichaProvider extends ChangeNotifier {
 
       // Se actualiza el producto en la lista con los datos suministrados
       _productos[index] = productoExistente.toMap();
-
-      debugPrint('List completa después del cambio: $_productos');
 
       // Se emite la señal para que se actualicen los diversos controles afectados
       notifyListeners();

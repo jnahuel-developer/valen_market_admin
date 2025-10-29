@@ -7,6 +7,7 @@ class ProductoFichaModel {
   final num precioDeLasCuotas;
   final int unidades;
   final int cantidadDeCuotas;
+  final String fotoURL;
 
   ProductoFichaModel({
     required this.id,
@@ -15,6 +16,7 @@ class ProductoFichaModel {
     required this.precioDeLasCuotas,
     required this.unidades,
     required this.cantidadDeCuotas,
+    required this.fotoURL,
   });
 
   factory ProductoFichaModel.fromMap(Map<String, dynamic> data) {
@@ -30,6 +32,8 @@ class ProductoFichaModel {
           0,
       cantidadDeCuotas:
           (data[FIELD_NAME__producto_ficha_model__Cantidad_De_Cuotas] ?? 0),
+      fotoURL: (data[FIELD_NAME__producto_ficha_model__Link_De_La_Foto] ?? '')
+          .toString(),
     );
   }
 
@@ -41,6 +45,7 @@ class ProductoFichaModel {
       FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas: precioDeLasCuotas,
       FIELD_NAME__producto_ficha_model__Unidades: unidades,
       FIELD_NAME__producto_ficha_model__Cantidad_De_Cuotas: cantidadDeCuotas,
+      FIELD_NAME__producto_ficha_model__Link_De_La_Foto: fotoURL,
     };
   }
 
@@ -51,6 +56,7 @@ class ProductoFichaModel {
         precioDeLasCuotas: 0,
         unidades: 0,
         cantidadDeCuotas: 0,
+        fotoURL: '',
       );
 
   ProductoFichaModel copyWith(Map<String, dynamic> cambios) {
@@ -67,6 +73,8 @@ class ProductoFichaModel {
       cantidadDeCuotas:
           cambios[FIELD_NAME__producto_ficha_model__Cantidad_De_Cuotas] ??
               cantidadDeCuotas,
+      fotoURL:
+          cambios[FIELD_NAME__producto_ficha_model__Link_De_La_Foto] ?? fotoURL,
     );
   }
 }
