@@ -6,8 +6,6 @@ import 'package:valen_market_admin/web_flow/widgets/custom_web_ficha_cliente_sec
 import 'package:valen_market_admin/web_flow/widgets/custom_web_ficha_fechas_section.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_ficha_productos_section.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_gradient_button.dart';
-import 'package:valen_market_admin/web_flow/widgets/custom_web_popup_resultados_busqueda.dart';
-import 'package:valen_market_admin/web_flow/widgets/custom_web_popup_selector_criterio_busqueda.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_top_bar.dart';
 import 'package:valen_market_admin/constants/pantallas.dart';
 
@@ -30,7 +28,7 @@ class _WebFichasAgregarScreenState
   }
 
   // ---------------------------------------------------------------------------
-  // 🔹 Agregar ficha (guardar en Firebase)
+  // Agregar ficha (guardar en Firebase)
   // ---------------------------------------------------------------------------
 
   Future<void> _agregarFicha() async {
@@ -71,14 +69,17 @@ class _WebFichasAgregarScreenState
       _productosKey.currentState?.setState(() {}); // refresca productos
     } catch (e) {
       if (mounted) Navigator.of(context).pop(); // Cerrar loader
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al guardar la ficha: $e')),
-      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al guardar la ficha: $e')),
+        );
+      }
     }
   }
 
   // ---------------------------------------------------------------------------
-  // 🔹 BUILD
+  // BUILD
   // ---------------------------------------------------------------------------
 
   @override
@@ -116,11 +117,11 @@ class _WebFichasAgregarScreenState
                         ),
                         const SizedBox(height: 10),
 
-                        // 🔹 Botón "Agregar" centrado
+                        // Botón "Agregar" centrado
                         Align(
                           alignment: Alignment.center,
                           child: SizedBox(
-                            width: 250,
+                            width: 400,
                             child: CustomGradientButton(
                               text: TEXTO__editar_fichas_screen__boton__agregar,
                               onPressed: _agregarFicha,

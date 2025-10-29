@@ -1,77 +1,136 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
 import 'package:valen_market_admin/constants/fieldNames.dart';
 import 'package:valen_market_admin/constants/values.dart';
+import 'package:valen_market_admin/web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_text_field.dart';
 
-class CustomWebPopupEditarProducto extends StatefulWidget {
-  final Map<String, dynamic> productoCatalogo;
-  final int cantidadSeleccionada;
-  final void Function(Map<String, dynamic> resultado) onAceptar;
+class CustomWebPopupEditarProducto extends ConsumerStatefulWidget {
+  final String idProducto;
 
   const CustomWebPopupEditarProducto({
     super.key,
-    required this.productoCatalogo,
-    required this.cantidadSeleccionada,
-    required this.onAceptar,
+    required this.idProducto,
   });
 
   @override
-  State<CustomWebPopupEditarProducto> createState() =>
+  ConsumerState<CustomWebPopupEditarProducto> createState() =>
       _CustomWebPopupEditarProductoState();
 }
 
 class _CustomWebPopupEditarProductoState
-    extends State<CustomWebPopupEditarProducto> {
+    extends ConsumerState<CustomWebPopupEditarProducto> {
   late TextEditingController _precioController;
   late TextEditingController _cuotasController;
   late TextEditingController _precioCuotasController;
 
-  bool _relacionarVariables = true; // Checkbox activado por defecto
+  bool _relacionarVariables = true;
+  bool _productoCargado = false;
+  Map<String, dynamic>? _producto;
+
   final _formatter = NumberFormat("#,##0.##", "es_AR");
 
+  /* -------------------------------------------------------------------- */
+  /* Function: initState                                                  */
+  /* -------------------------------------------------------------------- */
+  /* Input: -                                                             */
+  /* Output: -                                                            */
+  /* -------------------------------------------------------------------- */
+  /* Description: Initialize the controllers and load the product data    */
+  /*  from fichaEnCursoProvider according to the received ID.             */
+  /* -------------------------------------------------------------------- */
   @override
   void initState() {
     super.initState();
 
-    final double precioInit = (widget.productoCatalogo[
-                FIELD_NAME__producto_ficha_model__Precio_Unitario] ??
-            widget.productoCatalogo[FIELD_NAME__catalogo__Precio_Unitario] ??
-            0)
-        .toDouble();
-    final int cuotasInit =
-        (widget.productoCatalogo[FIELD_NAME__catalogo__Cantidad_De_Cuotas] ?? 1)
-            as int;
-    final double precioCuotaInit = (widget.productoCatalogo[
-                FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas] ??
-            ((precioInit > 0 && cuotasInit > 0)
-                ? (precioInit / cuotasInit)
-                : 0.0))
-        .toDouble();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final fichaProvider = ref.read(fichaEnCursoProvider);
+      final producto = fichaProvider.obtenerProductoPorId(widget.idProducto);
 
-    _precioController =
-        TextEditingController(text: _formatter.format(precioInit));
-    _cuotasController = TextEditingController(text: cuotasInit.toString());
-    _precioCuotasController =
-        TextEditingController(text: _formatter.format(precioCuotaInit));
+      if (producto == null) {
+        debugPrint('No se encontró producto con ID: ${widget.idProducto}');
+        return;
+      }
+
+      _producto = Map<String, dynamic>.from(producto);
+
+      final double precioInit =
+          (_producto?[FIELD_NAME__producto_ficha_model__Precio_Unitario] ?? 0)
+              .toDouble();
+
+      final int cuotasInit =
+          (_producto?[FIELD_NAME__producto_ficha_model__Cantidad_De_Cuotas] ??
+                  1)
+              .toInt();
+
+      final double precioCuotaInit =
+          (_producto?[FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas] ??
+                  (cuotasInit > 0 ? precioInit / cuotasInit : 0))
+              .toDouble();
+
+      _precioController =
+          TextEditingController(text: _formatter.format(precioInit));
+      _cuotasController = TextEditingController(text: cuotasInit.toString());
+      _precioCuotasController =
+          TextEditingController(text: _formatter.format(precioCuotaInit));
+
+      setState(() {
+        _productoCargado = true;
+      });
+    });
   }
 
+  /* -------------------------------------------------------------------- */
+  /* Function: dispose                                                    */
+  /* -------------------------------------------------------------------- */
+  /* Input: -                                                             */
+  /* Output: -                                                            */
+  /* -------------------------------------------------------------------- */
+  /* Description: Dispose text controllers to free memory.                */
+  /* -------------------------------------------------------------------- */
   @override
   void dispose() {
-    _precioController.dispose();
-    _cuotasController.dispose();
-    _precioCuotasController.dispose();
+    if (_productoCargado) {
+      _precioController.dispose();
+      _cuotasController.dispose();
+      _precioCuotasController.dispose();
+    }
     super.dispose();
   }
 
+  /* -------------------------------------------------------------------- */
+  /* Function: _parseDouble                                               */
+  /* -------------------------------------------------------------------- */
+  /* Input: String                                                        */
+  /* Output: double                                                       */
+  /* -------------------------------------------------------------------- */
+  /* Description: Convert text to double safely, handling locale formats. */
+  /* -------------------------------------------------------------------- */
   double _parseDouble(String s) {
     return double.tryParse(s.replaceAll('.', '').replaceAll(',', '.')) ?? 0.0;
   }
 
+  /* -------------------------------------------------------------------- */
+  /* Function: _parseInt                                                  */
+  /* -------------------------------------------------------------------- */
+  /* Input: String                                                        */
+  /* Output: int                                                          */
+  /* -------------------------------------------------------------------- */
+  /* Description: Convert text to integer, removing invalid characters.   */
+  /* -------------------------------------------------------------------- */
   int _parseInt(String s) =>
       int.tryParse(s.replaceAll(RegExp(r'[^\d]'), '')) ?? 1;
 
+  /* -------------------------------------------------------------------- */
+  /* Function: _recalcularDesdePrecio                                     */
+  /* -------------------------------------------------------------------- */
+  /* Input: -                                                             */
+  /* Output: -                                                            */
+  /* -------------------------------------------------------------------- */
+  /* Description: Update cuota price when base price is modified.         */
+  /* -------------------------------------------------------------------- */
   void _recalcularDesdePrecio() {
     if (!_relacionarVariables) {
       setState(() {});
@@ -85,6 +144,14 @@ class _CustomWebPopupEditarProductoState
     setState(() {});
   }
 
+  /* -------------------------------------------------------------------- */
+  /* Function: _recalcularDesdeCuotas                                     */
+  /* -------------------------------------------------------------------- */
+  /* Input: -                                                             */
+  /* Output: -                                                            */
+  /* -------------------------------------------------------------------- */
+  /* Description: Update cuota price when cuota count changes.            */
+  /* -------------------------------------------------------------------- */
   void _recalcularDesdeCuotas() {
     if (!_relacionarVariables) {
       setState(() {});
@@ -98,6 +165,14 @@ class _CustomWebPopupEditarProductoState
     setState(() {});
   }
 
+  /* -------------------------------------------------------------------- */
+  /* Function: _recalcularDesdePrecioCuota                                */
+  /* -------------------------------------------------------------------- */
+  /* Input: -                                                             */
+  /* Output: -                                                            */
+  /* -------------------------------------------------------------------- */
+  /* Description: Update total price when cuota price is modified.        */
+  /* -------------------------------------------------------------------- */
   void _recalcularDesdePrecioCuota() {
     if (!_relacionarVariables) {
       setState(() {});
@@ -110,7 +185,23 @@ class _CustomWebPopupEditarProductoState
     setState(() {});
   }
 
+  /* -------------------------------------------------------------------- */
+  /* Function: _onAceptar                                                 */
+  /* -------------------------------------------------------------------- */
+  /* Input: -                                                             */
+  /* Output: -                                                            */
+  /* -------------------------------------------------------------------- */
+  /* Description: Save product changes into ficha provider.               */
+  /* -------------------------------------------------------------------- */
   void _onAceptar() {
+    if (!_productoCargado || _producto == null) {
+      debugPrint('Producto no cargado correctamente.');
+      Navigator.of(context).pop();
+      return;
+    }
+
+    final fichaProvider = ref.read(fichaEnCursoProvider);
+
     final nuevoPrecio = _parseDouble(_precioController.text);
     final nuevasCuotas = _parseInt(_cuotasController.text);
     double nuevoPrecioCuota = _parseDouble(_precioCuotasController.text);
@@ -119,25 +210,43 @@ class _CustomWebPopupEditarProductoState
       nuevoPrecioCuota = nuevoPrecio / nuevasCuotas;
     }
 
-    final resultado = <String, dynamic>{
-      'nuevoPrecioUnitario': nuevoPrecio,
-      'nuevaCantidadDeCuotas': nuevasCuotas,
-      'nuevoPrecioDeCuotas': nuevoPrecioCuota,
-    };
+    fichaProvider.actualizarProducto(widget.idProducto, {
+      FIELD_NAME__producto_ficha_model__Precio_Unitario: nuevoPrecio,
+      FIELD_NAME__producto_ficha_model__Cantidad_De_Cuotas: nuevasCuotas,
+      FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas: nuevoPrecioCuota,
+    });
 
-    widget.onAceptar(resultado);
-    Navigator.of(context).pop(resultado);
+    Navigator.of(context).pop();
   }
 
+  /* -------------------------------------------------------------------- */
+  /* Function: build                                                      */
+  /* -------------------------------------------------------------------- */
+  /* Input: BuildContext                                                  */
+  /* Output: Widget                                                       */
+  /* -------------------------------------------------------------------- */
+  /* Description: Build UI for editing product data in ficha.             */
+  /* -------------------------------------------------------------------- */
   @override
   Widget build(BuildContext context) {
+    if (!_productoCargado) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final fichaProvider = ref.watch(fichaEnCursoProvider);
+    final producto =
+        fichaProvider.obtenerProductoPorId(widget.idProducto) ?? {};
+
     final nombre =
-        widget.productoCatalogo[FIELD_NAME__catalogo__Nombre_Del_Producto] ??
+        producto[FIELD_NAME__producto_ficha_model__Nombre]?.toString() ??
             'Producto';
     final stock =
-        (widget.productoCatalogo[FIELD_NAME__catalogo__Stock] ?? 0).toInt();
+        (producto[FIELD_NAME__producto_ficha_model__Stock] ?? 0).toInt();
     final imageUrl =
-        widget.productoCatalogo[FIELD_NAME__catalogo__Link_De_La_Foto] ?? '';
+        producto[FIELD_NAME__producto_ficha_model__Link_De_La_Foto] ?? '';
+    final cantidadSeleccionada =
+        (producto[FIELD_NAME__producto_ficha_model__Unidades] ?? 0).toInt();
+
     final formatCurrency = NumberFormat.currency(locale: 'es_AR', symbol: '\$');
 
     return Dialog(
@@ -194,7 +303,6 @@ class _CustomWebPopupEditarProductoState
               ),
               const SizedBox(height: 20),
 
-              // Bloque de campos numéricos
               CustomTextField(
                 label: 'Precio unitario',
                 controller: _precioController,
@@ -262,7 +370,7 @@ class _CustomWebPopupEditarProductoState
                 final precio = _parseDouble(_precioController.text);
                 final cuotas = _parseInt(_cuotasController.text);
                 final precioCuota = _parseDouble(_precioCuotasController.text);
-                final total = precioCuota * widget.cantidadSeleccionada;
+                final total = precioCuota * cantidadSeleccionada;
 
                 return Container(
                   width: double.infinity,
@@ -274,8 +382,7 @@ class _CustomWebPopupEditarProductoState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                          'Unidades seleccionadas: ${widget.cantidadSeleccionada}',
+                      Text('Unidades seleccionadas: $cantidadSeleccionada',
                           style: const TextStyle(fontSize: 14)),
                       const SizedBox(height: 6),
                       Text('Precio unitario: ${formatCurrency.format(precio)}',

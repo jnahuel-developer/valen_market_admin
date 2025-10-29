@@ -22,30 +22,23 @@ class CustomWebFichaShopItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String nombre =
-        producto[FIELD_NAME__catalogo__Nombre_Del_Producto] ?? 'Producto';
+    final String nombre = producto[FIELD_NAME__producto_ficha_model__Nombre];
     final double precio =
-        ((producto[FIELD_NAME__producto_ficha_model__Precio_Unitario] ??
-                producto[FIELD_NAME__producto_ficha_model__Precio_Unitario] ??
-                0))
-            .toDouble();
-    final int stock = (producto[FIELD_NAME__catalogo__Stock] ?? 0).toInt();
+        producto[FIELD_NAME__producto_ficha_model__Precio_Unitario].toDouble();
+    final int stock = producto[FIELD_NAME__producto_ficha_model__Stock].toInt();
     final String imageUrl =
-        producto[FIELD_NAME__catalogo__Link_De_La_Foto] ?? '';
+        producto[FIELD_NAME__producto_ficha_model__Link_De_La_Foto] ?? '';
 
     final String precioFormateado =
         NumberFormat('#,###', 'es_AR').format(precio);
 
     // calcular precio por cuota: primero mirar si producto en ficha trajo precioDeLasCuotas
     final double precioCuota =
-        ((producto[FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas] ??
-                ((producto[FIELD_NAME__producto_ficha_model__Precio_Unitario] ??
-                        0) /
-                    (producto[FIELD_NAME__catalogo__Cantidad_De_Cuotas] ?? 1))))
+        producto[FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas]
             .toDouble();
 
     final int cuotas =
-        (producto[FIELD_NAME__catalogo__Cantidad_De_Cuotas] ?? 1);
+        producto[FIELD_NAME__producto_ficha_model__Cantidad_De_Cuotas];
 
     final String precioCuotaFormateado =
         NumberFormat('#,###', 'es_AR').format(precioCuota);

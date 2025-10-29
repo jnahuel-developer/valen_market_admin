@@ -68,7 +68,7 @@ class WebHomeScreen extends ConsumerWidget {
                             TEXTO__home_screen__boton__buscar_ficha,
                             TEXTO__home_screen__boton__editar_ficha,
                           ], [
-                            // 🔹 Agregar ficha
+                            // Agregar ficha
                             () {
                               ref
                                   .read(fichaEnCursoProvider.notifier)
@@ -76,7 +76,7 @@ class WebHomeScreen extends ConsumerWidget {
                               Navigator.pushNamed(
                                   context, PANTALLA_WEB__Fichas__Agregar);
                             },
-                            // 🔹 Buscar ficha
+                            // Buscar ficha
                             () {
                               ref
                                   .read(fichaEnCursoProvider.notifier)
@@ -84,7 +84,7 @@ class WebHomeScreen extends ConsumerWidget {
                               Navigator.pushNamed(
                                   context, PANTALLA_WEB__Fichas__Buscar);
                             },
-                            // 🔹 Editar ficha (usa la misma pantalla de búsqueda)
+                            // Editar ficha (usa la misma pantalla de búsqueda)
                             () {
                               ref
                                   .read(fichaEnCursoProvider.notifier)

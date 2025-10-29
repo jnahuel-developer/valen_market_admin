@@ -47,7 +47,6 @@ class CustomWebClienteSectionState
   // ---------------------- CARGA INICIAL ----------------------
   Future<void> _cargarClientesDesdeFirebase() async {
     try {
-      debugPrint('🔹 Cargando lista de clientes desde Firebase...');
       final lista = await ClientesServiciosFirebase.obtenerTodosLosClientes();
       setState(() {
         _clientes = lista;
@@ -60,7 +59,6 @@ class CustomWebClienteSectionState
       final idFicha = clienteFicha[FIELD_NAME__cliente_ficha_model__ID];
 
       if (idFicha != null && idFicha.toString().isNotEmpty) {
-        debugPrint('🔹 Ficha tiene cliente preexistente: ID=$idFicha');
         final clienteCoincidente = lista.firstWhere(
           (c) =>
               c[FIELD_NAME__cliente_ficha_model__ID].toString() ==
@@ -69,7 +67,6 @@ class CustomWebClienteSectionState
         );
         if (clienteCoincidente.isNotEmpty) {
           final nombreCompleto = _formatNombreCompleto(clienteCoincidente);
-          debugPrint('🔹 Seleccionando cliente en dropdown: $nombreCompleto');
           setState(() {
             _clienteSeleccionadoNombreCompleto = nombreCompleto;
             _nombreCtrl.text = _capitalizar(
@@ -82,13 +79,12 @@ class CustomWebClienteSectionState
         }
       }
     } catch (e) {
-      debugPrint('❌ Error al cargar clientes: $e');
+      debugPrint('Error al cargar clientes: $e');
     }
   }
 
   // ---------------------- FILTROS ----------------------
   void _aplicarFiltros() {
-    debugPrint('🔹 Aplicando filtros...');
     var filtrados = _clientes;
 
     if (_filterNombre && _textoNombreFiltro.isNotEmpty) {
@@ -121,8 +117,6 @@ class CustomWebClienteSectionState
     setState(() {
       _clientesFiltrados = filtrados;
     });
-
-    debugPrint('🔹 Clientes filtrados: ${_clientesFiltrados.length}');
   }
 
   // ---------------------- SELECCIÓN ----------------------
@@ -137,8 +131,6 @@ class CustomWebClienteSectionState
 
   void _onDropdownChanged(String? nombreCompleto) {
     if (nombreCompleto == null) return;
-
-    debugPrint('🔹 Cliente seleccionado: $nombreCompleto');
 
     final clienteMap = _clientesFiltrados.firstWhere(
       (c) => _formatNombreCompleto(c) == nombreCompleto,
@@ -168,11 +160,7 @@ class CustomWebClienteSectionState
         FIELD_NAME__cliente_ficha_model__Telefono:
             clienteMap[FIELD_NAME__cliente_ficha_model__Telefono] ?? '',
       };
-
-      debugPrint('🔹 Enviando cliente al provider: $mapToEnviar');
       ref.read(fichaEnCursoProvider.notifier).actualizarCliente(mapToEnviar);
-    } else {
-      debugPrint('⚠️ No se encontró coincidencia para $nombreCompleto');
     }
   }
 
@@ -203,9 +191,6 @@ class CustomWebClienteSectionState
 
     if (!_filterNombre) _nombreCtrl.text = _capitalizar(nombre);
     if (!_filterApellido) _apellidoCtrl.text = _capitalizar(apellido);
-
-    debugPrint(
-        '🔹 Construyendo UI de cliente. Cliente actual en ficha: $cliente');
 
     return CustomWebBloqueConTitulo(
       titulo: 'Datos del cliente',

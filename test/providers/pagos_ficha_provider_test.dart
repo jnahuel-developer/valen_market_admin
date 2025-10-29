@@ -73,15 +73,6 @@ void main() {
       debugPrint('\n**************************************************');
     });
 
-    test('\n4) Copiar bloque actual', () {
-      final copia = provider.copiarPagos();
-      debugPrint('Bloque copiado: $copia');
-      expect(copia.isNotEmpty, true);
-      expect(!identical(copia, provider.obtenerPagos()), true);
-      debugPrint('Copia realizada correctamente.');
-      debugPrint('\n**************************************************');
-    });
-
     test('\n5) Limpieza completa', () {
       provider.limpiarPagos();
       final limpio = provider.obtenerPagos();

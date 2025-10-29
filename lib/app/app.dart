@@ -8,7 +8,7 @@ import 'package:valen_market_admin/web_flow/features/dropbox/screens/web_dropbox
 import 'package:valen_market_admin/web_flow/features/dropbox/screens/web_dropbox_check_screen.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/screens/web_fichas_agregar_screen.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/screens/web_fichas_buscar_screen.dart';
-import 'package:valen_market_admin/web_flow/features/fichas/screens/web_fichas_editar_eliminar_screen.dart';
+import 'package:valen_market_admin/web_flow/features/fichas/screens/web_fichas_editar_screen.dart';
 import 'package:valen_market_admin/web_flow/features/login/screens/web_login_email_password_screen.dart';
 import 'package:valen_market_admin/web_flow/features/login/screens/web_login_screen.dart';
 import 'package:valen_market_admin/web_flow/features/login/screens/web_register_screen.dart';

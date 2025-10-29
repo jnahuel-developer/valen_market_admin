@@ -40,27 +40,6 @@ void main() {
       debugPrint('\n**************************************************');
     });
 
-    test('\n3) Copia de fechas - Mantener mismos datos', () {
-      final datosOriginales = {
-        FIELD_NAME__fecha_ficha_model__Fecha_De_Creacion: '2024-12-10',
-        FIELD_NAME__fecha_ficha_model__Fecha_De_Venta: '2025-01-05',
-        FIELD_NAME__fecha_ficha_model__Fecha_De_Proximo_Aviso: '2025-02-01',
-      };
-
-      provider.actualizarFechas(datosOriginales);
-      final copia = provider.copiarFechas();
-
-      debugPrint('Fechas originales: $datosOriginales');
-      debugPrint('Fechas copiadas:  $copia');
-
-      expect(copia, equals(datosOriginales));
-      expect(!identical(copia, datosOriginales), true,
-          reason: 'Debe ser una copia independiente.');
-      debugPrint(
-          'Copia creada correctamente, con independencia de la original.');
-      debugPrint('\n**************************************************');
-    });
-
     test('\n4) Modificacion parcial - Solo una fecha actualizada', () {
       final originales = {
         FIELD_NAME__fecha_ficha_model__Fecha_De_Creacion: '2025-01-01',

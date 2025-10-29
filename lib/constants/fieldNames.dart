@@ -102,4 +102,12 @@ const String FIELD_NAME__producto_ficha_model__Precio_Unitario =
     FIELD_NAME__catalogo__Precio_Unitario;
 const String FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas =
     FIELD_NAME__catalogo__Precio_De_Las_Cuotas;
+const String FIELD_NAME__producto_ficha_model__Cantidad_De_Cuotas =
+    FIELD_NAME__catalogo__Cantidad_De_Cuotas;
 const String FIELD_NAME__producto_ficha_model__Unidades = 'Unidades';
+
+const String FIELD_NAME__producto_ficha_model__Stock =
+    FIELD_NAME__catalogo__Stock;
+
+const String FIELD_NAME__producto_ficha_model__Link_De_La_Foto =
+    FIELD_NAME__catalogo__Link_De_La_Foto;

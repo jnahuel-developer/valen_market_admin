@@ -6,6 +6,7 @@ class ProductoFichaModel {
   final num precioUnitario;
   final num precioDeLasCuotas;
   final int unidades;
+  final int cantidadDeCuotas;
 
   ProductoFichaModel({
     required this.id,
@@ -13,6 +14,7 @@ class ProductoFichaModel {
     required this.precioUnitario,
     required this.precioDeLasCuotas,
     required this.unidades,
+    required this.cantidadDeCuotas,
   });
 
   factory ProductoFichaModel.fromMap(Map<String, dynamic> data) {
@@ -26,6 +28,8 @@ class ProductoFichaModel {
       unidades: int.tryParse(
               '${data[FIELD_NAME__producto_ficha_model__Unidades] ?? 0}') ??
           0,
+      cantidadDeCuotas:
+          (data[FIELD_NAME__producto_ficha_model__Cantidad_De_Cuotas] ?? 0),
     );
   }
 
@@ -36,6 +40,7 @@ class ProductoFichaModel {
       FIELD_NAME__producto_ficha_model__Precio_Unitario: precioUnitario,
       FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas: precioDeLasCuotas,
       FIELD_NAME__producto_ficha_model__Unidades: unidades,
+      FIELD_NAME__producto_ficha_model__Cantidad_De_Cuotas: cantidadDeCuotas,
     };
   }
 
@@ -45,6 +50,7 @@ class ProductoFichaModel {
         precioUnitario: 0,
         precioDeLasCuotas: 0,
         unidades: 0,
+        cantidadDeCuotas: 0,
       );
 
   ProductoFichaModel copyWith(Map<String, dynamic> cambios) {
@@ -58,6 +64,9 @@ class ProductoFichaModel {
           cambios[FIELD_NAME__producto_ficha_model__Precio_De_Las_Cuotas] ??
               precioDeLasCuotas,
       unidades: cambios[FIELD_NAME__producto_ficha_model__Unidades] ?? unidades,
+      cantidadDeCuotas:
+          cambios[FIELD_NAME__producto_ficha_model__Cantidad_De_Cuotas] ??
+              cantidadDeCuotas,
     );
   }
 }

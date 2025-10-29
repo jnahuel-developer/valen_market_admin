@@ -36,7 +36,9 @@ const String TEXTO__home_screen__bloque__estadisticas = 'ESTADÍSTICAS';
 // Bloque de acciones para el menu de promociones
 const String TEXTO__home_screen__bloque__promociones = 'PROMOCIONES';
 
-//
+/* **************************************************************************** */
+/* **************************************************************************** */
+/* **************************************************************************** */
 
 // Pantalla Agregar clientes
 const String TEXTO__agregar_clientes_screen__titulo = 'AGREGAR CLIENTE';
@@ -55,10 +57,18 @@ const String TEXTO__agregar_clientes_screen__snackbar__datos_invalidos =
 const String TEXTO__agregar_clientes_screen__snackbar__error_al_guardar =
     'ERROR AL GUARDAR';
 
+/* **************************************************************************** */
+/* **************************************************************************** */
+/* **************************************************************************** */
+
 // Pantallas de fichas
 const String TEXTO__fichas_screen__campo__fecha_label = '¿Hoy?';
 const String TEXTO__fichas_screen__campo__fecha_placeholder =
     'Seleccioná una fecha anterior';
+
+/* **************************************************************************** */
+/* **************************************************************************** */
+/* **************************************************************************** */
 
 // Widgets de fichas
 const String TEXTO__frecuencia_aviso_widget__campo__titulo =
@@ -73,12 +83,23 @@ const String TEXTO__fichas_fechas_widget__campo__label = '¿Vendida hoy?';
 const String TEXTO__fichas_fechas_widget__campo__seleccionar_fecha =
     'Seleccionar fecha';
 
-//
+// Widgets de fichas
+const String TEXTO__custom_web_ficha_productos_section__titulo = 'Productos';
+const String TEXTO__custom_web_ficha_productos_section__campo__sin_productos =
+    'No hay productos disponibles';
+
+/* **************************************************************************** */
+/* **************************************************************************** */
+/* **************************************************************************** */
 
 // Pantalla Editar fichas
 const String TEXTO__agregar_fichas_screen__titulo = 'Agregar ficha';
 const String TEXTO__editar_fichas_screen__boton__agregar = 'Agregar';
 const String TEXTO__editar_fichas_screen__boton__buscar = 'Buscar';
+
+/* **************************************************************************** */
+/* **************************************************************************** */
+/* **************************************************************************** */
 
 // Pantalla Editar fichas
 const String TEXTO__editar_fichas_screen__titulo = 'Ficha seleccionada';
@@ -101,6 +122,10 @@ const String TEXTO__editar_fichas_screen__mensaje__ficha_eliminada =
     'Ficha eliminada exitosamente';
 const String TEXTO__editar_fichas_screen__mensaje__pago_registrado =
     'Pago registrado correctamente';
+
+/* **************************************************************************** */
+/* **************************************************************************** */
+/* **************************************************************************** */
 
 // Pantalla Editar fichas
 const String TEXTO__resultados_widget__criterio__cliente_seleccionado =

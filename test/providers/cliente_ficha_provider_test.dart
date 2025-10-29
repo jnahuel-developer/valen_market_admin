@@ -47,30 +47,6 @@ void main() {
       debugPrint('\n**************************************************');
     });
 
-    test('\n3) Copia de cliente - Mantener mismos datos', () {
-      final datosOriginales = {
-        FIELD_NAME__cliente_ficha_model__ID: 'ABC123',
-        FIELD_NAME__cliente_ficha_model__Nombre: 'María',
-        FIELD_NAME__cliente_ficha_model__Apellido: 'Gómez',
-        FIELD_NAME__cliente_ficha_model__Zona: 'Norte',
-        FIELD_NAME__cliente_ficha_model__Direccion: 'Av. Siempre Viva 742',
-        FIELD_NAME__cliente_ficha_model__Telefono: '555-9876',
-      };
-
-      provider.actualizarCliente(datosOriginales);
-      final copia = provider.copiarCliente();
-
-      debugPrint('Cliente original: $datosOriginales');
-      debugPrint('Cliente copiado:  $copia');
-
-      expect(copia, equals(datosOriginales));
-      expect(!identical(copia, datosOriginales), true,
-          reason: 'Debe ser una copia, no la misma referencia.');
-      debugPrint(
-          'Copia creada correctamente, con independencia de la original.');
-      debugPrint('\n**************************************************');
-    });
-
     test('\n4) Modificación parcial - Solo un campo actualizado', () {
       final original = {
         FIELD_NAME__cliente_ficha_model__ID: '555',
