@@ -1,21 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:valen_market_admin/constants/fieldNames.dart';
+import 'package:valen_market_admin/constants/zonas_disponibles.dart';
 import 'package:valen_market_admin/web_flow/features/fichas/provider/ficha_en_curso_provider.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_bloque_con_titulo.dart';
-import 'package:valen_market_admin/web_flow/widgets/custom_web_campo_con_checkbox_dropdown.dart';
-import 'package:valen_market_admin/web_flow/widgets/custom_web_campo_con_checkbox_textfield.dart';
-import 'package:valen_market_admin/web_flow/widgets/custom_web_campo_sin_checkbox_textfield.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_dropdown_clientes.dart';
-import 'package:valen_market_admin/constants/zonas_disponibles.dart';
+import 'package:valen_market_admin/web_flow/widgets/custom_web_campo_con_checkbox_textfield.dart';
+import 'package:valen_market_admin/web_flow/widgets/custom_web_campo_con_checkbox_dropdown.dart';
+import 'package:valen_market_admin/web_flow/widgets/custom_web_campo_sin_checkbox_textfield.dart';
 import 'package:valen_market_admin/services/firebase/clientes_servicios_firebase.dart';
 
 class CustomWebClienteSection extends ConsumerStatefulWidget {
-  final Map<String, dynamic>? clienteCargado;
-
-  const CustomWebClienteSection({
-    super.key,
-    this.clienteCargado,
-  });
+  const CustomWebClienteSection({super.key});
 
   @override
   ConsumerState<CustomWebClienteSection> createState() =>
@@ -24,131 +20,178 @@ class CustomWebClienteSection extends ConsumerStatefulWidget {
 
 class CustomWebClienteSectionState
     extends ConsumerState<CustomWebClienteSection> {
-  String? _clienteSeleccionado;
-  String? _zonaSeleccionada;
-
-  final TextEditingController _nombreController = TextEditingController();
-  final TextEditingController _apellidoController = TextEditingController();
-  final TextEditingController _direccionController = TextEditingController();
-  final TextEditingController _telefonoController = TextEditingController();
-
-  bool _nombreEditable = false;
-  bool _apellidoEditable = false;
-  bool _zonaEditable = false;
-
+  // Estado local
   List<Map<String, dynamic>> _clientes = [];
   List<Map<String, dynamic>> _clientesFiltrados = [];
+
+  // Filtros
+  bool _filterNombre = false;
+  bool _filterApellido = false;
+  bool _filterZona = false;
+
+  String _textoNombreFiltro = '';
+  String _textoApellidoFiltro = '';
+  String? _zonaFiltro;
+
+  String? _clienteSeleccionadoNombreCompleto;
+
+  final TextEditingController _nombreCtrl = TextEditingController();
+  final TextEditingController _apellidoCtrl = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _cargarClientes();
-    _inicializarDesdeProvider();
+    _cargarClientesDesdeFirebase();
   }
 
-  void _inicializarDesdeProvider() {
-    ref.read(fichaEnCursoProvider);
-  }
-
-  Future<void> _cargarClientes() async {
+  // ---------------------- CARGA INICIAL ----------------------
+  Future<void> _cargarClientesDesdeFirebase() async {
     try {
-      final clientes =
-          await ClientesServiciosFirebase.obtenerTodosLosClientes();
+      final lista = await ClientesServiciosFirebase.obtenerTodosLosClientes();
       setState(() {
-        _clientes = clientes;
+        _clientes = lista;
         _aplicarFiltros();
       });
 
-      if (widget.clienteCargado != null) {
-        _cargarCliente(widget.clienteCargado!);
+      // Si la ficha actual tiene datos, preseleccionar el cliente
+      final ficha = ref.read(fichaEnCursoProvider);
+      final clienteFicha = ficha.obtenerCliente();
+      final idFicha = clienteFicha[FIELD_NAME__cliente_ficha_model__ID];
+
+      if (idFicha != null && idFicha.toString().isNotEmpty) {
+        final clienteCoincidente = lista.firstWhere(
+          (c) =>
+              c[FIELD_NAME__cliente_ficha_model__ID].toString() ==
+              idFicha.toString(),
+          orElse: () => {},
+        );
+        if (clienteCoincidente.isNotEmpty) {
+          final nombreCompleto = _formatNombreCompleto(clienteCoincidente);
+          setState(() {
+            _clienteSeleccionadoNombreCompleto = nombreCompleto;
+            _nombreCtrl.text = _capitalizar(
+                clienteCoincidente[FIELD_NAME__cliente_ficha_model__Nombre] ??
+                    '');
+            _apellidoCtrl.text = _capitalizar(
+                clienteCoincidente[FIELD_NAME__cliente_ficha_model__Apellido] ??
+                    '');
+          });
+        }
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Error al cargar clientes: $e');
+    }
   }
 
-  void _seleccionarCliente(String? value) async {
-    if (value == null) return;
+  // ---------------------- FILTROS ----------------------
+  void _aplicarFiltros() {
+    var filtrados = _clientes;
 
-    final cliente = _clientesFiltrados.firstWhere(
-      (c) => _formatNombreCompleto(c) == value,
+    if (_filterNombre && _textoNombreFiltro.isNotEmpty) {
+      filtrados = filtrados.where((c) {
+        final nombre = (c[FIELD_NAME__cliente_ficha_model__Nombre] ?? '')
+            .toString()
+            .toLowerCase();
+        return nombre.contains(_textoNombreFiltro.toLowerCase());
+      }).toList();
+    }
+
+    if (_filterApellido && _textoApellidoFiltro.isNotEmpty) {
+      filtrados = filtrados.where((c) {
+        final apellido = (c[FIELD_NAME__cliente_ficha_model__Apellido] ?? '')
+            .toString()
+            .toLowerCase();
+        return apellido.contains(_textoApellidoFiltro.toLowerCase());
+      }).toList();
+    }
+
+    if (_filterZona && _zonaFiltro != null && _zonaFiltro!.isNotEmpty) {
+      filtrados = filtrados.where((c) {
+        final zona = (c[FIELD_NAME__cliente_ficha_model__Zona] ?? '')
+            .toString()
+            .toLowerCase();
+        return zona == _zonaFiltro!.toLowerCase();
+      }).toList();
+    }
+
+    setState(() {
+      _clientesFiltrados = filtrados;
+    });
+  }
+
+  // ---------------------- SELECCIÓN ----------------------
+  String _formatNombreCompleto(Map<String, dynamic> c) {
+    final n = (c[FIELD_NAME__cliente_ficha_model__Nombre] ?? '').toString();
+    final a = (c[FIELD_NAME__cliente_ficha_model__Apellido] ?? '').toString();
+    return '${_capitalizar(n)} ${_capitalizar(a)}'.trim();
+  }
+
+  String _capitalizar(String s) =>
+      s.isEmpty ? '' : s[0].toUpperCase() + s.substring(1).toLowerCase();
+
+  void _onDropdownChanged(String? nombreCompleto) {
+    if (nombreCompleto == null) return;
+
+    final clienteMap = _clientesFiltrados.firstWhere(
+      (c) => _formatNombreCompleto(c) == nombreCompleto,
       orElse: () => {},
     );
 
-    if (cliente.isNotEmpty) {
-      _cargarCliente(cliente);
-      ref.read(fichaEnCursoProvider.notifier).actualizarDatosCliente(
-            uidCliente: cliente['id'] ?? '',
-            nombre: cliente['Nombre'] ?? '',
-            apellido: cliente['Apellido'] ?? '',
-            zona: cliente['Zona'] ?? '',
-            direccion: cliente['Dirección'] ?? '',
-            telefono: cliente['Teléfono'] ?? '',
-          );
+    if (clienteMap.isNotEmpty) {
+      setState(() {
+        _clienteSeleccionadoNombreCompleto = nombreCompleto;
+        _nombreCtrl.text = _capitalizar(
+            clienteMap[FIELD_NAME__cliente_ficha_model__Nombre] ?? '');
+        _apellidoCtrl.text = _capitalizar(
+            clienteMap[FIELD_NAME__cliente_ficha_model__Apellido] ?? '');
+      });
+
+      final mapToEnviar = {
+        FIELD_NAME__cliente_ficha_model__ID:
+            clienteMap[FIELD_NAME__cliente_ficha_model__ID] ?? '',
+        FIELD_NAME__cliente_ficha_model__Nombre:
+            clienteMap[FIELD_NAME__cliente_ficha_model__Nombre] ?? '',
+        FIELD_NAME__cliente_ficha_model__Apellido:
+            clienteMap[FIELD_NAME__cliente_ficha_model__Apellido] ?? '',
+        FIELD_NAME__cliente_ficha_model__Zona:
+            clienteMap[FIELD_NAME__cliente_ficha_model__Zona] ?? '',
+        FIELD_NAME__cliente_ficha_model__Direccion:
+            clienteMap[FIELD_NAME__cliente_ficha_model__Direccion] ?? '',
+        FIELD_NAME__cliente_ficha_model__Telefono:
+            clienteMap[FIELD_NAME__cliente_ficha_model__Telefono] ?? '',
+      };
+      ref.read(fichaEnCursoProvider.notifier).actualizarCliente(mapToEnviar);
     }
   }
 
-  void _cargarCliente(Map<String, dynamic> cliente) {
-    setState(() {
-      _clienteSeleccionado = _formatNombreCompleto(cliente);
-      _nombreController.text = cliente['Nombre'] ?? '';
-      _apellidoController.text = cliente['Apellido'] ?? '';
-      _zonaSeleccionada = cliente['Zona'] ?? '';
-      _direccionController.text = cliente['Dirección'] ?? '';
-      _telefonoController.text = cliente['Teléfono'] ?? '';
-    });
+  void _onNombreFiltroChanged(String nuevo) {
+    _textoNombreFiltro = _capitalizar(nuevo.trim());
+    _aplicarFiltros();
   }
 
-  void _aplicarFiltros() {
-    var filtrados = _clientes;
-    if (_nombreEditable && _nombreController.text.isNotEmpty) {
-      filtrados = filtrados
-          .where((c) =>
-              (c['Nombre'] as String).toLowerCase() ==
-              _nombreController.text.toLowerCase())
-          .toList();
-    }
-    if (_apellidoEditable && _apellidoController.text.isNotEmpty) {
-      filtrados = filtrados
-          .where((c) =>
-              (c['Apellido'] as String).toLowerCase() ==
-              _apellidoController.text.toLowerCase())
-          .toList();
-    }
-    if (_zonaEditable && _zonaSeleccionada != null) {
-      filtrados = filtrados
-          .where((c) =>
-              (c['Zona'] as String).toLowerCase() ==
-              _zonaSeleccionada!.toLowerCase())
-          .toList();
-    }
-    setState(() => _clientesFiltrados = filtrados);
+  void _onApellidoFiltroChanged(String nuevo) {
+    _textoApellidoFiltro = _capitalizar(nuevo.trim());
+    _aplicarFiltros();
   }
 
-  String _formatNombreCompleto(Map<String, dynamic> cliente) {
-    String nombre = cliente['Nombre'] ?? '';
-    String apellido = cliente['Apellido'] ?? '';
-    return '${_capitalizar(nombre)} ${_capitalizar(apellido)}';
+  void _onZonaFiltroChanged(String? zona) {
+    _zonaFiltro = zona;
+    _aplicarFiltros();
   }
 
-  String _capitalizar(String texto) =>
-      texto.isEmpty ? texto : texto[0].toUpperCase() + texto.substring(1);
-
-  void resetear() {
-    setState(() {
-      _clienteSeleccionado = null;
-      _zonaSeleccionada = null;
-      _nombreController.clear();
-      _apellidoController.clear();
-      _direccionController.clear();
-      _telefonoController.clear();
-      _nombreEditable = false;
-      _apellidoEditable = false;
-      _zonaEditable = false;
-      _clientesFiltrados = _clientes;
-    });
-  }
-
+  // ---------------------- UI ----------------------
   @override
   Widget build(BuildContext context) {
+    final ficha = ref.watch(fichaEnCursoProvider);
+    final cliente = ficha.obtenerCliente();
+
+    final nombre = cliente[FIELD_NAME__cliente_ficha_model__Nombre] ?? '';
+    final apellido = cliente[FIELD_NAME__cliente_ficha_model__Apellido] ?? '';
+    final zona = cliente[FIELD_NAME__cliente_ficha_model__Zona];
+
+    if (!_filterNombre) _nombreCtrl.text = _capitalizar(nombre);
+    if (!_filterApellido) _apellidoCtrl.text = _capitalizar(apellido);
+
     return CustomWebBloqueConTitulo(
       titulo: 'Datos del cliente',
       child: Column(
@@ -156,59 +199,63 @@ class CustomWebClienteSectionState
         children: [
           CustomWebDropdownClientes(
             clientes: _clientesFiltrados.map(_formatNombreCompleto).toList(),
-            clienteSeleccionado: _clienteSeleccionado,
-            onChanged: _seleccionarCliente,
+            clienteSeleccionado: _clienteSeleccionadoNombreCompleto,
+            onChanged: _onDropdownChanged,
           ),
           const SizedBox(height: 20),
+
           CustomWebCampoConCheckboxTextField(
-            label: 'Nombre',
-            controller: _nombreController,
-            isEditable: _nombreEditable,
+            label: FIELD_NAME__cliente_ficha_model__Nombre,
+            controller: _nombreCtrl,
+            isEditable: _filterNombre,
             onCheckboxChanged: (v) {
-              setState(() => _nombreEditable = v);
+              setState(() => _filterNombre = v);
               _aplicarFiltros();
             },
-            onTextChanged: (_) {
-              if (_nombreEditable) _aplicarFiltros();
+            onTextChanged: (s) {
+              if (_filterNombre) _onNombreFiltroChanged(s);
             },
           ),
           const SizedBox(height: 20),
+
           CustomWebCampoConCheckboxTextField(
-            label: 'Apellido',
-            controller: _apellidoController,
-            isEditable: _apellidoEditable,
+            label: FIELD_NAME__cliente_ficha_model__Apellido,
+            controller: _apellidoCtrl,
+            isEditable: _filterApellido,
             onCheckboxChanged: (v) {
-              setState(() => _apellidoEditable = v);
+              setState(() => _filterApellido = v);
               _aplicarFiltros();
             },
-            onTextChanged: (_) {
-              if (_apellidoEditable) _aplicarFiltros();
+            onTextChanged: (s) {
+              if (_filterApellido) _onApellidoFiltroChanged(s);
             },
           ),
           const SizedBox(height: 20),
+
           CustomWebCampoConCheckboxDropdown(
-            label: 'Zona',
+            label: FIELD_NAME__cliente_ficha_model__Zona,
             options: zonasDisponibles,
-            selectedOption: _zonaSeleccionada,
-            isEditable: _zonaEditable,
+            selectedOption: zona,
+            isEditable: _filterZona,
             onCheckboxChanged: (v) {
-              setState(() => _zonaEditable = v);
+              setState(() => _filterZona = v);
               _aplicarFiltros();
             },
-            onChanged: (v) {
-              setState(() => _zonaSeleccionada = v);
-              if (_zonaEditable) _aplicarFiltros();
-            },
+            onChanged: _onZonaFiltroChanged,
           ),
           const SizedBox(height: 20),
-          CustomWebCampoSinCheckboxTextField(
-            label: 'Dirección',
-            controller: _direccionController,
+
+          // Dirección
+          const CustomWebCampoSinCheckboxTextField(
+            label: FIELD_NAME__cliente_ficha_model__Direccion,
+            isDireccion: true,
           ),
           const SizedBox(height: 20),
-          CustomWebCampoSinCheckboxTextField(
-            label: 'Teléfono',
-            controller: _telefonoController,
+
+          // Teléfono
+          const CustomWebCampoSinCheckboxTextField(
+            label: FIELD_NAME__cliente_ficha_model__Telefono,
+            isDireccion: false,
           ),
         ],
       ),

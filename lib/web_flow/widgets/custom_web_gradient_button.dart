@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:valen_market_admin/constants/app_colors.dart';
+import 'package:valen_market_admin/constants/values.dart';
 
 class CustomGradientButton extends StatelessWidget {
   final String text;
@@ -22,14 +23,15 @@ class CustomGradientButton extends StatelessWidget {
       height: height,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
           colors: [
-            WebColors.plataClara,
-            WebColors.plataOscura,
+            WebColors.fondoEtiquetaBloque,
+            WebColors.fondoEtiquetaBloque,
           ],
         ),
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(
+            VALUE__general_widget__campo__big_border_radius),
         border: Border.all(
           color: WebColors.bordeRosa,
           width: 2,
@@ -41,7 +43,8 @@ class CustomGradientButton extends StatelessWidget {
           shadowColor: Colors.transparent,
           foregroundColor: WebColors.textoRosa,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: BorderRadius.circular(
+                VALUE__general_widget__campo__big_border_radius),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 20),
           textStyle: const TextStyle(
@@ -50,7 +53,35 @@ class CustomGradientButton extends StatelessWidget {
           ),
         ),
         onPressed: onPressed,
-        child: Text(text),
+        child: Stack(
+          children: [
+            // Contorno negro del texto (stroke)
+            Text(
+              text,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 20,
+                letterSpacing: 3,
+                fontWeight: FontWeight.bold,
+                foreground: Paint()
+                  ..style = PaintingStyle.stroke
+                  ..strokeWidth = 2.5
+                  ..color = WebColors.bordeNegro,
+              ),
+            ),
+            // Texto relleno rosa con sombra
+            Text(
+              text,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 20,
+                letterSpacing: 3,
+                fontWeight: FontWeight.bold,
+                color: WebColors.blanco,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

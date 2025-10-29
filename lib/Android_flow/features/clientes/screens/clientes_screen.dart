@@ -27,7 +27,7 @@ class ClientesScreen extends StatelessWidget {
           ),
 
           // Menu superior
-          const CustomTopBar(title: TEXTO_ES__home_screen__bloque__clientes),
+          const CustomTopBar(title: TEXTO__home_screen__bloque__clientes),
 
           // Cuerpo principal con botones de accion
           Positioned.fill(
@@ -38,7 +38,7 @@ class ClientesScreen extends StatelessWidget {
                 CustomHomeButton(
                     iconPath: AppAssets.iconAdd,
                     fieldKey: KEY__clientes_screen__boton__agregar_cliente,
-                    text: TEXTO_ES__home_screen__boton__agregar_cliente,
+                    text: TEXTO__home_screen__boton__agregar_cliente,
                     onTap: () {
                       Navigator.pushNamed(
                           context, PANTALLA__Clientes__AgregarCliente);
@@ -51,7 +51,7 @@ class ClientesScreen extends StatelessWidget {
                 CustomHomeButton(
                   iconPath: AppAssets.iconSearch,
                   fieldKey: KEY__clientes_screen__boton__buscar_cliente,
-                  text: TEXTO_ES__home_screen__boton__ver_clientes,
+                  text: TEXTO__home_screen__boton__ver_clientes,
                   onTap: () {
                     Navigator.pushNamed(
                         context, PANTALLA__Clientes__BuscarCliente);

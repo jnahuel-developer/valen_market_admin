@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
+import 'package:valen_market_admin/constants/fieldNames.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_agregar_producto_bloque.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_text_field.dart';
 import 'package:valen_market_admin/web_flow/widgets/custom_web_gradient_button.dart';
@@ -166,7 +167,7 @@ class _WebAgregarProductoScreenState extends State<WebAgregarProductoScreen> {
                           child: Column(
                             children: [
                               CustomTextField(
-                                label: 'Precio',
+                                label: FIELD_NAME__catalogo__Precio_Unitario,
                                 controller: _precioController,
                                 isRequired: true,
                                 isMoney: true,
@@ -179,7 +180,7 @@ class _WebAgregarProductoScreenState extends State<WebAgregarProductoScreen> {
                                   isRequired: true),
                               const SizedBox(height: 15),
                               CustomTextField(
-                                  label: 'Stock',
+                                  label: FIELD_NAME__catalogo__Stock,
                                   controller: _stockController,
                                   keyboardType: TextInputType.number,
                                   isRequired: true),

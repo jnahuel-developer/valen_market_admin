@@ -1,0 +1,912 @@
+Tengo un proyecto en Flutter, con la siguiente descripción:
+
+# Proyecto "valen_market_admin"
+
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+
+## Objetivo:
+
+Desarrollar e implementar un sistema que gestione los clientes, los productos y las ventas de un vendedor minorista.
+El sistema tiene que ser multiplataforma, ya que deberá contar con una implementación para Android, para IOS y para Web.
+Deberá contar con una base de datos online de clientes, productos y ventas. La base de ventas será relacional a las otras 2.
+
+Desde cualquier interfaz se deberá contar con un menú para gestionar:
+ - El alta, baja, modificación y consulta de los clientes;
+ - El alta, baja, modificación y consulta de los productos del catálogo;
+ - El alta, baja, modificación y consulta de las fichas de ventas;
+ - Las promociones de los productos;
+
+Desde la implementación de Android se deberá contar además con un menú para gestionar:
+ - Los recorridos a realizar por el cobrador según las fichas;
+
+
+Desde la implementación de IOS y Web se deberá contar además con un menú para gestionar:
+ - El volcado de las bases de datos hacia planillas online de Excel;
+
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+
+## Implementación tecnológica:
+
+Será diseñado utilizando la tecnología Flutter, implementando un Kernel común y un flujo independiente para las interfaces.
+Se contará con colecciones en Firestore para almacenar los datos:
+ - /BDD_Admins -> Se almacenarán los datos de los Admins que pueda acceder al sistema;
+ - /BDD_Catalogo -> Se almacenaran todos los datos de los productos;
+ - /BDD_Clientes -> Se almacenaran todos los datos de los clientes;
+ - /BDD_Fichas -> Se almacenaran todos los datos de las fichas de ventas. Cada entrada tendrá una referencia a la tabla de clientes y catálogo;
+ - /config -> Contendrá todos los datos importantes de configuración y control de la aplicación;
+
+Los admins deberán crearse una cuenta en el sistema con un mail de GMail, ya que se usa el sistema de Authenticator de Google para validarlos.
+Una vez que se registren, se creará un documento en BDD_Admins con el UID del usuario generado por Google.
+Esto permitirá enlazar los registros con el Authenticator, para poder revocar permisos fácilmente ante una falla o ingreso indebido.
+
+Se contará con la API de Dropbox para manejar todas las imágenes de los productos desde allí.
+Cuando se agregue un producto a la base de datos, se cargará la imagen en una carpeta especial dentro de Dropbox.
+Mediante las APIs, se obtendrá un enlace directo al recurso, y se guardará en la entrada del producto en la colección BDD_Catalogo.
+Los widgets que expondrán los productos accederán a las imágenes de los mismos mediante los links en la entrada de cada producto.
+
+El Kernel o los recursos en común entre las diferentes implementaciones deberán acceder mediante una capa de abstracción.
+No se deben generar accesos dependientes de la plataforma directamente desde las pantallas o los widgets.
+
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+
+## Normas de diseño:
+
+La aplicación tiene 2 entornos de trabajo en uso:
+ - Dev  -> Entorno para las pruebas de desarrollo y datos dummies;
+ - Prod -> Entorno productivo y real;
+
+En el punto de ingreso se define qué entornó se utilizar en la ejecución.
+Esto permite validar todas las modificaciones en el entorno de desarrollo antes de llevarlas a producción.
+
+Se implementan distintos tipos de testeos, desde los CRUDs a la base de datos hasta los de Integración en Android.
+
+Se definen las reglas obligatorias de diseño en el archivo "Design_Rules.md".
+
+La rama principal será la rama "master". Esta integrará todos los desarrollos en estado productivo.
+La rama de trabajo para la implementación de la Web será "developWeb". Ésta contendrá todos los desarrollos para la plataforma Web.
+La rama de trabajo para la implementación de Android será "developAndroid". Ésta contendrá todos los desarrollos para la plataforma Android.
+La rama de trabajo en desarrollo será "modxxxx", independientemente de la plataforma en uso.
+
+Sólo existirán 2 admins que tendrán los mismos niveles de privilegios.
+Un admin accederá sólo desde la aplicación en Android desde su celular personal, con el cual hará los recorridos.
+El otro admin sólo accederá a la versión Web, ya sea desde su computadora personal o desde su teléfono personal.
+Por lo que la implementación Web debe ser adaptada tanto para Desktop como para Mobile. Sólo cambia la interfaz gráfica, no el funcionamiento.
+La dirección web no será compartida a nadie más que a los admins, con lo que no habrá accesos externos.
+El admin Web sólo usará su comptadora personal, que no comparte con nadie más. No hay posibilidades de que ingrese alguien ajeno con su cuenta.
+Llegado el caso de que haya un acceso no aturoizado, se eliminará el registro de la base de datos de admins y ya no tednrá más permisos de acceso.
+
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+
+## Flujo de trabajo:
+
+------------------------------------------------------------------------------------------
+
+### Logueo y creación de usuarios:
+
+En primer instancia, independientemente de la plataforma, el usuario debe crearse una cuenta nueva en el sistema.
+Luego, deberá validar su mail.
+Una vez dado de alta, el sistema lo enlazará con su UID.
+Este dato debe ser almacenado en memoria persistente (esto dependerá de la plataforma, por eso la capa de abstracción intermedia).
+El objetivo es que en los siguientes logueos sucesivos, si ya se encuentra registrado, no tenga que volver a pasar por todo el proceso de nuevo.
+
+En el caso de la versión Web, luego de loguearse con la cuenta del sistema, deberá otorgar permisos para utilizar los servicios de GMail.
+Esta autorización es necesaria para poder acceder a las hojas de cálculo online.
+
+Posteriormente a esto, desde cualquier plataforma se requerirá abrir un enlace a Dropbox, para permitir el uso de la cuenta.
+Esto otogará los permisos correctos para usar las APIs, y devolverá un refresh_token.
+
+En resumen, el proceso de logueo será:
+ - Introducir el mail y contraseña con que se haya dado de alta en el sistema;
+ - (Sólo en la versión Web) Permitir el acceso a la cuenta de GMail;
+ - Permitir el acceso a la cuenta de Dropbox;
+
+El sistema debe almacenar los datos necesarios en memoria permanente, para validar el estado de logueo en los siguientes ingresos.
+Si el usuario ya se encuentra logueado, y los datos siguen siendo válidos, debe pasar directamente al menú principal.
+Si el permiso a la cuenta de GMail expiró, debe volver a solicitarlo.
+Si el acceso a Dropbox expiró, debe intentar regenerarlo con el refresh_token. De no poder, debe volver a solicitarle el permiso al usuario.
+En el documento "/config/dropbox", se encuentran alojadas las Keys para acceder a la API.
+Durante el uso de la aplicación, si algún acceso falla por expiración, debe indicarle al usuario que se cerrará la sesión, y enviarlo al menú de logueo inicial.
+
+------------------------------------------------------------------------------------------
+
+### Menú principal
+
+Deberá listar las opciones disponibles para manejarse por la app.
+Independientemente de la plataforma, deberá mostrar las opciones para acceder al menú de clientes, de productos y de fichas.
+En la versión Web, deberá además mostrar las opciones para acceder al menú de volcado de fichas.
+En la versión de Android, deberá además mostrar las opciones para acceder al menú de recorrido.
+
+------------------------------------------------------------------------------------------
+
+### Menú de clientes
+
+Deberá mostrar las opciones de "Agregar", "Buscar", "Modificar" y "Eliminar", que funcionarán según:
+ - Agregar  ->  Presentará los controles necesarios para ingresar todos los datos de un nuevo cliente.
+                Deberá hacer uso de validaciones para cada campo.
+ - Buscar   ->  Presentará los controles de "Nombre", "Apellido", "Zona" y "Teléfono" para usar de filtrados.
+                Deberá mostrar un listado con todos los resultados de la búsqueda.
+                Luego presentará una pantalla de información con los datos del cliente seleccionado.
+                Esta pantalla deberá mostrar los mismos datos que la pantalla de "Agregar".
+                Deberá mostrar botones para "Editar" y para "Eliminar" el registro seleccionado.
+                Si se ingresó desde el menú de "Editar", deberá mostrar sólo el botón de "Editar".
+                Si se ingresó desde el menú de "Eliminar", deberá mostrar sólo el botón de "Eliminar".
+ - Editar   ->  Deberá mostrar el menú de la opción de "Buscar".
+                Cuando se seleccione un registro, deberá mostrar sólo el botón de "Editar".
+ - Eliminar ->  Deberá mostrar el menú de la opción de "Buscar".
+                Cuando se seleccione un registro, deberá mostrar sólo el botón de "Eliminar".
+
+En la versión Web, deberá además contar con los botones de "Cargar" y "Guardar", que funcionarán según:
+ - Cargar   ->  Deberá abrir un cuadro de búsqueda de archivos para que el usuario cargue un Excel con registros de clientes.
+                Validará el formato de los ingresos, y los agregará a la colección de clientes.
+ - Guardar  ->  Deberá volcar todos los registros de la colección de clientes a una hoja de Excel online.
+                El nombre del archivo será la combinación de un Header, más la fecha y hora de creación.
+
+------------------------------------------------------------------------------------------
+
+### Menú de productos
+
+Deberá mostrar las opciones de "Ver catálogo", "Buscar", "Modificar" y "Eliminar", que funcionarán según:
+ - Ver catálogo  ->  Mostrará todos los productos disponibles en la colección del catálogo.
+ - Agregar  ->  Presentará los controles necesarios para ingresar todos los datos de un nuevo producto.
+                Deberá hacer uso de validaciones para cada campo.
+ - Buscar   ->  Presentará los controles de "Nombre", "Descripción corta", "Precio" y "Stock" para usar de filtrados.
+                Deberá mostrar un listado con todos los resultados de la búsqueda.
+                Luego presentará una pantalla de información con los datos del producto seleccionado.
+                Esta pantalla deberá mostrar los mismos datos que la pantalla de "Agregar".
+                Deberá mostrar botones para "Editar" y para "Eliminar" el registro seleccionado.
+                Si se ingresó desde el menú de "Editar", deberá mostrar sólo el botón de "Editar".
+                Si se ingresó desde el menú de "Eliminar", deberá mostrar sólo el botón de "Eliminar".
+ - Editar   ->  Deberá mostrar el menú de la opción de "Buscar".
+                Cuando se seleccione un registro, deberá mostrar sólo el botón de "Editar".
+ - Eliminar ->  Deberá mostrar el menú de la opción de "Buscar".
+                Cuando se seleccione un registro, deberá mostrar sólo el botón de "Eliminar".
+
+En la versión Web, deberá además contar con los botones de "Cargar" y "Guardar", que funcionarán según:
+ - Cargar   ->  Deberá abrir un cuadro de búsqueda de archivos para que el usuario cargue un Excel con registros de clientes.
+                Validará el formato de los ingresos, y los agregará a la colección de clientes.
+ - Guardar  ->  Deberá volcar todos los registros de la colección de clientes a una hoja de Excel online.
+                El nombre del archivo será la combinación de un Header, más la fecha y hora de creación.
+
+A su vez, cada producto será mostrado en un Widget que contendrá 3 botones especiales:
+ - Promoción    ->  A futuro permitirá enviar notificaciones de promociones sobre ese producto a los clientes.
+ - Editar       ->  Deberá mostrar la pantalla de edición con los datos del producto seleccionado.
+ - Eliminar     ->  Deberá eliminar de la base el producto seleccionado.
+
+------------------------------------------------------------------------------------------
+
+### Menú de fichas
+
+Deberá mostrar una pantalla que tendrá 2 secciones:
+ - A izquierda, un panel para controlar el registro de clientes.
+ - A derecha, un panel para controlar el registro de productos.
+
+En el panel izquierdo de control de los clientes, se tendrá una lista desplegable con toda la colección de clientes.
+Los ingresos en la lista se mostrarán con el formato "Nombre Apellido".
+Una vez seleccionado un registro, se cargarán todos los controls debajo con los datos de ese registro.
+Los controles de "Nombre", "Apellido" y "Zona" tendrán un checkbox a su izquierda.
+De activarse el checkbox, ese parámetro será usado como filtro a la lista de clientes presentada en el desplegable.
+Los filtros son independientes y pueden ser acumulativos.
+Para realizar un filtrado correctamente ingresando manualmente el dato, se debe dar Enter luego de ingresarlo.
+En el caso de que sólo quede 1 registro en la lista que coincida con los filtros, deberá seleccionarse automáticamente.
+En el caso de no quedar registros luego del filtrado, deberá mostrase "Sin clientes" en la lista desplegable.
+
+En el panel derecho de control de clientes, se listarán todos los productos del catálogo con un contador de unidades a sumar a la ficha.
+La vista es una versión reducida, que sólo mostrará la foto, el nombre, el precio y el stock actual de cada producto.
+El usuario deberá usar los controles de + y - para modificar las unidades que quiera sumar a la ficha en cuestión.
+En la parte superior de este panel se contará con un bloque de filtrado, que permitirá encontrar fácilmente los productos.
+
+Para agregar una ficha a la base, será necesario seleccionar algún cliente de la lista desplegable, y marcar al menos una unidad de algún producto.
+El resgitro en la colección de las fichas tendrá un campo con el UID del cliente y otro con el UID del producto (o una colección).
+De esta forma, cada ficha quedará referenciada a un cliente y a un producto (o más de uno) de manera dinámica.
+Si se impactan cambios sobre los clientes o sobre los productos, no será necesario impactarlos sobre las fichas para que estén actualizadas.
+
+Para buscar una ficha, se deberán cargar algunos datos del cliente, que será tomado como punto de partida.
+El sistema acepta 5 formas de búsqueda:
+ - Cliente exacto   ->  Se tomará el UID del cliente seleccionado de la lista desplegable.
+                        Se mostrará una pantalla con todas las fichas registradas para dicho cliente.
+                        El usuario deberá seleccionar una de las opciones disponibles para avanzar.
+ - Por nombre       ->  Se deberá cargar un nombre en el control de "Nombre".
+                        Se mostrará una pantalla con todas las fichas registradas para dicho nombre.
+                        Esto puede traer fichas de distintos clientes, siempre que compartan el nombre buscado.
+                        El usuario deberá seleccionar una de las opciones disponibles para avanzar.
+ - Por apellido     ->  Se deberá cargar un apellido en el control de "Apellido".
+                        Se mostrará una pantalla con todas las fichas registradas para dicho apellido.
+                        Esto puede traer fichas de distintos clientes, siempre que compartan el apellido buscado.
+                        El usuario deberá seleccionar una de las opciones disponibles para avanzar.
+ - Por zona         ->  Se deberá seleccionar una zona del menú desplegable de zonas disponibles.
+                        Se mostrará una pantalla con todas las fichas registradas para dicha zona.
+                        Esto puede traer fichas de distintos clientes, siempre que compartan la zona buscada.
+                        El usuario deberá seleccionar una de las opciones disponibles para avanzar.
+ - Por fecha        ->  Se deberá seleccionar una fecha en el control de "Fecha".
+                        Se mostrará una pantalla con todas las fichas registradas para dicha fecha.
+                        Esto puede traer fichas de distintos clientes, siempre que compartan la fecha buscada.
+                        El usuario deberá seleccionar una de las opciones disponibles para avanzar.
+Seleccionada una ficha, se pasará a una pantalla similar donde se mostrarán los mismos paneles, pero con los datos de la ficha buscada.
+
+Para editar la ficha seleccionada, se pueden modificar tanto los datos del cliente como de los productos.
+En el caso de los clientes, mediante los controles se puede filtrar la lista y seleccionar otra persona para que figure en la ficha.
+En el caso de los productos, se listarán sólo los productos que contenga la ficha y se podrán modificar las cantidades.
+A futuro, se agregarán controles para poder adicionar productos a la ficha registrada.
+
+Para eliminar la ficha seleccionada, simplemente se debe confirmar la acción mediante el botón.
+
+------------------------------------------------------------------------------------------
+
+### Menú de promociones
+
+Por implementar. No estará disponible en la primer versión productiva;
+
+------------------------------------------------------------------------------------------
+
+### Menú de recorrido;
+
+Por implementar. No estará disponible en la primer versión productiva;
+
+
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+
+## Estado actual del proyecto
+
+Ya se cuenta con las colecciones en Firebase generadas y utilizadas correctamente.
+Se permite la creación de cuentas y el logueo correctamente.
+Se permite otorgar los permisos de GMail y de Dropbox para los servicios extras.
+Se cuenta con los menúes de logueo, clientes, productos y fichas funcionales.
+
+En el menú de clientes:
+ - Se permite agregar nuevos clientes;
+ - Se permite volcar la colección de clientes a una planilla de Excel online;
+ - Resta implementar la búsqueda de clientes;
+ - Resta implementar la edición de clientes;
+ - Resta implementar la eliminación de clientes;
+
+En el menú de productos:
+ - Se permite ver el catálogo completo;
+ - Se permite acceder a la pantalla de edición o eliminación de un producto en particular desde su presentación;
+ - Se permite agregar nuevos productos;
+ - Resta implementar la zona de filtros para la búsqueda de productos;
+ - Resta enlazar el botón de "Editar" a la búsqueda y edición de un producto;
+ - Resta enlazar el botón de "Eliminar" a la búsqueda y eliminación de un producto;
+
+En el menú de fichas:
+ - Se permite acceder al listado de clientes y filtrarlo;
+ - Se permite acceder al catálogo completo de productos;
+ - Se permite crear una nueva ficha;
+ - Se permite buscar las fichas según varios criterios de búsqueda;
+ - Se permite efitar una ficha;
+ - Se permite eliminar una ficha;
+ - Resta agregar el filtrado de productos en el panel de productos;
+ - Resta poder agregar nuevos productos en la edición de las fichas;
+ - Resta agregar el control de la fecha de venta de la ficha
+
+Los entornos de desarrollo (Dev) y producción (Prod) ya se encuentran correctamente configurados y en funcionamiento.
+
+
+------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
+
+
+Última revisión     ->  11/10/2025
+Rama en desarrollo  ->  mod0020
+Feature en proceso  ->  Refactorización de la estructura de datos almacenadas en los documentos de las fichas
+
+Y esta estructura de archivos:
+
+valen_market_admin/
+│
+├── assets/
+│   │── icons/
+│   │   └── Todos los archivos de íconos usados en la app, en formato svg
+│   └── images/
+│       └── Todas las imágenes que se usan en la app
+│
+├── integration_test/
+│   │── agregar_cliente_flow_test.dart.dart
+│   └── driver.dart
+│
+├── lib/
+│   │── Android_flow/
+│   │   │── features/
+│   │   │   │── catalogo/
+│   │   │   │   └── screens/
+│   │   │   │       └── catalogo_screen.dart
+│   │   │   │
+│   │   │   │── clientes/
+│   │   │   │   └── screens/
+│   │   │   │       │── agregar_cliente_screen.dart
+│   │   │   │       │── buscar_cliente_screen.dart
+│   │   │   │       └── clientes_screen.dart
+│   │   │   │
+│   │   │   │── fichas/
+│   │   │   │   └── screens/
+│   │   │   │       └── fichas_screen.dart
+│   │   │   │
+│   │   │   │── home/
+│   │   │   │   └── screens/
+│   │   │   │       └── home_screen.dart
+│   │   │   │
+│   │   │   └── recorrido/
+│   │   │       └── screens/
+│   │   │           └── recorrido_screen.dart
+│   │   │
+│   │   └── widgets/
+│   │           │── custom_big_button.dart
+│   │           │── custom_bottom_navbar.dart
+│   │           │── custom_home_button.dart
+│   │           │── custom_info_card.dart
+│   │           │── custom_opciones_desplegables.dart
+│   │           │── custom_simple_information.dart
+│   │           └── custom_top_bar.dart
+│   │
+│   │── app/
+│   │   └── app.dart
+│   │
+│   │── config/
+│   │   │── environment.dart
+│   │   │── firebase_options_dev.dart
+│   │   └── firebase_options_prod.dart
+│   │
+│   │── constants/
+│   │   │── app_colors.dart
+│   │   │── assets.dart
+│   │   │── keys.dart
+│   │   │── pantallas.dart
+│   │   │── textos.dart
+│   │   └── zonas_disponibles.dart
+│   │
+│   │── services/
+│   │   │── dropbox/
+│   │   │   └── dropbox_servicios_web.dart
+│   │   │── firebase/
+│   │   │   │── auth_servicios_firebase_web.dart
+│   │   │   │── catalogo_servicios_firebase.dart
+│   │   │   │── clientes_servicios_firebase.dart
+│   │   │   │── dropbox_keys.dart
+│   │   │   └── fichas_servicios_firebase.dart
+│   │   └── google/
+│   │       └── clientes_servicios_google_sheets_web.dart
+│   │
+│   │── utils/
+│   │   └── validador_texto.dart
+│   │
+│   │── web_flow/
+│   │   │── features/
+│   │   │   │── catalogo/
+│   │   │   │   └── screens/
+│   │   │   │       │── web_agregar_producto_screen.dart
+│   │   │   │       │── web_catalogo_screen.dart
+│   │   │   │       │── web_editar_producto_screen.dart
+│   │   │   │       └── web_ver_catalogo_screen.dart
+│   │   │   │
+│   │   │   │── clientes/
+│   │   │   │   └── screens/
+│   │   │   │       │── web_agregar_cliente_screen.dart
+│   │   │   │       └── web_clientes_screen.dart
+│   │   │   │
+│   │   │   │── dropbox/
+│   │   │   │   └── screens/
+│   │   │   │       │── web_dropbox_auth_screen.dart
+│   │   │   │       └── web_dropbox_check_screen.dart
+│   │   │   │
+│   │   │   │── fichas/
+│   │   │   │   │── Models/
+│   │   │   │   │   |── cliente_ficha_model.dart
+│   │   │   │   │   |── fechas_ficha_model.dart
+│   │   │   │   │   |── producto_ficha_model.dart
+│   │   │   │   │   |── pago_item_model.dart
+│   │   │   │   │   |── pagos_ficha_model.dart
+│   │   │   │   │   └── ficha_model.dart
+│   │   │   │   │── Provider/
+│   │   │   │   │   |── cliente_ficha_provider.dart
+│   │   │   │   │   |── fechas_ficha_provider.dart
+│   │   │   │   │   |── producto_ficha_provider.dart
+│   │   │   │   │   |── pagos_ficha_provider.dart
+│   │   │   │   │   └── ficha_en_curso_provider.dart
+│   │   │   │   └── screens/
+│   │   │   │       │── web_fichas_agregar_buscar_screen.dart
+│   │   │   │       └── web_fichas_editar_eliminar_screen.dart
+│   │   │   │
+│   │   │   │── home/
+│   │   │   │   └── screens/
+│   │   │   │       └── web_home_screen.dart
+│   │   │   │
+│   │   │   │── planillas/
+│   │   │   │   └── screens/
+│   │   │   │       └── web_planilla_de_cobros.dart
+│   │   │   │
+│   │   │   └── login/
+│   │   │       └── screens/
+│   │   │           │── web_login_email_password_screen.dart
+│   │   │           │── web_login_screen.dart
+│   │   │           │── web_register_screen.dart
+│   │   │           └── web_registration_waiting_screen.dart
+│   │   │
+│   │   └── widgets/
+│   │       │── custom_web_agregar_producto_bloque.dart
+│   │       │── custom_web_bloque_con_titulo.dart
+│   │       │── custom_web_button_styles.dart
+│   │       │── custom_web_campo_con_checkbox_dropdown.dart
+│   │       │── custom_web_campo_con_checkbox_textfield.dart
+│   │       │── custom_web_campo_fecha_con_checkbox.dart
+│   │       │── custom_web_campo_frecuencia_aviso.dart
+│   │       │── custom_web_campo_sin_checkbox_textfield.dart
+│   │       │── custom_web_dropdown_clientes.dart
+│   │       │── custom_web_ficha_cliente_section.dart
+│   │       │── custom_web_ficha_fechas_section.dart
+│   │       │── custom_web_ficha_productos_section.dart
+│   │       │── custom_web_ficha_shop_item.dart
+│   │       │── custom_web_gradient_button.dart
+│   │       │── custom_web_popup_resultados_busqueda.dart
+│   │       │── custom_web_popup_selector_criterio_busqueda.dart
+│   │       │── custom_web_shop_item_description.dart
+│   │       │── custom_web_text_field.dart
+│   │       └── custom_web_top_bar.dart
+│   │
+│   │── main_common.dart
+│   │── main_dev.dart
+│   └── main_prod.dart
+│
+├── test/
+│   └── clientes_crud_test.dart
+│
+└── firebase.json
+
+Además, estas son las reglas de diseño obligatorias para todo el proyecto:
+
+ Como puedes ver, el proyecto es único, pero tiene 2 entradas:
+ - lib/main_dev.dart -> Para el ambiente de desarrollo
+ - lib/main_prod.dart -> Para el ambiente de producción
+
+ Ahora me encuentro trabajando en la mod0020 -> Refactorización de la estructura de datos almacenadas en los documentos de las fichas 
+
+ Dime si se entiende bien la estructura del proyecto, así comenzamos a trabajar en el nuevo desarrollo
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Ejemplo práctico de una ficha:
+Ficha
+{
+  "ID": asdasdasdasd,
+  "NumeroDeFicha": 30,
+  "Cliente": {
+    "UID": "75298AzAX4UeaGCvm0Wl",
+    "Nombre": "fabian",
+    "Apellido": "gertie",
+    "Zona": "Norte"
+    "Direccion": "Calle falsa 123",
+    "Telefono": "1122334455",
+  },
+  "Fechas": {
+    "FechaDeCreacion": "2025-10-10",
+    "FechaDeVenta": "2025-09-28",
+    "FechaDeProximoAviso": "2025-10-24"
+  },
+  "Productos": [
+    {
+      "UID": "EXs51qPRfvggQ0Jftt6f",
+      "Nombre": "Agujereadora",
+      "PrecioUnitario": 18000,
+      "PrecioDeLasCuotas": 1500,
+      "Unidades": 2
+    },
+    {
+      "UID": "MROSzBJf0bJHnTbin1ZU",
+      "Nombre": "Reloj inteligente",
+      "PrecioUnitario": 45000,
+      "PrecioDeLasCuotas": 3750,
+      "Unidades": 1
+    }
+  ],
+  "Pagos": {
+    "CantidadDeCuotas": 12,
+    "ImporteTotal": 81000,
+    "ImporteCuota": 6750,
+    "ImporteSaldado": 16750,
+    "Restante": 64250,
+    "CuotasPagas": 2,
+    "Saldado": false,
+    "PagosRealizados": [
+      {
+        "Fecha": "2025-10-05T00:00:00-03:00",
+        "Medio": "Efectivo",
+        "Monto": 6750
+      },
+      {
+        "Fecha": "2025-10-14T00:00:00-03:00",
+        "Medio": "Transferencia",
+        "Monto": 10000
+      }
+    ]
+  }
+}
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Definición de los Sub Providers
+
+/// ---------------------------------------------------------------------------
+/// CLIENTE_FICHA_PROVIDER
+///
+/// 🔹 Rol general:
+/// Administra los datos del cliente asociado a la ficha en curso.
+/// Representa una capa intermedia entre la UI y el modelo [ClienteFichaModel].
+///
+/// 🔹 Forma de uso:
+///   - Este provider es de uso interno dentro de [FichaEnCursoProvider].
+///   - No debe ser accedido directamente por los Widgets.
+///   - Su responsabilidad es mantener un único cliente activo.
+///
+/// 🔹 Interactúa con:
+///   - [FichaEnCursoProvider]: usa sus métodos públicos para actualizar el cliente.
+///   - [ClienteFichaModel]: modelo de datos del cliente.
+///
+/// 🔹 Lógica principal:
+///   - Permite establecer un cliente mediante `setCliente()`.
+///   - Provee acceso a través del getter `cliente`.
+///   - Permite limpiar el estado (reiniciar los datos del cliente).
+///
+/// 🔹 Métodos disponibles:
+///   • `ClienteFichaModel get cliente` → Obtiene el cliente actual.
+///   • `void setCliente(ClienteFichaModel cliente)` → Define un nuevo cliente.
+///   • `void limpiarCliente()` → Restablece los valores vacíos.
+///
+/// ---------------------------------------------------------------------------
+
+
+/// ---------------------------------------------------------------------------
+/// FECHAS_FICHA_PROVIDER
+///
+/// 🔹 Rol general:
+/// Administra y normaliza las fechas asociadas a la ficha (creación, venta,
+/// y próximo aviso). Encapsula un modelo [FechasFichaModel].
+///
+/// 🔹 Forma de uso:
+///   - Se utiliza exclusivamente dentro de [FichaEnCursoProvider].
+///   - No debe ser accedido directamente por los Widgets.
+///
+/// 🔹 Interactúa con:
+///   - [FichaEnCursoProvider]: mediante los métodos `actualizarFechas()` y `cargarDesdeMap()`.
+///   - [FechasFichaModel]: modelo que define las tres fechas.
+///
+/// 🔹 Lógica principal:
+///   - Permite asignar un nuevo modelo de fechas mediante `setFechas()`.
+///   - Permite reiniciar el estado mediante `limpiarFechas()`.
+///
+/// 🔹 Métodos disponibles:
+///   • `FechasFichaModel get fechas` → Obtiene las fechas actuales.
+///   • `void setFechas(FechasFichaModel fechas)` → Reemplaza el modelo completo.
+///   • `void limpiarFechas()` → Reinicia las fechas (mantiene la de creación actual).
+///
+/// ---------------------------------------------------------------------------
+
+
+/// ---------------------------------------------------------------------------
+/// PAGOS_FICHA_PROVIDER
+///
+/// 🔹 Rol general:
+/// Administra el registro y control de pagos realizados en una ficha.
+/// Calcula automáticamente los valores dependientes: restante, cuotas pagas,
+/// importe saldado y estado “saldado”.
+///
+/// 🔹 Forma de uso:
+///   - Solo se accede desde [FichaEnCursoProvider].
+///   - No debe ser accedido directamente por los Widgets.
+///
+/// 🔹 Interactúa con:
+///   - [FichaEnCursoProvider]: a través de `registrarPago()` y `actualizarFichaMedianteID()`.
+///   - [PagosFichaModel] y [PagoItemModel]: modelos de estructura de pagos.
+///
+/// 🔹 Lógica principal:
+///   - Registra nuevos pagos, recalculando automáticamente totales.
+///   - Admite registro desde objetos (`agregarPago()`) o mapas (`registrarPagoDesdeMapa()`).
+///   - Permite limpiar completamente el historial de pagos.
+///
+/// 🔹 Métodos disponibles:
+///   • `PagosFichaModel get pagos`
+///   • `void setPagos(PagosFichaModel nuevosPagos)`
+///   • `void agregarPago(PagoItemModel nuevoPago)`
+///   • `void registrarPagoDesdeMapa(Map<String, dynamic> pagoMap)`
+///   • `void limpiarPagos()`
+///
+/// ---------------------------------------------------------------------------
+
+
+/// ---------------------------------------------------------------------------
+/// PRODUCTO_FICHA_PROVIDER
+///
+/// 🔹 Rol general:
+/// Gestiona la lista de productos asociados a la ficha en curso.
+/// Es responsable de mantener coherencia en unidades, precios y cuotas.
+///
+/// 🔹 Forma de uso:
+///   - Se utiliza solo dentro de [FichaEnCursoProvider].
+///   - No debe ser accedido directamente por los Widgets.
+///
+/// 🔹 Interactúa con:
+///   - [FichaEnCursoProvider]: mediante sus métodos de alto nivel:
+///       • `modificarCantidadDeProducto()`
+///       • `actualizarValoresDelProducto()`
+///   - [ProductoFichaModel]: modelo individual de producto.
+///
+/// 🔹 Lógica principal:
+///   - Permite agregar, actualizar o eliminar productos.
+///   - Actualiza cantidades y datos financieros de forma controlada.
+///   - Mantiene la lista en estado inmutable hacia el exterior.
+///
+/// 🔹 Métodos disponibles:
+///   • `List<ProductoFichaModel> get productos`
+///   • `void agregarProducto(ProductoFichaModel producto)`
+///   • `void eliminarProductoPorUID(String uidProducto)`
+///   • `void actualizarCantidadDeProducto(String uidProducto, int nuevaCantidad)`
+///   • `void actualizarValoresDelProducto({ ... })`
+///   • `void limpiarProductos()`
+///
+/// ---------------------------------------------------------------------------
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Definición del Provider (Este es el único punto de contacto entre UI y sub-providers / servicios)
+
+/// ---------------------------------------------------------------------------
+/// FICHA_EN_CURSO_PROVIDER
+///
+/// 🔹 Rol general:
+/// Gestiona el estado global de la ficha actualmente en edición o creación
+/// dentro del flujo web. Centraliza la interacción entre la UI, los modelos
+/// de ficha (`FichaModel`) y el servicio de Firebase (`FichasServiciosFirebase`).
+///
+/// 🔹 Forma de uso:
+/// Este provider debe utilizarse a través de `ref.watch(fichaEnCursoProvider)`
+/// o `ref.read(fichaEnCursoProvider.notifier)` dentro de widgets `ConsumerWidget`
+/// o `ConsumerStatefulWidget`.
+///
+/// - Nunca acceder directamente a los subproviders internos.
+/// - Toda modificación (cliente, fechas, productos, pagos) debe pasar por los
+///   métodos públicos de `FichaEnCursoProvider`.
+///
+/// 🔹 Interactúa con:
+///   - [ClienteFichaProvider]: gestiona la información del cliente.
+///   - [FechasFichaProvider]: controla fechas de creación, venta y próximo aviso.
+///   - [ProductoFichaProvider]: maneja la lista de productos dentro de la ficha.
+///   - [PagosFichaProvider]: registra y actualiza los pagos realizados.
+///   - [FichasServiciosFirebase]: sincroniza con la base de datos Firestore.
+///
+/// 🔹 Lógica principal:
+///   - Permite crear, actualizar o eliminar fichas en Firebase.
+///   - Mantiene la ficha en curso en memoria mientras se edita.
+///   - Expone métodos de conveniencia para acceder a datos específicos.
+///   - Gestiona coherencia interna entre subproviders (cliente, fechas, pagos, etc.).
+///
+/// 🔹 Estados:
+///   - `estaVacia`: no hay cliente ni productos cargados.
+///   - `esValida`: lista para guardarse (cliente válido + productos cargados).
+///
+/// ---------------------------------------------------------------------------
+///
+/// 🔸 INTERFACES Y MÉTODOS DISPONIBLES
+/// ---------------------------------------------------------------------------
+///
+/// ▶️ CLIENTE
+/// - `void actualizarCliente(Map<String, dynamic> clienteMap)`
+///   Carga o modifica los datos del cliente actual.
+///
+/// ▶️ FECHAS
+/// - `void actualizarFechas(Map<String, dynamic> fechasMap)`
+///   Establece las fechas de la ficha (creación, venta, aviso).
+///
+/// ▶️ PAGOS
+/// - `void registrarPago(Map<String, dynamic> pagoMap)`
+///   Agrega un nuevo pago a la lista interna de pagos.
+///
+/// ▶️ IDENTIFICADORES
+/// - `void setId(String? id)`
+///   Define el ID de la ficha actual (usado para actualización en Firebase).
+///
+/// - `void setNumeroDeFicha(int nuevoNumero)`
+///   Establece el número correlativo de ficha.
+///
+/// ▶️ PRODUCTOS
+/// - `void modificarCantidadDeProducto({required String uidProducto, required bool incrementar, required Map<String, dynamic> datosCatalogo})`
+///   Incrementa o decrementa la cantidad de unidades de un producto, agregándolo o quitándolo según corresponda.
+///
+/// - `void actualizarValoresDelProducto({...})`
+///   Permite modificar precio unitario, cuotas o importe de cuotas de un producto ya existente.
+///
+/// - `void actualizarProductos(List<Map<String, dynamic>> productosMap)`
+///   Reemplaza la lista completa de productos (por ejemplo, al cargar una ficha guardada).
+///
+/// ▶️ CONSTRUCCIÓN Y CARGA DE FICHAS
+/// - `FichaModel construirFichaCompleta()`
+///   Construye un objeto `FichaModel` a partir del estado actual del provider.
+///
+/// - `void cargarDesdeFichaModel(FichaModel ficha)`
+///   Carga el estado interno desde un modelo ya existente.
+///
+/// - `void cargarDesdeMap(Map<String, dynamic> data)`
+///   Restaura el estado a partir de un mapa (por ejemplo, obtenido de Firebase).
+///
+/// ▶️ VALIDACIÓN Y ESTADO
+/// - `bool get esValida`
+///   Retorna `true` si la ficha tiene cliente y productos cargados.
+///
+/// - `bool get estaVacia`
+///   Retorna `true` si no hay cliente ni productos cargados.
+///
+/// ▶️ LIMPIEZA
+/// - `void limpiarFicha()`
+///   Reinicia completamente el estado de la ficha en curso.
+///
+/// ▶️ SINCRONIZACIÓN CON FIREBASE
+/// - `Future<void> guardarFicha()`
+///   Crea una nueva ficha en Firebase (solo si no tiene ID asignado).
+///
+/// - `Future<void> actualizarFichaMedianteID()`
+///   Actualiza una ficha existente en Firebase.
+///
+/// - `Future<void> eliminarFichaMedianteID()`
+///   Elimina una ficha en Firebase y limpia el estado local.
+///
+/// - `Future<void> cargarFichaMedianteID()`
+///   Descarga y carga una ficha existente desde Firebase.
+///
+/// ▶️ CONSULTAS POR FILTROS (Firebase)
+/// - `Future<List<FichaModel>> obtenerFichasMedianteID()`
+/// - `Future<List<FichaModel>> obtenerFichasMedianteNombre()`
+/// - `Future<List<FichaModel>> obtenerFichasMedianteApellido()`
+/// - `Future<List<FichaModel>> obtenerFichasMedianteZona()`
+/// - `Future<List<FichaModel>> obtenerFichasMedianteFechaVenta()`
+/// - `Future<List<FichaModel>> obtenerFichasMedianteFechaAviso()`
+///
+/// ▶️ GETTERS DE ACCESO SIMPLIFICADO (para UI)
+/// - `String? get uidCliente`
+/// - `String? get nombreCliente`
+/// - `String? get apellidoCliente`
+/// - `String? get zonaCliente`
+/// - `String? get direccionCliente`
+/// - `String? get telefonoCliente`
+/// - `DateTime? get fechaDeVenta`
+/// - `DateTime? get proximoAviso`
+/// - `List<ProductoFichaModel> get productos`
+/// - `PagosFichaModel get pagos`
+///
+/// ---------------------------------------------------------------------------
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Reglas operativas (a aplicar estrictamente)
+
+Interfaces Map-only:
+  - Los Widgets SIEMPRE pasan/reciben Map<String,dynamic> a/desde el FichaEnCursoProvider, no pasarán objetos parciales o variables sueltas.
+  - Ejemplo: actualizarCliente(Map)
+
+Provider como única capa que habla con servicios:
+  - La UI no llama a FichasServiciosFirebase ni a métodos Firebase directamente.
+  - Ejemplo: await ref.read(fichaEnCursoProvider).CrearFichaEnFirebase();
+
+Sub-providers encapsulados:
+  - Ningún otro archivo (widgets/pantallas) debe importar o manipular ClienteFichaProvider, FechasFichaProvider, ProductoFichaProvider o PagosFichaProvider directamente.
+  - Todo a través de FichaEnCursoProvider.
+
+Nombres de campos:
+  - Para mapear a Firestore o entre capas, usar las constantes de fieldNames.dart en toMap() y fromMap() de los modelos.
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Operaciones con Firebase para fichas
+
+/// ---------------------------------------------------------------------------
+/// FICHAS_SERVICIOS_FIREBASE
+///
+/// 🔹 Rol general:
+/// Servicio de persistencia encargado de la interacción con Firestore para
+/// crear, leer, actualizar y eliminar fichas de clientes.
+///
+/// 🔹 Forma de uso:
+///   - Se utiliza internamente desde [FichaEnCursoProvider].
+///   - Cada método se comunica con la colección `BDD_Fichas`.
+///
+/// 🔹 Interactúa con:
+///   - [FichaModel]: modelo principal que encapsula todos los submodelos.
+///   - Firestore (`FirebaseFirestore`): colección `BDD_Fichas` y documento `config/fichas`.
+///
+/// 🔹 Lógica principal:
+///   - Permite CRUD completo de fichas en Firestore.
+///   - Aplica normalización de fechas.
+///   - Controla la numeración consecutiva de fichas mediante `obtenerYSiguienteNumeroFicha()`.
+///   - Ofrece métodos de consulta por distintos filtros (ID, nombre, zona, fechas).
+///
+/// 🔹 Métodos principales:
+///   • `Future<String> CrearFichaEnFirebase(FichaModel ficha)`
+///   • `Future<void> ActualizarFichaEnFirebase(String fichaId, FichaModel ficha)`
+///   • `Future<void> EliminarFichaEnFirebase(String fichaId)`
+///   • `Future<FichaModel?> CargarFichaDesdeFirebaseMedianteIDCliente(String fichaId)`
+///   • `Future<List<FichaModel>> ObtenerFichasDesdeFirebaseMediante...()`
+///   • `Future<int> obtenerYSiguienteNumeroFicha()`
+///
+/// ---------------------------------------------------------------------------
+
+
+Operaciones con Firebase para catálogo
+
+/// ---------------------------------------------------------------------------
+/// CATALOGO_SERVICIOS_FIREBASE
+///
+/// 🔹 Rol general:
+/// Gestiona la colección `BDD_Catalogo` en Firestore, encargándose de las
+/// operaciones CRUD sobre los productos disponibles en el sistema.
+///
+/// 🔹 Forma de uso:
+///   - Utilizado por widgets y providers que necesiten mostrar o actualizar
+///     el catálogo de productos (por ejemplo, en la selección de productos
+///     dentro de la ficha).
+///
+/// 🔹 Interactúa con:
+///   - Firestore (`FirebaseFirestore`): colección `BDD_Catalogo`.
+///   - Constantes de `fieldNames.dart` para garantizar nombres uniformes.
+///
+/// 🔹 Lógica principal:
+///   - Agrega nuevos productos con timestamp de creación.
+///   - Obtiene productos por ID o todos los registros.
+///   - Actualiza y elimina registros existentes.
+///
+/// 🔹 Métodos disponibles:
+///   • `Future<void> agregarProducto({...})`
+///   • `Future<List<Map<String, dynamic>>> obtenerTodosLosProductos()`
+///   • `Future<Map<String, dynamic>?> obtenerProductoPorId(String id)`
+///   • `Future<void> actualizarProducto({...})`
+///   • `Future<void> eliminarProducto(String id)`
+///
+/// ---------------------------------------------------------------------------
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Encabezado de cada archivo, para describirlo
+
+/// ---------------------------------------------------------------------------
+/// NOMBRE DEL WIDGET
+///
+/// 🔹 Rol: Descripcón de funcionamiento.
+/// 🔹 Interactúa con:
+///   - [Nombre del Widget]:
+///       • ¿Cómo inteactúa?.
+/// 🔹 Lógica:
+///   - Lógica de funcionamiento
+/// ---------------------------------------------------------------------------
